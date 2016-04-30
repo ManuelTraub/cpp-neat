@@ -3,35 +3,59 @@
 
 using namespace NEAT;
 
+/* create a new Phenotype out of the given Genotype */
+Phenotype::Phenotype(Genotype *genome) {
+
+    vector<NeuronGene *> neuronGenes         = genome->getNeurons();
+    vector<ConnectionGene *> connectionGenes = genome->getConnections();
+    vector<Neuron *> neuronsById;
+    
+    /* creat the layers */
+    for (unsigned i = 0; i < genome->getNumberLayers(); i++)
+        this->neuronLayers.push_back(vector<Neuron *>());
+
+    /* create the neurons */
+    for (unsigned i = 0; i < neuronGenes.size(); i++) {
+        
+        const NeuronGene *gene = neuronGenes[i];
+        neuronsById.push_back(new Neuron());
+
+        if (gene->type == NeuronType::INPUT)
+            this->neuronLayers[0].push_back(neuronsById.back());
+        else if (gene->type == NeuronType::OUTPUT)
+            this->neuronLayers.back().push_back(neuronsById.back());
+        else
+            this->neuronLayers[gene->layer].push_back(neuronsById.back());
+    }
+
+    /* connect the neurons */
+    for (unsigned i = 0; i < connectionGenes.size(); i++) {
+        
+        const ConnectionGene *gene = connectionGenes[i];
+        const unsigned output = gene->outputNeuron;
+        const unsigned input  = gene->inputNeuron;
+
+        neuronsById[output]->addInput(neuronsById[input], gene->getWeight());
+    }
+}
+
 /* calculate the output for a given input */
 vector<double> Phenotype::run(vector<double> inputs) {
+
+    vector<double> outputs(this->neuronLayers.back().size());
     
-    /* set the input neurons to easily calulate the 
-     * other neuron outputs through the connections */
+    /* set the input neurons */
     for (unsigned i = 0; i < inputs.size(); i++)
-        genome.inputNeurons[i].setOutput(inputs[i]);
+        this->neuronLayers[0][i]->setValue(inputs[i]);
     
-    for (unsigned l = 0; l < genome.connections.size(); l++) {
+    /* calculate the output for each layer */
+    for (unsigned l = 0; l < neuronLayers.size(); l++)
+        for (unsigned n = 0; n < neuronLayers[l].size(); n++)
+            neuronLayers[l][n]->update();
 
-        /* calculate the inputs for this layer */
-        for (unsigned c = 0; c < genome.connections[l].size(); c++) {
+    /* collect the output values */
+    for (unsigned i = 0; i < neuronLayers.back().size(); i++)
+        outputs[i] = neuronLayers.back()[i]->getValue();
 
-            const ConnectionGenes &currentGene = genome.connections[l][c];
-            const unsigned inputNeuron  = currentGene.getInputNeuron();
-            const unsigned inputLayer   = currentGene.getInputLayer();
-            const unsigned outputNeuron = currentGene.getOutputNeuron();
-            const double   weight       = currentGene.getWeight();
-            const double   inputValue   = genome.neurons[inputLayer][inputNeuron].getOutput();
-
-            /* add an input for the output neuron */
-            genome.neuron[l + 1][outputNeuron].addInput(weight * inputValue);
-
-#ifdef DEBUG
-            /* check that the output layer maches */
-            if (currentGene.getOutputLayer() != l + 1)
-                assert(false);
-#endif
-        }
-
-
+    return outputs;
 }

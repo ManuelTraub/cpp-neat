@@ -5,28 +5,48 @@
 #define __GENOTYPE_H__
 
 #include <vector>
+#include "utils.h"
+#include "Gene.h"
 
 using std::vector;
+using std::pair;
 
 namespace NEAT {
-
-    /* forward declaration of the Phenotype */
-    class Phenotype;
     
     class Genotype {
         
-        /* let the Phenotype access the private members fo the Genotype */
-        friend class Phenotype;
-        
         private:
-            
-            /* the neurons of this sorted by layer */
-            vector<vector<NeuronGene>> neurons;
 
-            /* the ConnectionGenes of this sorted first by layer
-             * and second by theyr historical id */
-            vector<vector<ConnectionGenes>> connections;
-    }
+            /* global random value to mutate this */
+            static rand128_t *rand;
+
+            /* the number of layers of this */
+            unsigned nLayers;
+            
+            /* the neurons of this */
+            vector<NeuronGene *> neurons;
+
+            /* the ConnectionGenes of this */
+            vector<ConnectionGene *> connections;
+
+        public:
+
+            /* return the number of layers of this */
+            unsigned getNumberLayers() { return nLayers; }
+
+            /* return the neurons of this */
+            vector<NeuronGene *> getNeurons() { return neurons; }
+
+            /* returns the connections of this */
+            vector<ConnectionGene *> getConnections() { return connections; }
+            
+            /* mutate this by inserting a new hidden neuron 
+             * (returns the new created connections) */
+            pair<ConnectionGene *, ConnectionGene *> mutateNeuron();
+
+            /* mutate a given percentage of connections */
+            void mutateConnections(double percent);
+    };
 }
 
 #endif /* __GENOTYPE_H__ */

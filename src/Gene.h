@@ -7,72 +7,38 @@
 #define __GENE_H__
 
 #include <inttypes.h>
+#include <pthread.h>
+#include "utils.h"
 
 namespace NEAT {
+
+    /* the different types of neurons (input output or hidden) */
+    enum class NeuronType { INPUT, OUTPUT, HIDDEN };
 
     /**
      * A Neuron Gene representing a neuron within a neural network
      */
-    class NeuronGene {
+    struct NeuronGene {
+
+        /* the neuron type of this */
+        const NeuronType type;
         
-        private:
-            
-            /* the id of this neuron 
-             * Neurons are enumerated by each organism,
-             * making it posible track similar ConnectionGene creation
-             * */
-            unsigned id;
+        /* the id of this neuron 
+         * Neurons are enumerated by each organism,
+         * making it posible track similar ConnectionGene creation
+         * */
+        const unsigned id;
 
-            /* the layer of this neuron (0 is first hidden layer) */
-            unsigned layer;
+        /* the layer of this neuron (0 is first hidden layer) */
+        const unsigned layer;
+        
+        /* creats a new neuron within the given layer, and with the given id */
+        NeuronGene(const NeuronType type, 
+                   const unsigned id, 
+                   const unsigned layer) :
+                   type(type), id(id), layer(layer) { }
 
-            /* the cummulated input inputs */
-            double cummulatedInput;
-
-            /* the output value */
-            double outputValue;
-
-        public:
-            
-            /* creats a new neuron within the given layer, and with the given id */
-            NeuronGene(unsigned id, unsigned layer) {
-                this->id    = id;
-                this->layer = layer;
-            }
-
-            /* clears the cummulated inputs to start recaluclation
-             * of the output value of this */
-            void clearInputs() {
-                cummulatedInput = 0.0;
-            }
-
-            /* adds the value of ine input tho the cummulated input value of this 
-             * in order to generate the output value of this */
-            void addInput(double value) {
-                cummulatedInput += value;
-            }
-
-            /* calculates the output value once all input vallues are cummulated */
-            void calculateOutput() {
-
-                /* calculate output using simloid 
-                 * using tanh as below is a good aproximation for 1/(1 + e^-2x)
-                 */
-                outputValue = 0.5 * tanh(cummulatedInput) + 0.5;
-            }
-
-            /* set the outputValue for input neurons */
-            void setOutput(double outputValue) {
-                this->outputValue = outputValue;
-            }
-
-            /* returns the output value of this */
-            const double getOutput() { 
-                return outputValue;
-            }
     };
-
-    uint64_t NeuronGene::idCounter = 0;
 
     /**
      * A Gene representing a connection between two neurons
@@ -84,11 +50,32 @@ namespace NEAT {
             /* the global id counter */
             static uint64_t idCounter; 
 
-            /* the historical id if this */
-            const uint64_t id;
-            
+            /* global lock to prevent acces to the idCounter */
+            static pthread_mutex_t mutex;
+
+            /* global random value to mutate this */
+            static rand128_t *rand;
+
             /* bool indicates if this gene is expressed within the phenotype */
             bool enabled;
+
+            /* the weight of this connection */
+            double weight;
+
+            /* private constructor that asigns the historical id */
+            ConnectionGene(const unsigned inputNeuron, 
+                           const unsigned outputNeuron,
+                           double weight,
+                           uint64_t id) :
+                           weight(weight),
+                           id(id),
+                           inputNeuron(inputNeuron), 
+                           outputNeuron(outputNeuron) { }
+
+        public: 
+
+            /* the historical id if this */
+            const uint64_t id;
 
             /* the neuron number of the input and output neuron of this Gene 
              * ids = 0 ==> bias neuron
@@ -98,39 +85,28 @@ namespace NEAT {
              */
             const unsigned inputNeuron, outputNeuron;
 
-            /**
-             * the layers for neurons of this connection
-             */
-            const unsigned inputLayer, outputLayer;
+            /* creats a new Gene with two given neuron ids */
+            static ConnectionGene *New(const unsigned inputNeuron, 
+                                const unsigned outputNeuron,
+                                double weight = rand_range_d128(rand, -1.0, 1.0)) {
+                
+                pthread_mutex_lock(&mutex);
+                const unsigned id = idCounter++;
+                pthread_mutex_unlock(&mutex);
 
-            /* the weight of this connection */
-            double weight;
-
-        public: 
-
-            /* creats a new Gene and initializes its id */
+                return new ConnectionGene(inputNeuron, outputNeuron, weight, id);
+            }
             
-            /* returns the historical id of this */
-            uint64_t getID() { return id; }
-
-            /* returns the inputNeurons of this */
-            unsigned getInputNeuron() { return inputNeuron; }
-
-            /* returns the output neuron of this */
-            unsigned getOutputNeuron() { return outputNeuron; }
-
-            /* returns the input layers of this */
-            unsigned getInputLayer() { return inputLayer; }
-
-            /* returns the output layer of this */
-            unsigned getOutputLayer() { return outputLayer; }
-
             /* returns the weight of this */
-            double getWeight() { return weight; }
+            double getWeight() const { return weight; }
+
+            /* disables this gene */
+            void disable() { enabled = false; }
+
+            /* resets the waight of this to a random value */
+            void mutate() { weight = rand_range_d128(rand, -1.0, 1.0); }
 
     };
-
-    uint64_t Gene::idCounter = 0;
 
 }
 
