@@ -8,6 +8,7 @@
 
 #include <inttypes.h>
 #include <pthread.h>
+#include <assert.h>
 #include "utils.h"
 
 namespace NEAT {
@@ -17,27 +18,51 @@ namespace NEAT {
 
     /**
      * A Neuron Gene representing a neuron within a neural network
+     * NeuronGenes are enumerated within a genome to unique identify them.
+     * To be able to detect same Neurons from different genomes, 
+     * the Neurons are placed on a 2D raster giving them a mostly unique 2D possition
      */
     struct NeuronGene {
 
         /* the neuron type of this */
         const NeuronType type;
-        
-        /* the id of this neuron 
-         * Neurons are enumerated by each organism,
-         * making it posible track similar ConnectionGene creation
-         * */
-        const unsigned id;
 
-        /* the layer of this neuron (0 is first hidden layer) */
-        const unsigned layer;
+        /* the unique id of this neuron within the genome */
+        const uint64_t id;
         
-        /* creats a new neuron within the given layer, and with the given id */
-        NeuronGene(const NeuronType type, 
-                   const unsigned id, 
-                   const unsigned layer) :
-                   type(type), id(id), layer(layer) { }
+        /* the x raster index */
+        const uint64_t xRaster;
 
+        /* the y raster index */
+        const uint64_t yRaster;
+
+        /* creats a new NeuronGeneID */
+        NeuronGene(
+            const NeuronType type,
+            const uint64_t id, 
+            const uint64_t xRaster, 
+            const uint64_t yRaster
+        ) : type(type), id(id), xRaster(xRaster), yRaster(yRaster) { }
+
+        /* returns wether a new node can be created between the two given nodes */
+        bool canBeInserted(const NeuronGene &gene1, const NeuronGene &gene2) {
+            return abs(gene1.xRaster - gene2.xRaster) > 1 ||
+                   abs(gene1.yRaster - gene2.yRaster) > 1;
+        }
+
+        /* create a new node between two nodes */
+        NeuronGene(
+            const NeuronType type,
+            const uint64_t id, 
+            const NeuronGene &gene1, 
+            const NeuronGene &gene2
+        ) : type(type), 
+            id(id),
+            xRaster(gene1.xRaster + (gene2.xRaster - gene1.xRaster)/2),
+            yRaster(gene1.yRaster + (gene2.yRaster - gene1.yRaster)/2) {
+
+            assert(canBeInserted(gene1, gene2));
+        }
     };
 
     /**
