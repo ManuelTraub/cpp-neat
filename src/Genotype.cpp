@@ -6,6 +6,9 @@ using std::make_pair;
 /* global random value to mutate this */
 rand64_t *Genotype::rand = new_rand64_t(time(NULL));
 
+/* the HexTree storing all created Connections */
+ConnectionTree Genotype::globalConnections;
+
 /* global lock */
 pthread_mutex_t Genotype::mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -95,6 +98,8 @@ bool Genotype::mutateInsertConnection() {
 
     /* store the new connection */
     connections.push_back(connection);
+
+    return true;
 }
 
 /* mutate a given percentage of connections */

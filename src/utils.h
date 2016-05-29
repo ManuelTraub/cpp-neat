@@ -9,92 +9,24 @@
 #include <stdlib.h>
 using std::string;
 
-static inline uint32_t rand32(uint32_t *x) {
-    *x ^= *x << 13;
-    *x ^= *x >> 17;
-    *x ^= *x << 5;
-    return *x;
-}
+uint32_t rand32(uint32_t *x);
 
 /* random value */
 typedef uint64_t rand64_t; 
 
-static inline rand64_t *new_rand64_t(uint32_t seed) {
-    rand64_t *rand = (rand64_t *) malloc(sizeof(rand64_t));
-    *rand = ((uint64_t) rand32(&seed)) | (((uint64_t) rand32(&seed)) << 32);
-    return rand;
-}
+rand64_t *new_rand64_t(uint32_t seed);
 
-static inline uint64_t rand64(rand64_t *rand) {
-  *rand ^= *rand << 13;
-  *rand ^= *rand >> 7;
-  *rand ^= *rand << 17;
-  return *rand;
-}
+uint64_t rand64(rand64_t *rand);
 
 /**
  * converts a given integer to a std::string
  */
-static inline std::string itoa(int64_t i) {
-
-  char a[32];
-
-  if (i == 0) {
-    a[0] = '0';
-    a[1] = '\0';
-    return std::string(a);
-  }
-
-  char is_neg = (i < 0);
-
-  if (is_neg)
-    i *= -1;
-
-  int64_t j;
-  for (j = 0; i != 0; j++, i /= 10)
-    a[j] = 48 + (i % 10);
-
-  if (is_neg) {
-     a[j] = '-';
-    j++;
-  }
-
-  a[j] = '\0';
-  std::string str = std::string(a);;
-  return std::string(str.rbegin(), str.rend());
-}
+std::string itoa(int64_t i);
 
 /**
  * converts a given double to a std::string
  */
-static inline std::string ftoa(double d, unsigned precision) {
-    
-  /* check for NaN */
-  if (std::isnan(d))
-      return std::string("NaN");
-
-  /* check for infinity */
-  if (std::isinf(d) && d < 0.0)
-      return std::string("-inf");
-  if (std::isinf(d) && d > 0.0)
-      return std::string("inf");
-
-
-  std::string res = itoa(d) + ".";
-
-  if (d < 0.0)
-    d *= -1.0;
-
-  double decimal = (d - ((double) ((uint64_t) d))) * 10;
-
-  for (unsigned i = 0; i < precision; i++) {
-    res += itoa(decimal);
-    decimal = decimal - ((double) ((uint64_t) decimal));
-    decimal *= 10;
-  }
-
-  return res;
-}
+std::string ftoa(double d, unsigned precision);
 
 #define rand_range64(rand, start, end) (start + (rand64(rand) % (((end) + 1) - (start))))
 #define rand_range_d64(rand, start, end) \
@@ -103,65 +35,26 @@ static inline std::string ftoa(double d, unsigned precision) {
 /**
  * Returns if the given args conatinig the given arg
  */
-static bool has_arg(int argc, 
+bool has_arg(int argc, 
              char *argv[], 
              const char *short_arg, 
-             const char *long_arg) {
-
-  int i;
-  for (i = 1; i < argc; i++) {
-    if ((short_arg != NULL && !strcmp(argv[i], short_arg)) ||
-        (long_arg != NULL  && !strcmp(argv[i], long_arg))) {
-      
-      return true;
-    } else if (strlen(argv[i]) == 2 && !strcmp(argv[i], "--"))
-      return false;
-  }
-
-  return false;
-}
+             const char *long_arg);
 
 /**
  * Returns the given argument arg
  */
-static string get_arg(int argc, 
+string get_arg(int argc, 
                char *argv[], 
                const char *short_arg, 
-               const char *long_arg) {
-
-  int i;
-  for (i = 1; i < argc - 1; i++) {
-    if ((short_arg != NULL && !strcmp(argv[i], short_arg)) ||
-        (long_arg != NULL  && !strcmp(argv[i], long_arg))) {
-      
-      return string(argv[i + 1]);
-    } else if (strlen(argv[i]) == 2 && !strcmp(argv[i], "--"))
-      return string("");
-  }
-
-  return string("");
-}
+               const char *long_arg);
 
 /**
  * Returns the given argument index
  */
-static int get_arg_i(int argc, 
+int get_arg_i(int argc, 
               char *argv[], 
               const char *short_arg, 
-              const char *long_arg) {
-
-  int i;
-  for (i = 1; i < argc - 1; i++) {
-    if ((short_arg != NULL && !strcmp(argv[i], short_arg)) ||
-        (long_arg != NULL  && !strcmp(argv[i], long_arg))) {
-      
-      return i + 1;
-    } else if (strlen(argv[i]) == 2 && !strcmp(argv[i], "--"))
-      return -1;
-  }
-
-  return -1;
-}
+              const char *long_arg);
 
 /**
  * shorter macros to use in main
