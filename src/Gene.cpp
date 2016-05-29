@@ -9,4 +9,4 @@ uint64_t ConnectionGene::idCounter = 0;
 pthread_mutex_t ConnectionGene::mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /* global random value to mutate this */
-rand128_t *ConnectionGene::rand = new_rand128_t(time(NULL));
+rand64_t *ConnectionGene::rand = new_rand64_t(time(NULL));

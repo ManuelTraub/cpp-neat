@@ -14,7 +14,7 @@
 namespace NEAT {
 
     /* the different types of neurons (input output or hidden) */
-    enum class NeuronType { INPUT, OUTPUT, HIDDEN };
+    enum class NeuronType { INPUT, OUTPUT, HIDDEN, BIAS };
 
     /**
      * A Neuron Gene representing a neuron within a neural network
@@ -27,9 +27,6 @@ namespace NEAT {
         /* the neuron type of this */
         const NeuronType type;
 
-        /* the unique id of this neuron within the genome */
-        const uint64_t id;
-        
         /* the x raster index */
         const uint64_t xRaster;
 
@@ -39,10 +36,9 @@ namespace NEAT {
         /* creats a new NeuronGeneID */
         NeuronGene(
             const NeuronType type,
-            const uint64_t id, 
             const uint64_t xRaster, 
             const uint64_t yRaster
-        ) : type(type), id(id), xRaster(xRaster), yRaster(yRaster) { }
+        ) : type(type), xRaster(xRaster), yRaster(yRaster) { }
 
         /* returns wether a new node can be created between the two given nodes */
         bool canBeInserted(const NeuronGene &gene1, const NeuronGene &gene2) {
@@ -53,15 +49,19 @@ namespace NEAT {
         /* create a new node between two nodes */
         NeuronGene(
             const NeuronType type,
-            const uint64_t id, 
             const NeuronGene &gene1, 
             const NeuronGene &gene2
         ) : type(type), 
-            id(id),
             xRaster(gene1.xRaster + (gene2.xRaster - gene1.xRaster)/2),
             yRaster(gene1.yRaster + (gene2.yRaster - gene1.yRaster)/2) {
 
             assert(canBeInserted(gene1, gene2));
+        }
+
+        /* compare operator */
+        bool operator == (const NeuronGene &other) const {
+            return xRaster == other.xRaster && 
+                   yRaster == other.yRaster;
         }
     };
 
@@ -79,7 +79,7 @@ namespace NEAT {
             static pthread_mutex_t mutex;
 
             /* global random value to mutate this */
-            static rand128_t *rand;
+            static rand64_t *rand;
 
             /* bool indicates if this gene is expressed within the phenotype */
             bool enabled;
@@ -88,8 +88,8 @@ namespace NEAT {
             double weight;
 
             /* private constructor that asigns the historical id */
-            ConnectionGene(const unsigned inputNeuron, 
-                           const unsigned outputNeuron,
+            ConnectionGene(const NeuronGene inputNeuron, 
+                           const NeuronGene outputNeuron,
                            double weight,
                            uint64_t id) :
                            weight(weight),
@@ -102,18 +102,13 @@ namespace NEAT {
             /* the historical id if this */
             const uint64_t id;
 
-            /* the neuron number of the input and output neuron of this Gene 
-             * ids = 0 ==> bias neuron
-             * ids <= inputNeurons ==> input neuron
-             * inputNeurons <= ids < outputNeurons ==> output neuron
-             * outputNeurons <= ids ==> hidden neuron
-             */
-            const unsigned inputNeuron, outputNeuron;
+            /* the input and output neuronal gene */
+            const NeuronGene inputNeuron, outputNeuron;
 
             /* creats a new Gene with two given neuron ids */
-            static ConnectionGene *New(const unsigned inputNeuron, 
-                                const unsigned outputNeuron,
-                                double weight = rand_range_d128(rand, -1.0, 1.0)) {
+            static ConnectionGene *New(const NeuronGene inputNeuron, 
+                                       const NeuronGene outputNeuron,
+                                       double weight = rand_range_d64(rand, -1.0, 1.0)) {
                 
                 pthread_mutex_lock(&mutex);
                 const unsigned id = idCounter++;
@@ -129,8 +124,13 @@ namespace NEAT {
             void disable() { enabled = false; }
 
             /* resets the waight of this to a random value */
-            void mutate() { weight = rand_range_d128(rand, -1.0, 1.0); }
+            void mutate() { weight = rand_range_d64(rand, -1.0, 1.0); }
 
+            /* compares to genes based on their 2D location */
+            bool operator == (const ConnectionGene &other) const {
+                return inputNeuron  == other.inputNeuron && 
+                       outputNeuron == other.outputNeuron;
+            }
     };
 
 }
