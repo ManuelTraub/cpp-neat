@@ -49,7 +49,7 @@ bool Genotype::mutateInsertNeuron() {
      */
     pthread_mutex_lock(&mutex);
     *connection1 = *globalConnections.insert(connection1);
-    *connection1 = *globalConnections.insert(connection2);
+    *connection2 = *globalConnections.insert(connection2);
     pthread_mutex_unlock(&mutex);
 
     /* modifiy the weights according to minimize the impact of the inserted neuron */
@@ -75,6 +75,11 @@ bool Genotype::mutateInsertConnection() {
     const unsigned outputIndex = rand64(rand) % neurons.size();
     NeuronGene *inputNeuron  = neurons[inputIndex];
     NeuronGene *outputNeuron = neurons[outputIndex];
+
+    /* the output neuron cant be an input or bias */
+    if (outputNeuron->getType() == NeuronType::INPUT ||
+        outputNeuron->getType() == NeuronType::BIAS)
+        return false;
 
     /* create the new conncetion */
     ConnectionGene *connection = new ConnectionGene(*inputNeuron, *outputNeuron);
@@ -115,7 +120,7 @@ void Genotype::mutateConnections(double percent) {
 Genotype::Genotype(const unsigned inputs, const unsigned outputs) {
     
     const uint64_t inStepSize  = UINT64_MAX / inputs;
-    const uint64_t outStepSize = UINT64_MAX / (outputs - 1);
+    const uint64_t outStepSize = UINT64_MAX / ((outputs > 1) ? (outputs - 1) : 1);
 
     /* create the input neurons */
     for (unsigned i = 0; i < inputs; i++) {
@@ -138,6 +143,15 @@ Genotype::Genotype(const unsigned inputs, const unsigned outputs) {
 
 }
 
+/* destructor */
+Genotype::~Genotype() {
+    for (auto &neuron : neurons)
+        delete neuron;
+
+    for (auto &connection : connections)
+        delete connection;
+}
+
 #ifdef __DEBUG__ 
 void Genotype::addNeuron(NeuronGene *gene) {
     NeuronGene *newGene = neuronsTree.insert(gene);
@@ -146,7 +160,15 @@ void Genotype::addNeuron(NeuronGene *gene) {
 }
 void Genotype::addConnection(ConnectionGene *gene) {
     ConnectionGene *newGene = connectionsTree.insert(gene);
-    if (newGene == gene)
+    if (newGene == gene) {
+        pthread_mutex_lock(&mutex);
+        *gene = *globalConnections.insert(gene);
+        pthread_mutex_unlock(&mutex);
+
         connections.push_back(gene);
+    }
+}
+void Genotype::clearGlobalConnections() {
+    globalConnections.clear();
 }
 #endif

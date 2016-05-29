@@ -58,9 +58,13 @@ namespace NEAT {
             /* create a new Genotype for the given number of input and output neurons */
             Genotype(const unsigned inputs, const unsigned outputs);
 
+            /* destructor */
+            ~Genotype();
+
 #ifdef __DEBUG__ 
             void addNeuron(NeuronGene *gene);
             void addConnection(ConnectionGene *gene);
+            static void clearGlobalConnections();
 #endif
     };
 }

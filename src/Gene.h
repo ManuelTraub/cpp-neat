@@ -163,7 +163,7 @@ namespace NEAT {
             }
     };
 
-    class NeuronTree : Quadtree<NeuronGene> {
+    class NeuronTree : public Quadtree<NeuronGene> {
         
         public :
             
@@ -173,7 +173,7 @@ namespace NEAT {
             }
     };
 
-    class ConnectionTree : HexTree<ConnectionGene> {
+    class ConnectionTree : public HexTree<ConnectionGene> {
 
         public: 
 

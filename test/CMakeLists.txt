@@ -18,5 +18,6 @@ endif()
 
 add_executable(QuadTreeTest QuadTreeTest ../src/utils)
 add_executable(HexTreeTest HexTreeTest ../src/utils)
+add_executable(GenotypeTest GenotypeTest ../src/utils ../src/Genotype ../src/Gene)
 add_test(NAME QuadTree COMMAND QuadTreeTest)
-add_test(NAME HexTree COMMAND HexTreeTest)
+add_test(NAME Genotype COMMAND GenotypeTest)

@@ -29,7 +29,7 @@ std::string ftoa(double d, unsigned precision);
 
 #define rand_range64(rand, start, end) (start + (rand64(rand) % (((end) + 1) - (start))))
 #define rand_range_d64(rand, start, end) \
-  (((end - start) * rand64(rand) + start * 4294967295.0) / 4294967295.0)
+  (((end - start) * rand64(rand) + start * 18446744073709551616.0) / 18446744073709551616.0)
 
 /**
  * Returns if the given args conatinig the given arg
