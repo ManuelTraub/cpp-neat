@@ -1,6 +1,5 @@
 #ifndef __UTILS_H__
 #define __UTILS_H__
-#define __DEBUG__
 
 #include <inttypes.h>
 #include <cmath>

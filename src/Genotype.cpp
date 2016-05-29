@@ -110,3 +110,43 @@ void Genotype::mutateConnections(double percent) {
     for (unsigned i = 0; i < size; i++)
         connections[rand64(rand) % connections.size()]->mutate();
 }
+
+/* create a new Genotype for the given number of input and output neurons */
+Genotype::Genotype(const unsigned inputs, const unsigned outputs) {
+    
+    const uint64_t inStepSize  = UINT64_MAX / inputs;
+    const uint64_t outStepSize = UINT64_MAX / (outputs - 1);
+
+    /* create the input neurons */
+    for (unsigned i = 0; i < inputs; i++) {
+        NeuronGene *const neuron = new NeuronGene(NeuronType::INPUT, 0, i * inStepSize);
+        neurons.push_back(neuron);
+        neuronsTree.insert(neuron);
+    }
+
+    /* Add one Bias neuron to the inputs */
+    NeuronGene *const neuron = new NeuronGene(NeuronType::BIAS, 0, UINT64_MAX);
+    neurons.push_back(neuron);
+    neuronsTree.insert(neuron);
+
+    /* create the output neurons */
+    for (unsigned i = 0; i < outputs; i++) {
+        NeuronGene *const neuron = new NeuronGene(NeuronType::OUTPUT, UINT64_MAX, i * outStepSize);
+        neurons.push_back(neuron);
+        neuronsTree.insert(neuron);
+    }
+
+}
+
+#ifdef __DEBUG__ 
+void Genotype::addNeuron(NeuronGene *gene) {
+    NeuronGene *newGene = neuronsTree.insert(gene);
+    if (newGene == gene)
+        neurons.push_back(gene);
+}
+void Genotype::addConnection(ConnectionGene *gene) {
+    ConnectionGene *newGene = connectionsTree.insert(gene);
+    if (newGene == gene)
+        connections.push_back(gene);
+}
+#endif
