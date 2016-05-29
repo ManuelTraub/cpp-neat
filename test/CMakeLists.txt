@@ -17,4 +17,6 @@ else()
 endif()
 
 add_executable(QuadTreeTest QuadTreeTest)
-add_test(NAME QuadTree COMMAND QuadTree)
+add_executable(HexTreeTest HexTreeTest)
+add_test(NAME QuadTree COMMAND QuadTreeTest)
+add_test(NAME HexTree COMMAND HexTreeTest)
