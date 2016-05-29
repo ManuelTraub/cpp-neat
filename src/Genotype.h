@@ -18,31 +18,39 @@ namespace NEAT {
         private:
 
             /* global random value to mutate this */
-            static rand128_t *rand;
+            static rand64_t *rand;
 
-            /* the number of layers of this */
-            unsigned nLayers;
-            
+            /* the HexTree storing all created Connections */
+            static ConnectionTree globalConnections;
+
+            /* global lock */
+            static pthread_mutex_t mutex;
+
             /* the neurons of this */
             vector<NeuronGene *> neurons;
+
+            /* fast access to the neurons of this */
+            NeuronTree neuronsTree;
 
             /* the ConnectionGenes of this */
             vector<ConnectionGene *> connections;
 
+            /* fast access to the connections of this */
+            ConnectionTree connectionsTree;
+
         public:
 
-            /* return the number of layers of this */
-            unsigned getNumberLayers() { return nLayers; }
-
             /* return the neurons of this */
-            vector<NeuronGene *> getNeurons() { return neurons; }
+            vector<NeuronGene *> getNeurons() const { return neurons; }
 
             /* returns the connections of this */
-            vector<ConnectionGene *> getConnections() { return connections; }
+            vector<ConnectionGene *> getConnections() const { return connections; }
             
-            /* mutate this by inserting a new hidden neuron 
-             * (returns the new created connections) */
-            pair<ConnectionGene *, ConnectionGene *> mutateNeuron();
+            /* mutate this by inserting a new hidden neuron */
+            bool mutateInsertNeuron();
+
+            /* mutate this by creating a new connection */
+            bool mutateInsertConnection();
 
             /* mutate a given percentage of connections */
             void mutateConnections(double percent);
