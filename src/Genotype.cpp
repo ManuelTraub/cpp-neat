@@ -22,6 +22,11 @@ bool Genotype::mutateInsertNeuron() {
     if (mutatingGene->getInput() == mutatingGene->getOutput())
         return false;
 
+    /* stop if the connection is between two output neurons */
+    if (mutatingGene->getInput().getType() == NeuronType::OUTPUT &&
+        mutatingGene->getOutput().getType() == NeuronType::OUTPUT)
+        return false;
+
     /* to insert a NeuronGene without interfering to much with this
      * split an allready existing connecting into two parts
      * set the weight of the first part to 1 and the weight of the

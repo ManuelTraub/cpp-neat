@@ -16,7 +16,7 @@
 namespace NEAT {
 
     /* the different types of neurons (input output or hidden) */
-    enum class NeuronType { INPUT, OUTPUT, HIDDEN, BIAS };
+    enum class NeuronType { BIAS = 0, INPUT = 1, HIDDEN = 2, OUTPUT = 3 };
 
     /**
      * A Neuron Gene representing a neuron within a neural network
@@ -57,8 +57,8 @@ namespace NEAT {
 
             /* returns wether a new node can be created between the two given nodes */
             bool canBeInserted(const NeuronGene &gene1, const NeuronGene &gene2) {
-                return abs(gene1.xRaster - gene2.xRaster) > 1 ||
-                       abs(gene1.yRaster - gene2.yRaster) > 1;
+                return absDiff(gene1.xRaster, gene2.xRaster) > 1 ||
+                       absDiff(gene1.yRaster, gene2.yRaster) > 1;
             }
 
             /* create a new node between two nodes */
@@ -66,9 +66,9 @@ namespace NEAT {
                 const NeuronType type,
                 const NeuronGene &gene1, 
                 const NeuronGene &gene2
-            ) : type(type), 
-                xRaster(gene1.xRaster + (gene2.xRaster - gene1.xRaster)/2),
-                yRaster(gene1.yRaster + (gene2.yRaster - gene1.yRaster)/2) {
+            ) : type(type),
+                xRaster(middle(gene1.xRaster, gene2.xRaster)), 
+                yRaster(middle(gene1.yRaster, gene2.yRaster)) {
 
                 assert(canBeInserted(gene1, gene2));
             }
@@ -99,11 +99,11 @@ namespace NEAT {
             /* the input and output neuronal gene */
             NeuronGene inputNeuron, outputNeuron;
 
-            /* bool indicates if this gene is expressed within the phenotype */
-            bool enabled;
-
             /* the weight of this connection */
             double weight;
+
+            /* bool indicates if this gene is expressed within the phenotype */
+            bool enabled;
 
             /* the historical id if this */
             uint64_t id;
@@ -116,7 +116,8 @@ namespace NEAT {
                            double weight = rand_range_d64(rand, -1.0, 1.0)) : 
                            inputNeuron(inputNeuron),
                            outputNeuron(outputNeuron),
-                           weight(weight) {
+                           weight(weight),
+                           enabled(true) {
                 
                 pthread_mutex_lock(&mutex);
                 this->id = idCounter++;
@@ -142,7 +143,7 @@ namespace NEAT {
             }
 
             /* disables this gene */
-            void disable() { enabled = false; }
+            void disable() { assert(enabled); enabled = false; }
 
             /* returns if this is enabled */
             bool isEnabled() const { return enabled; }
@@ -158,11 +159,7 @@ namespace NEAT {
 
             /* returns a new NeuronGene spliting this */
             NeuronGene *split() const {
-                return new NeuronGene(
-                    NeuronType::HIDDEN,
-                    inputNeuron.getX() + (outputNeuron.getX() - inputNeuron.getX()) / 2,
-                    inputNeuron.getY() + (outputNeuron.getY() - inputNeuron.getY()) / 2
-                );
+                return new NeuronGene(NeuronType::HIDDEN, inputNeuron, outputNeuron);
             }
     };
 

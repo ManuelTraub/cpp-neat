@@ -121,4 +121,16 @@ int get_arg_i(int argc,
 #else
 #define assertf(...)
 #endif /* __DEBUG__ */
+
+/* returns the absolute difference between the two numbers 
+ * (circumevents integer overflows) 
+ */
+#define absDiff(x, y) (((x) > (y)) ? ((x) - (y)) : ((y) - (x)))
+
+/* returns the middle beweten the two given values
+ * (circumevents integer overflows) 
+ */
+#define middle(x, y) (((x) < (y)) ? ((x) + ((y) - (x)) / 2) : ((y) + ((x) - (y)) / 2))
+
+
 #endif /* __UTILS_H__ */

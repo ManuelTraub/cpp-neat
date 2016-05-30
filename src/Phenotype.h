@@ -7,8 +7,10 @@
 #include "Genotype.h"
 #include "Neuron.h"
 #include <vector>
+#include <string>
 
 using std::vector;
+using std::string;
 
 namespace NEAT {
     
@@ -23,13 +25,25 @@ namespace NEAT {
              * to sequentaly calculate the output of this neural network */
             vector<vector<Neuron *>> neuronLayers;
 
+            /* the genotype of this */
+            const Genotype *const genome;
+
         public:
+
+            /* returns the neuronLayers of this */
+            vector<vector<Neuron *>> getLayers() const { return neuronLayers; }
 
             /* create a new Phenotype out of the given Genotype */
             Phenotype(Genotype *genome); 
 
             /* calculate the output for a given input */
             vector<double> run(vector<double> inputs);
+
+            /* export this as an svg image */
+            void saveAsSVG(string fname);
+
+            /* destructor */
+            ~Phenotype();
     };
 }
 

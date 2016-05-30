@@ -2,14 +2,16 @@
 #include <assert.h>
 #include <set>
 #include <unordered_map>
+#include "../lib/simple_svg_1.0.0.hpp"
 
+using namespace svg;
 using namespace NEAT;
 using std::set;
 using std::unordered_map;
 using std::make_pair;
 
 /* create a new Phenotype out of the given Genotype */
-Phenotype::Phenotype(Genotype *genome) {
+Phenotype::Phenotype(Genotype *genome) : genome(genome) {
 
     vector<NeuronGene *> neuronGenes         = genome->getNeurons();
     vector<ConnectionGene *> connectionGenes = genome->getConnections();
@@ -46,6 +48,29 @@ Phenotype::Phenotype(Genotype *genome) {
         /* store the neuron in its desired layer */
         const unsigned layer = layerIndices[neuron->getX()];
         this->neuronLayers[layer].push_back(newNeuron);
+
+#ifdef __DEBUG__
+        if (layer == 0 && 
+            neuron->getType() != NeuronType::INPUT && 
+            neuron->getType() != NeuronType::BIAS) {
+            
+            assertf(false, "invalid neuron in first layer: type(%u) (%lu, %lu)\n", 
+                    (unsigned) neuron->getType(), neuron->getX(), neuron->getY());
+        }
+
+        if (layer == this->neuronLayers.size() - 1 && neuron->getType() != NeuronType::OUTPUT) {
+            assertf(false, "invalid neuron in last layer: type(%u) (%lu, %lu)\n", 
+                    (unsigned) neuron->getType(), neuron->getX(), neuron->getY());
+        }
+
+        if (layer > 0 && 
+            layer < this->neuronLayers.size() - 1 && 
+            neuron->getType() != NeuronType::HIDDEN) {
+
+            assertf(false, "invalid neuron in hidden layer %u: type(%u) (%lu, %lu)\n", layer,
+                    (unsigned) neuron->getType(), neuron->getX(), neuron->getY());
+        }
+#endif /* __DEBUG__ */
     }
 
     /* connect the neurons */
@@ -88,4 +113,86 @@ vector<double> Phenotype::run(vector<double> inputs) {
         outputs[i] = neuronLayers.back()[i]->getValue();
 
     return outputs;
+}
+
+/* export this as an svg image */
+void Phenotype::saveAsSVG(string fname) {
+
+    /* calculate the maximum neurons per layer */
+    unsigned maxNeurons = 0;
+    for (auto &layer : neuronLayers)
+        if (layer.size() > maxNeurons)
+            maxNeurons = layer.size();
+
+    const unsigned height         = 1000;
+    const unsigned neuronDiameter = height / ((maxNeurons - 1) * 4);
+    const unsigned connectionSize = (neuronDiameter / 7 > 1) ? neuronDiameter / 7 : 1;
+    const double   circleStroke   = connectionSize / 2.0;
+    const unsigned nLayers        = neuronLayers.size();
+    const unsigned width          = neuronDiameter * 4 * (nLayers - 1) + neuronDiameter + 50;
+
+    Dimensions dimensions(width, height);
+    Document doc(fname, Layout(dimensions, Layout::BottomLeft));
+
+    /* store the neurons and store them efficiently in a QuadTree */
+    unordered_map<Neuron *, Point> points;
+    unordered_map<Neuron *, Color> colors;
+
+    /* calculate the points for all neurons */
+    for (unsigned l = 0; l < nLayers; l++) {
+
+        const unsigned nNeurons = neuronLayers[l].size();
+        const unsigned stepSize = (nNeurons > 1) ? (height - (50 + neuronDiameter)) / (nNeurons - 1) : 1;
+        for (unsigned n = 0; n < nNeurons; n++) {
+        
+            const Point point(25 + neuronDiameter / 2 + l * neuronDiameter * 4, 
+                              ((nNeurons > 1) ? 25 + neuronDiameter / 2 + stepSize * n : height / 2));
+
+            points.insert(make_pair(neuronLayers[l][n], point));
+            colors.insert(make_pair(neuronLayers[l][n], Color::Blue));
+        }
+    }
+
+    /* paint all connections */
+    for (auto &layer : neuronLayers) {
+        for (auto &neuron : layer) {
+             vector<Neuron *> inputs = neuron->getInputs();
+             vector<double> weights  = neuron->getWeights();
+
+             for (unsigned i = 0; i < inputs.size(); i++) {
+
+                const unsigned green = (weights[i] < 0) ? 255.0 * (1 + weights[i]) : 255;
+                const unsigned red   = (weights[i] > 0) ? 255.0 * (1 - weights[i]) : 255;
+                
+                 /* color node if self recurent */
+                 if (points[inputs[i]].x == points[neuron].x &&
+                     points[inputs[i]].y == points[neuron].y) {
+
+                     colors[neuron] = Color(red, green, 0);
+                 } else {
+                
+                    doc << (Polyline(Stroke(connectionSize, Color(red, green, 0))) << 
+                            points[inputs[i]] << points[neuron]);
+                 }
+             }
+        }
+    }
+
+    /* paint all neurons */
+    for (auto &e : points) {
+        doc << Circle(e.second, 
+                      neuronDiameter, 
+                      colors[e.first], 
+                      Stroke(circleStroke, Color::Black));
+    }
+
+    doc.save();
+}
+
+/* destructor */
+Phenotype::~Phenotype() {
+
+    for (auto &layer : neuronLayers) 
+        for (auto &neuron : layer) 
+            delete neuron;
 }

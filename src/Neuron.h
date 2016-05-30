@@ -31,6 +31,12 @@ namespace NEAT {
 
         public:
 
+            /* returns the inputs of this */
+            vector<Neuron *> getInputs() const { return inputs; }
+
+            /* returns the weights of this */
+            vector<double> getWeights() const { return weights; }
+
             /* returns the output value of this */
             double getValue() const { return outputValue; }
 
