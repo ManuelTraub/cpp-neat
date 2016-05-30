@@ -10,7 +10,7 @@
 #include <pthread.h>
 #include <assert.h>
 #include "utils.h"
-#include "Quadtree.h"
+#include "QuadTree.h"
 #include "HexTree.h"
 
 namespace NEAT {
@@ -144,6 +144,9 @@ namespace NEAT {
             /* disables this gene */
             void disable() { enabled = false; }
 
+            /* returns if this is enabled */
+            bool isEnabled() const { return enabled; }
+
             /* resets the waight of this to a random value */
             void mutate() { weight = rand_range_d64(rand, -1.0, 1.0); }
 
@@ -163,13 +166,13 @@ namespace NEAT {
             }
     };
 
-    class NeuronTree : public Quadtree<NeuronGene> {
+    class NeuronTree : public QuadTree<NeuronGene> {
         
         public :
             
             /* insert a neuron into this if its not already exist */
             NeuronGene *insert(NeuronGene *const gene) {
-                return Quadtree<NeuronGene>::insert(gene, gene->getX(), gene->getY());
+                return QuadTree<NeuronGene>::insert(gene, gene->getX(), gene->getY());
             }
     };
 

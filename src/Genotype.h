@@ -55,6 +55,9 @@ namespace NEAT {
             /* mutate a given percentage of connections */
             void mutateConnections(double percent);
 
+            /* mutate this by disabeling a connection */
+            bool mutateDisableConnection();
+
             /* create a new Genotype for the given number of input and output neurons */
             Genotype(const unsigned inputs, const unsigned outputs);
 

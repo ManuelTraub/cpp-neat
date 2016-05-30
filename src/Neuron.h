@@ -26,7 +26,7 @@ namespace NEAT {
         public:
 
             /* returns the output value of this */
-            double getValue() { return outputValue; }
+            double getValue() const { return outputValue; }
 
             /* set the value for input neurons */
             void setValue(double value) { outputValue = value; }

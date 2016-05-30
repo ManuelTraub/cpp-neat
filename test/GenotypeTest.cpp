@@ -56,11 +56,12 @@ TEST(basicTest) {
     return args;
 }
 
-TEST(basicMutationTest) {
+TEST_N(basicMutationTest, 1000) {
     
     Genotype genotype(2, 1);
 
-    for (unsigned i = 0; i < 100; i++)
+    /* create all posible connections */
+    for (unsigned i = 0; i < 1000; i++)
         genotype.mutateInsertConnection();
 
     /* 2 connections from input to output,
@@ -68,7 +69,7 @@ TEST(basicMutationTest) {
      * 1 recurent connetion from output to output
      */
     ASSERT_EQUAL(genotype.getConnections().size(), 4,
-                 "more than two connections: %lu", 
+                 "more than 4 connections: %lu", 
                  genotype.getConnections().size());
     
     /* insert a new neuron */
@@ -77,6 +78,30 @@ TEST(basicMutationTest) {
     ASSERT_EQUAL(genotype.getNeurons().size(), 5,
                  "genotype should have 4 neurons: %lu",
                  genotype.getNeurons().size());
+
+    /* create all posible connections */
+    for (unsigned i = 0; i < 1000; i++)
+        genotype.mutateInsertConnection();
+
+    /* 3 connections from input and bias to output,
+     * 1 recurent connetion from output to output
+     * 3 connections from input and bias to the new node
+     * 1 recurent connection from output to new node
+     * 1 recurent connection from new node to itself
+     * 1 connection from the new node to the output
+     */
+    ASSERT_EQUAL(genotype.getConnections().size(), 10,
+                 "more than 10 connections: %lu", 
+                 genotype.getConnections().size());
+
+    double weight = genotype.getConnections()[0]->getWeight();
+
+    /* mutate all connections */
+    for (unsigned i = 0; i < 1000; i++)
+        genotype.mutateConnections(0.5);
+
+    ASSERT_TRUE(weight != genotype.getConnections()[0]->getWeight(),
+                "connection should be mutated");
 
     return args;
 }

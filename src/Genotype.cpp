@@ -18,6 +18,10 @@ bool Genotype::mutateInsertNeuron() {
     const unsigned index = rand64(rand) % connections.size();
     ConnectionGene *mutatingGene = connections[index];
 
+    /* stop if the connection is a self recurent connection */
+    if (mutatingGene->getInput() == mutatingGene->getOutput())
+        return false;
+
     /* to insert a NeuronGene without interfering to much with this
      * split an allready existing connecting into two parts
      * set the weight of the first part to 1 and the weight of the
@@ -114,6 +118,19 @@ void Genotype::mutateConnections(double percent) {
 
     for (unsigned i = 0; i < size; i++)
         connections[rand64(rand) % connections.size()]->mutate();
+}
+
+/* mutate this by disabeling a connection */
+bool Genotype::mutateDisableConnection() {
+
+    const unsigned index = rand64(rand) % connections.size();
+    ConnectionGene *mutatingGene = connections[index];
+
+    if (!mutatingGene->isEnabled())
+        return false;
+
+    mutatingGene->disable();
+    return true;
 }
 
 /* create a new Genotype for the given number of input and output neurons */
