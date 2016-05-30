@@ -70,10 +70,18 @@ vector<double> Phenotype::run(vector<double> inputs) {
     for (unsigned i = 0; i < inputs.size(); i++)
         this->neuronLayers[0][i]->setValue(inputs[i]);
     
-    /* calculate the output for each layer */
-    for (unsigned l = 0; l < neuronLayers.size(); l++)
-        for (unsigned n = 0; n < neuronLayers[l].size(); n++)
-            neuronLayers[l][n]->update();
+    /* calculate the output for each layer 
+     * (calculate and applay in several steps to preserv recurent
+     * connections within the same layer)
+     */
+    for (unsigned l = 0; l < neuronLayers.size(); l++) {
+
+        for (unsigned n = 0; n < neuronLayers[l].size(); n++) 
+            neuronLayers[l][n]->calculateUpdate();
+
+        for (unsigned n = 0; n < neuronLayers[l].size(); n++) 
+            neuronLayers[l][n]->applayUpdate();
+    }
 
     /* collect the output values */
     for (unsigned i = 0; i < neuronLayers.back().size(); i++)

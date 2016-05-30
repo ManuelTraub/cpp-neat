@@ -23,6 +23,12 @@ namespace NEAT {
             /* the output value of this */
             double outputValue;
 
+            /* temporary output value to store update result till all 
+             * neurons of the same layer have calculated the new output value
+             * (to handle recurent connections within the same layer)
+             */
+            double tempOutputValue;
+
         public:
 
             /* returns the output value of this */
@@ -32,7 +38,7 @@ namespace NEAT {
             void setValue(double value) { outputValue = value; }
 
             /* calculates the output value from the input values */
-            void update() {
+            void calculateUpdate() {
                 
                 double weightedInputs = 0.0;
                 for (unsigned i = 0; i < inputs.size(); i++)
@@ -41,7 +47,12 @@ namespace NEAT {
                 /* calculate output using simloid 
                  * using tanh as below is a fast aproximation for 1/(1 + e^-2x)
                  */
-                outputValue = 0.5 * tanh(weightedInputs) + 0.5;
+                tempOutputValue = 0.5 * tanh(weightedInputs) + 0.5;
+            }
+
+            /* applays the output value */
+            void applayUpdate() {
+                outputValue = tempOutputValue;
             }
 
             /* adds an input */
