@@ -25,6 +25,9 @@ namespace NEAT {
              * to sequentaly calculate the output of this neural network */
             vector<vector<Neuron *>> neuronLayers;
 
+            /* the bias neuron */
+            Neuron *bias;
+
             /* the genotype of this */
             const Genotype *const genome;
 

@@ -47,7 +47,10 @@ Phenotype::Phenotype(Genotype *genome) : genome(genome) {
 
         /* store the neuron in its desired layer */
         const unsigned layer = layerIndices[neuron->getX()];
-        this->neuronLayers[layer].push_back(newNeuron);
+        if (neuron->getType() == NeuronType::BIAS)
+            this->bias = newNeuron;
+        else
+            this->neuronLayers[layer].push_back(newNeuron);
 
 #ifdef __DEBUG__
         if (layer == 0 && 
@@ -73,6 +76,9 @@ Phenotype::Phenotype(Genotype *genome) : genome(genome) {
 #endif /* __DEBUG__ */
     }
 
+    /* set the bias to 1 */
+    bias->setValue(1);
+
     /* connect the neurons */
     for (auto &connection : connectionGenes) {
         
@@ -89,17 +95,18 @@ Phenotype::Phenotype(Genotype *genome) : genome(genome) {
 /* calculate the output for a given input */
 vector<double> Phenotype::run(vector<double> inputs) {
 
+    assert(inputs.size() == neuronLayers[0].size());
     vector<double> outputs(this->neuronLayers.back().size());
     
     /* set the input neurons */
     for (unsigned i = 0; i < inputs.size(); i++)
         this->neuronLayers[0][i]->setValue(inputs[i]);
     
-    /* calculate the output for each layer 
+    /* calculate the output for each layer (except the input layers)
      * (calculate and applay in several steps to preserv recurent
      * connections within the same layer)
      */
-    for (unsigned l = 0; l < neuronLayers.size(); l++) {
+    for (unsigned l = 1; l < neuronLayers.size(); l++) {
 
         for (unsigned n = 0; n < neuronLayers[l].size(); n++) 
             neuronLayers[l][n]->calculateUpdate();
@@ -136,7 +143,8 @@ void Phenotype::saveAsSVG(string fname) {
 
     /* store the neurons and store them efficiently in a QuadTree */
     unordered_map<Neuron *, Point> points;
-    unordered_map<Neuron *, Color> colors;
+    unordered_map<Neuron *, Color> colorsRecurent;
+    unordered_map<Neuron *, Color> colorsBias;
 
     /* calculate the points for all neurons */
     for (unsigned l = 0; l < nLayers; l++) {
@@ -149,7 +157,8 @@ void Phenotype::saveAsSVG(string fname) {
                               ((nNeurons > 1) ? 25 + neuronDiameter / 2 + stepSize * n : height / 2));
 
             points.insert(make_pair(neuronLayers[l][n], point));
-            colors.insert(make_pair(neuronLayers[l][n], Color::Blue));
+            colorsRecurent.insert(make_pair(neuronLayers[l][n], Color::Black));
+            colorsBias.insert(make_pair(neuronLayers[l][n], Color::Blue));
         }
     }
 
@@ -164,11 +173,15 @@ void Phenotype::saveAsSVG(string fname) {
                 const unsigned green = (weights[i] < 0) ? 255.0 * (1 + weights[i]) : 255;
                 const unsigned red   = (weights[i] > 0) ? 255.0 * (1 - weights[i]) : 255;
                 
-                 /* color node if self recurent */
+                 /* color node border if self recurent */
                  if (points[inputs[i]].x == points[neuron].x &&
                      points[inputs[i]].y == points[neuron].y) {
 
-                     colors[neuron] = Color(red, green, 0);
+                     colorsRecurent[neuron] = Color(red, green, 0);
+
+                 /* color node fill color if bias connection */
+                 } else if (inputs[i] == bias) {
+                     colorsBias[neuron] = Color(red, green, 0);
                  } else {
                 
                     doc << (Polyline(Stroke(connectionSize, Color(red, green, 0))) << 
@@ -182,8 +195,8 @@ void Phenotype::saveAsSVG(string fname) {
     for (auto &e : points) {
         doc << Circle(e.second, 
                       neuronDiameter, 
-                      colors[e.first], 
-                      Stroke(circleStroke, Color::Black));
+                      colorsBias[e.first], 
+                      Stroke(circleStroke, colorsRecurent[e.first]));
     }
 
     doc.save();
