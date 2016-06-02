@@ -18,6 +18,10 @@ bool Genotype::mutateInsertNeuron() {
     const unsigned index = rand64(rand) % connections.size();
     ConnectionGene *mutatingGene = connections[index];
 
+    /* stop if no neuron can be inserted */
+    if (!mutatingGene->canBeSplitted())
+        return false;
+
     /* stop if the connection is a self recurent connection */
     if (mutatingGene->getInput() == mutatingGene->getOutput())
         return false;

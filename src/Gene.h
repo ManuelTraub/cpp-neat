@@ -28,38 +28,44 @@ namespace NEAT {
 
         private:
 
+            /* the global id counter */
+            static uint64_t idCounter; 
+
+            /* global lock to prevent acces to the idCounter */
+            static pthread_mutex_t mutex;
+
             /* the neuron type of this */
             NeuronType type;
 
-            /* the x raster index */
-            uint64_t xRaster;
+            /* the historical id of this */
+            uint64_t id;
 
-            /* the y raster index */
-            uint64_t yRaster;
+            /* the layer id of this (greater means nearer to the output layer) */
+            uint64_t layerID;
 
         public:
 
             /* returns the type of this */
-            NeuronType getType() const { return type; }
+            NeuronType getType() const { assert(id != UINT64_MAX); return type; }
 
             /* returns the xRaster of this */
-            uint64_t getX() const { return xRaster; }
+            uint64_t getID() const { assert(id != UINT64_MAX); return id; }
 
-            /* returns the yRaster of this */
-            uint64_t getY() const { return yRaster; }
+            /* returns the layer if of this */
+            uint64_t getLayerID() const { assert(id != UINT64_MAX); return layerID; }
 
             /* creats a new NeuronGeneID */
-            NeuronGene(
-                const NeuronType type,
-                const uint64_t xRaster, 
-                const uint64_t yRaster
-            ) : type(type), xRaster(xRaster), yRaster(yRaster) { }
+            NeuronGene(const NeuronType type, const uint64_t layerID) : 
+                       type(type), layerID(layerID) { 
+
+                pthread_mutex_lock(&mutex);
+                this->id = idCounter++;
+                pthread_mutex_unlock(&mutex);
+                assert(id != UINT64_MAX);
+            }
 
             /* returns wether a new node can be created between the two given nodes */
-            bool canBeInserted(const NeuronGene &gene1, const NeuronGene &gene2) {
-                return absDiff(gene1.xRaster, gene2.xRaster) > 1 ||
-                       absDiff(gene1.yRaster, gene2.yRaster) > 1;
-            }
+            static bool canBeInserted(const NeuronGene &gene1, const NeuronGene &gene2);
 
             /* create a new node between two nodes */
             NeuronGene(
@@ -67,17 +73,21 @@ namespace NEAT {
                 const NeuronGene &gene1, 
                 const NeuronGene &gene2
             ) : type(type),
-                xRaster(middle(gene1.xRaster, gene2.xRaster)), 
-                yRaster(middle(gene1.yRaster, gene2.yRaster)) {
+                layerID(middle(gene1.layerID, gene2.layerID)) {
 
+                assert(id != UINT64_MAX);
                 assert(canBeInserted(gene1, gene2));
             }
 
             /* compare operator */
             bool operator == (const NeuronGene &other) const {
-                return xRaster == other.xRaster && 
-                       yRaster == other.yRaster;
+                assert(id != UINT64_MAX && other.id != UINT64_MAX);
+                assert((id == other.id && layerID == other.layerID) || id != other.layerID);
+                return id == other.id;
             }
+
+            /* generate a dummy placeholder gene */
+            NeuronGene() : type(NeuronType::HIDDEN), id(UINT64_MAX), layerID(UINT64_MAX) { }
     };
 
     /**
@@ -157,36 +167,16 @@ namespace NEAT {
                        outputNeuron == other.outputNeuron;
             }
 
+            /* returns thrue if the NeuronGene can be splitted */
+            bool canBeSplitted() const {
+                return NeuronGene::canBeInserted(inputNeuron, outputNeuron);
+            }
+
             /* returns a new NeuronGene spliting this */
-            NeuronGene *split() const {
-                return new NeuronGene(NeuronType::HIDDEN, inputNeuron, outputNeuron);
+            NeuronGene split() const {
+                return NeuronGene(NeuronType::HIDDEN, inputNeuron, outputNeuron);
             }
     };
-
-    class NeuronTree : public QuadTree<NeuronGene> {
-        
-        public :
-            
-            /* insert a neuron into this if its not already exist */
-            NeuronGene *insert(NeuronGene *const gene) {
-                return QuadTree<NeuronGene>::insert(gene, gene->getX(), gene->getY());
-            }
-    };
-
-    class ConnectionTree : public HexTree<ConnectionGene> {
-
-        public: 
-
-            /* insert a neuron into this if its not already exist */
-            ConnectionGene *insert(ConnectionGene *const gene) {
-                return HexTree<ConnectionGene>::insert(gene, 
-                                                       gene->getInput().getX(), 
-                                                       gene->getInput().getY(), 
-                                                       gene->getOutput().getX(),
-                                                       gene->getOutput().getY());
-            }
-    };
-
 }
 
 #endif /* __GENE_H__ */
