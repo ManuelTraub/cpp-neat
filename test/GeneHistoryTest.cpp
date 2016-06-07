@@ -31,15 +31,21 @@ TEST(basicTest) {
     
     GeneHistory &history = GeneHistory::getInstance();
 
-    ConnectionGene connection(NeuronGene(NeuronType::INPUT, 0), 
-                              NeuronGene(NeuronType::OUTPUT, UINT64_MAX));
+    NeuronGene input  = NeuronGene(NeuronType::INPUT, 0);
+    NeuronGene output = NeuronGene(NeuronType::OUTPUT, UINT64_MAX);
+
+    ConnectionGene connection(input, output);
 
     history.insertNeuron(connection.getInput());
     history.insertNeuron(connection.getOutput());
     NeuronGene neuron1 = history.insertNeuron(connection);
     NeuronGene neuron2 = history.insertNeuron(ConnectionGene(connection.getInput(), 
                                                              connection.getOutput()));
-
     ASSERT_EQUAL(neuron1.getID(), neuron2.getID(), "neuron genes not equal");
+
+    ConnectionGene connection1 = history.insertConnection(input, output);
+    ConnectionGene connection2 = history.insertConnection(input, output);
+
+    ASSERT_EQUAL(connection1.getID(), connection2.getID(), "ids should be equal");
     return args;
 }

@@ -91,7 +91,7 @@ namespace NEAT {
             NeuronGene insertNeuron(const ConnectionGene &gene);
 
             /* insert a new input, bias or output Neuron */
-            void insertConnection(NeuronGene const &input, NeuronGene const &output);
+            ConnectionGene insertConnection(NeuronGene const &input, NeuronGene const &output);
 
     };
 

@@ -61,9 +61,15 @@ NeuronGene GeneHistory::insertNeuron(const ConnectionGene &gene) {
 }
 
 /* insert a new input, bias or output Neuron */
-void insertConnection(NeuronGene const &input, NeuronGene const &output) {
+ConnectionGene GeneHistory::insertConnection(NeuronGene const &input, NeuronGene const &output) {
     
     /* all NeuronGenes have to be in the gene History */
     assert(neuronMap.count(input.getID())  == 1);
     assert(neuronMap.count(output.getID()) == 1);
+
+    if (connectionsTree.contains(input.getID(), output.getID()))
+        return connectionsTree(input.getID(), output.getID());
+
+    connectionsTree(input.getID(), output.getID()) = ConnectionGene(input, output);
+    return connectionsTree(input.getID(), output.getID());
 }
