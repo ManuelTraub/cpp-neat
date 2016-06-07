@@ -6,6 +6,7 @@
 #define __GENE_HISTORY_H__
 
 #include "Gene.h"
+#include "QuadTree.h"
 #include <vector>
 #include <unordered_map>
 
@@ -58,9 +59,6 @@ namespace NEAT {
 
         private:
 
-            /* the GlobalNeuronGenes of this */
-            unordered_map<uint64_t, NeuronGeneConnections> neuronMap;
-
             /* the only instance of the GeneHistory */
             static GeneHistory onlyInstance;
 
@@ -72,6 +70,12 @@ namespace NEAT {
 
             /* delete copy constructor to disalow copies of this */
             GeneHistory(const GeneHistory &) = delete;
+
+            /* the GlobalNeuronGenes of this */
+            unordered_map<uint64_t, NeuronGeneConnections> neuronMap;
+            
+            /* the Global ConnectionGenes of this */
+            QuadTree<ConnectionGene> connectionsTree;
 
         public:
 
@@ -85,6 +89,9 @@ namespace NEAT {
              * Note: the gene must be splitable 
              */
             NeuronGene insertNeuron(const ConnectionGene &gene);
+
+            /* insert a new input, bias or output Neuron */
+            void insertConnection(NeuronGene const &input, NeuronGene const &output);
 
     };
 

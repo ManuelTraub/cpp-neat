@@ -125,6 +125,9 @@ namespace NEAT {
 
         public: 
 
+            /* generate a dummy placeholder gene */
+            ConnectionGene() : weight(0), enabled(false), id(UINT64_MAX) { }
+
             /* creats a new Gene with two given neuron ids */
             ConnectionGene(const NeuronGene inputNeuron, 
                            const NeuronGene outputNeuron,
@@ -137,48 +140,54 @@ namespace NEAT {
                 pthread_mutex_lock(&mutex);
                 this->id = idCounter++;
                 pthread_mutex_unlock(&mutex);
+
+                assert(id != UINT64_MAX);
             }
 
             /* returns the historical id of this */
-            uint64_t getID() const { return id; }
+            uint64_t getID() const { assert(id != UINT64_MAX); return id; }
 
             /* returns the inputNeuron of this */
-            NeuronGene getInput() const { return inputNeuron; }
+            NeuronGene getInput() const { assert(id != UINT64_MAX); return inputNeuron; }
 
             /* returns the outputNeuron of this */
-            NeuronGene getOutput() const { return outputNeuron; }
+            NeuronGene getOutput() const { assert(id != UINT64_MAX); return outputNeuron; }
             
             /* returns the weight of this */
-            double getWeight() const { return weight; }
+            double getWeight() const { assert(id != UINT64_MAX); return weight; }
 
             /* set the weight */
             void setWeight(const double weight) {
                 assert(weight >= -1.0 && weight <= 1.0);
                 this->weight = weight;
+                assert(id != UINT64_MAX); 
             }
 
             /* disables this gene */
-            void disable() { assert(enabled); enabled = false; }
+            void disable() { assert(id != UINT64_MAX && enabled); enabled = false; }
 
             /* returns if this is enabled */
-            bool isEnabled() const { return enabled; }
+            bool isEnabled() const { assert(id != UINT64_MAX); return enabled; }
 
             /* resets the waight of this to a random value */
-            void mutate() { weight = rand_range_d64(rand, -1.0, 1.0); }
+            void mutate() { assert(id != UINT64_MAX); weight = rand_range_d64(rand, -1.0, 1.0); }
 
             /* compares to genes based on their 2D location */
             bool operator == (const ConnectionGene &other) const {
+                assert(id != UINT64_MAX); 
                 return inputNeuron  == other.inputNeuron && 
                        outputNeuron == other.outputNeuron;
             }
 
             /* returns thrue if the NeuronGene can be splitted */
             bool canBeSplitted() const {
+                assert(id != UINT64_MAX); 
                 return NeuronGene::canBeInserted(inputNeuron, outputNeuron);
             }
 
             /* returns a new NeuronGene spliting this */
             NeuronGene split() const {
+                assert(id != UINT64_MAX);  
                 return NeuronGene(NeuronType::HIDDEN, inputNeuron, outputNeuron);
             }
     };
