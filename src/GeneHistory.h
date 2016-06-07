@@ -61,54 +61,30 @@ namespace NEAT {
             /* the GlobalNeuronGenes of this */
             unordered_map<uint64_t, NeuronGeneConnections> neuronMap;
 
+            /* the only instance of the GeneHistory */
+            static GeneHistory onlyInstance;
+
+            /* private constructor and destructor to make this a singleton */
+            GeneHistory() { }
+
+            /* private destructor to avoid deletion of the singleton */
+            ~GeneHistory() { }
+
+            /* delete copy constructor to disalow copies of this */
+            GeneHistory(const GeneHistory &) = delete;
+
         public:
 
-            /* insert a new input, bias or output Neuron
-             */
-            void insertNeuron(NeuronGene const &gene) {
-                assert(gene.getType() == NeuronType::INPUT ||
-                       gene.getType() == NeuronType::BIAS  ||
-                       gene.getType() == NeuronType::OUTPUT);
+            /* access the only instance of this */
+            static GeneHistory &getInstance();
 
-                neuronMap.insert(make_pair(gene.getID(), NeuronGeneConnections(gene)));
-            }
+            /* insert a new input, bias or output Neuron */
+            void insertNeuron(NeuronGene const &gene);
 
             /* insert a new Neuron between the given connection 
              * Note: the gene must be splitable 
              */
-            NeuronGene insertNeuron(const ConnectionGene &gene) {
-                assert(gene.canBeSplitted());
-                
-                /* check if an Neuron already exists */
-                const uint64_t inpuID   = gene.getInput().getID();
-                const uint64_t outputID = gene.getOutput().getID();
-
-                NeuronGeneConnections &inputConnections  = neuronMap[inpuID];
-                NeuronGeneConnections &outputConnections = neuronMap[outputID];
-
-                /* checks if the connection was allready splitted by checkign for and
-                 * Neuron with conected to input and output of the connection
-                 */
-                for (uint64_t &inID : inputConnections.getOutputs()) {
-                    for (uint64_t &outID : outputConnections.getInputs()) {
-                        if (inID == outID)
-                            return neuronMap[inID].getGene();
-                    }
-                }
-
-                /* if no connection was found insert a new one */
-                NeuronGene newNeuron = gene.split();
-
-                inputConnections.addOutput(newNeuron.getID());
-                outputConnections.addInput(newNeuron.getID());
-
-                neuronMap.insert(make_pair(newNeuron.getID(), NeuronGeneConnections(newNeuron)));
-
-                neuronMap[newNeuron.getID()].addInput(inpuID);
-                neuronMap[newNeuron.getID()].addOutput(outputID);
-
-                return newNeuron;
-            }
+            NeuronGene insertNeuron(const ConnectionGene &gene);
 
     };
 

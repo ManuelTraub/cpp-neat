@@ -29,7 +29,7 @@ AFTER() {
 
 TEST(basicTest) {
     
-    GeneHistory history;
+    GeneHistory &history = GeneHistory::getInstance();
 
     ConnectionGene connection(NeuronGene(NeuronType::INPUT, 0), 
                               NeuronGene(NeuronType::OUTPUT, UINT64_MAX));
