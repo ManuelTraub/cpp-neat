@@ -75,8 +75,13 @@ namespace NEAT {
             ) : type(type),
                 layerID(middle(gene1.layerID, gene2.layerID)) {
 
-                assert(id != UINT64_MAX);
                 assert(canBeInserted(gene1, gene2));
+
+                pthread_mutex_lock(&mutex);
+                this->id = idCounter++;
+                pthread_mutex_unlock(&mutex);
+
+                assert(id != UINT64_MAX);
             }
 
             /* compare operator */
