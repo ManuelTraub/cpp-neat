@@ -42,6 +42,9 @@ namespace NEAT {
             /* calculate the output for a given input */
             vector<double> run(vector<double> inputs);
 
+            /* calculaes the quadratic error for the given data set */
+            double calculateError(vector<vector<double>> inputs, vector<vector<double>> outputs);
+
             /* export this as an svg image */
             void saveAsSVG(string fname);
 

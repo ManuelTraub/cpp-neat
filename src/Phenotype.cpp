@@ -122,6 +122,45 @@ vector<double> Phenotype::run(vector<double> inputs) {
     return outputs;
 }
 
+/* calculaes the quadratic error for the given data set */
+double Phenotype::calculateError(vector<vector<double>> inputs, vector<vector<double>> outputs) {
+
+    assert(inputs.size() == outputs.size());
+    double error = 0;
+
+    for (unsigned k = 0; k < inputs.size(); k++) {
+
+        assert(inputs[k].size() == neuronLayers[0].size());
+        assert(outputs[k].size() == neuronLayers.back().size());
+        
+        /* set the input neurons */
+        for (unsigned i = 0; i < inputs[k].size(); i++)
+            this->neuronLayers[0][i]->setValue(inputs[k][i]);
+        
+        /* calculate the output for each layer (except the input layers)
+         * (calculate and applay in several steps to preserv recurent
+         * connections within the same layer)
+         */
+        for (unsigned l = 1; l < neuronLayers.size(); l++) {
+
+            for (unsigned n = 0; n < neuronLayers[l].size(); n++) 
+                neuronLayers[l][n]->calculateUpdate();
+
+            for (unsigned n = 0; n < neuronLayers[l].size(); n++) 
+                neuronLayers[l][n]->applayUpdate();
+        }
+
+        /* calculate the round error */
+        double roundError = 0;
+        for (unsigned i = 0; i < neuronLayers.back().size(); i++) {
+            roundError += (outputs[k][i] - neuronLayers.back()[i]->getValue()) *
+                          (outputs[k][i] - neuronLayers.back()[i]->getValue());
+        }
+        error += roundError / neuronLayers.back().size();
+    }
+    return error / inputs.size();
+}
+
 /* export this as an svg image */
 void Phenotype::saveAsSVG(string fname) {
 

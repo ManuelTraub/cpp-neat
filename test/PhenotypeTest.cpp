@@ -75,7 +75,7 @@ TEST_N(advancedTest, 100) {
     return args;
 }
 
-TEST(binaryANDTest) {
+TEST(basicBinaryANDTest) {
 
     Genotype genotype(2, 1);
 
@@ -113,6 +113,81 @@ TEST(binaryANDTest) {
     ASSERT_TRUE(phenotype.run({0,1})[0] < 0.5, "AND(0,1) = 0: %F", phenotype.run({0,1})[0]);
     ASSERT_TRUE(phenotype.run({1,0})[0] < 0.5, "AND(1,0) = 0: %F", phenotype.run({1,0})[0]);
     ASSERT_TRUE(phenotype.run({1,1})[0] > 0.5, "AND(1,1) = 1: %F", phenotype.run({1,1})[0]);
+
+    return args;
+}
+
+TEST(advancedBinaryANDTest) {
+
+    Genotype genotype(2, 1);
+
+    unordered_map<uint64_t, NeuronGene> neuronsMap = genotype.getNeurons();
+    vector<NeuronGene> inputs;
+    vector<NeuronGene> outputs;
+    NeuronGene bias;
+    
+    for (auto const &e : neuronsMap) {
+        if (e.second.getType() == NeuronType::INPUT)
+            inputs.push_back(e.second);
+        else if (e.second.getType() == NeuronType::BIAS)
+            bias = e.second;
+        else if (e.second.getType() == NeuronType::OUTPUT)
+            outputs.push_back(e.second);
+        else
+            ASSERT_FAIL("network should not have hidden neurons");
+    }
+
+    ASSERT_EQUAL(inputs.size(), 2, "there should be 2 inputs");
+    ASSERT_EQUAL(outputs.size(), 1, "there should be 1 output");
+
+    ConnectionGene &inCon1  = genotype.addConnection(inputs[0], outputs[0]);
+    ConnectionGene &inCon2  = genotype.addConnection(inputs[1], outputs[0]);
+    ConnectionGene &biasCon = genotype.addConnection(bias, outputs[0]);
+
+    double weight1 = inCon1.getWeight(), 
+           weight2 = inCon2.getWeight(), 
+           weight3 = biasCon.getWeight();
+
+    vector<vector<double>> trainingInputs  = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
+    vector<vector<double>> trainingOutputs = {{0}, {0}, {0}, {1}};
+
+
+    double minError = UINT64_MAX;
+    while (minError > 0.09) {
+        genotype.mutateConnections(rand_range_d64(args, 0.34, 1.0));
+        Phenotype phenotype(genotype);
+        double curError = phenotype.calculateError(trainingInputs, trainingOutputs);
+
+        if (curError < minError) {
+            minError = curError;
+            weight1 = inCon1.getWeight(), 
+            weight2 = inCon2.getWeight(), 
+            weight3 = biasCon.getWeight();
+        } else {
+            inCon1.setWeight(weight1);
+            inCon2.setWeight(weight2);
+            biasCon.setWeight(weight3);
+        }
+        TEST_MSGD("minError: %F, cur %F", minError, curError);
+    }
+
+
+    Phenotype phenotype(genotype);
+    phenotype.saveAsSVG("Phenotype-binary-AND2.svg");
+
+    ASSERT_TRUE(phenotype.run({0,0})[0] < 0.5, "AND(0,0) = 0: %F", phenotype.run({0,0})[0]);
+    ASSERT_TRUE(phenotype.run({0,1})[0] < 0.5, "AND(0,1) = 0: %F", phenotype.run({0,1})[0]);
+    ASSERT_TRUE(phenotype.run({1,0})[0] < 0.5, "AND(1,0) = 0: %F", phenotype.run({1,0})[0]);
+    ASSERT_TRUE(phenotype.run({1,1})[0] > 0.5, "AND(1,1) = 1: %F", phenotype.run({1,1})[0]);
+
+    TEST_MSGD("AND(0,0) = 0: %F", phenotype.run({0,0})[0]);
+    TEST_MSGD("AND(0,1) = 0: %F", phenotype.run({0,1})[0]);
+    TEST_MSGD("AND(1,0) = 0: %F", phenotype.run({1,0})[0]);
+    TEST_MSGD("AND(1,1) = 1: %F", phenotype.run({1,1})[0]);
+
+    TEST_MSGD("Input Connection 1: %F", weight1);
+    TEST_MSGD("Input Connection 2: %F", weight2);
+    TEST_MSGD("Bias Connection:    %F", weight3);
 
     return args;
 }
