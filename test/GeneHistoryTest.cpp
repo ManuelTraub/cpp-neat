@@ -31,13 +31,11 @@ TEST(basicTest) {
     
     GeneHistory &history = GeneHistory::getInstance();
 
-    NeuronGene input  = NeuronGene(NeuronType::INPUT, 0);
-    NeuronGene output = NeuronGene(NeuronType::OUTPUT, UINT64_MAX);
+    NeuronGene input  = history.insertNeuron(NeuronType::INPUT, 0);
+    NeuronGene output = history.insertNeuron(NeuronType::OUTPUT, 0);
 
     ConnectionGene connection(input, output);
 
-    history.insertNeuron(connection.getInput());
-    history.insertNeuron(connection.getOutput());
     NeuronGene neuron1 = history.insertNeuron(connection);
     NeuronGene neuron2 = history.insertNeuron(ConnectionGene(connection.getInput(), 
                                                              connection.getOutput()));
