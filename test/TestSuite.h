@@ -597,7 +597,7 @@ int main(int argc, char *argv[]) {
     tunit.bevor_all_res = tunit.bevor_all();
 
   /* run all tests  in the order they where added */
-  for (tunit.i = ARY_LEN(tunit.tests) - 1; tunit.i < ARY_LEN(tunit.tests); tunit.i--) {
+  for (tunit.i = 0; tunit.i < ARY_LEN(tunit.tests); tunit.i++) {
 
     Test *test = &CUR_TEST;
 

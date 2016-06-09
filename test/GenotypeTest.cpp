@@ -35,25 +35,39 @@ TEST(basicTest) {
     Genotype genotype3(2, 2);
     Genotype genotype4(2, 2);
 
-    unordered_map<uint64_t, NeuronGene> neuronsMap = genotype1.getNeurons();
-    vector<NeuronGene> inputs;
-    vector<NeuronGene> outputs;
+    /* sort the neurons by input and output */
+    unordered_map<uint64_t, NeuronGene> neuronsMap1 = genotype1.getNeurons();
+    unordered_map<uint64_t, NeuronGene> neuronsMap2 = genotype2.getNeurons();
+    vector<NeuronGene> inputs1, inputs2;
+    vector<NeuronGene> outputs1, outputs2;
     
-    for (auto const &e : neuronsMap) {
+    for (auto const &e : neuronsMap1) {
         if (e.second.getType() == NeuronType::INPUT || 
             e.second.getType() == NeuronType::BIAS)
-            inputs.push_back(e.second);
+            inputs1.push_back(e.second);
         else if (e.second.getType() == NeuronType::OUTPUT)
-            outputs.push_back(e.second);
+            outputs1.push_back(e.second);
         else
             ASSERT_FAIL("network should not have hidden neurons");
     }
 
-    ASSERT_EQUAL(inputs.size(), 3, "more than 3 inputs");
-    ASSERT_EQUAL(outputs.size(), 2, "more than 2 outputs");
+    for (auto const &e : neuronsMap2) {
+        if (e.second.getType() == NeuronType::INPUT || 
+            e.second.getType() == NeuronType::BIAS)
+            inputs2.push_back(e.second);
+        else if (e.second.getType() == NeuronType::OUTPUT)
+            outputs2.push_back(e.second);
+        else
+            ASSERT_FAIL("network should not have hidden neurons");
+    }
 
-    genotype1.addConnection(inputs[0], outputs[0]);
-    genotype2.addConnection(inputs[0], outputs[0]);
+    ASSERT_EQUAL(inputs1.size(), 3, "more than 3 inputs");
+    ASSERT_EQUAL(outputs1.size(), 2, "more than 2 outputs");
+    ASSERT_EQUAL(inputs2.size(), 3, "more than 3 inputs");
+    ASSERT_EQUAL(outputs2.size(), 2, "more than 2 outputs");
+
+    genotype1.addConnection(inputs1[0], outputs1[0]);
+    genotype2.addConnection(inputs2[0], outputs2[0]);
 
     unordered_map<uint64_t, ConnectionGene> connections1 = genotype1.getConnections();
     unordered_map<uint64_t, ConnectionGene> connections2 = genotype2.getConnections();
@@ -68,8 +82,8 @@ TEST(basicTest) {
                  connections2.begin()->second.getID());
     
 
-    genotype3.addConnection(inputs[0], outputs[1]);
-    genotype4.addConnection(inputs[1], outputs[0]);
+    genotype3.addConnection(inputs1[0], outputs1[1]);
+    genotype4.addConnection(inputs2[1], outputs2[0]);
 
     connections1 = genotype3.getConnections();
     connections2 = genotype4.getConnections();
@@ -237,10 +251,12 @@ TEST(basicInLayerTestTest) {
     ASSERT_EQUAL(connections2.size(), 3, "should be 3 connections: %lu", connections2.size());
 
     /* neurons of both genotypes should be the same */
+    ASSERT_EQUAL(neurons1.size(), neurons2.size(), "not the same number of neurons");
     for (auto const &e : neurons1)
         ASSERT_EQUAL(neurons2.count(e.second.getID()), 1, "neuron not found");
 
     /* all connections sould be equal */
+    ASSERT_EQUAL(connections1.size(), connections2.size(), "not the same number of connections");
     for (auto const &e : connections1)
         ASSERT_EQUAL(connections2.count(e.second.getID()), 1, "connection not found");
 
@@ -294,6 +310,113 @@ TEST_N(basicMutationTest, 1000) {
 
     ASSERT_TRUE(weight != genotype.getConnections()[key].getWeight(),
                 "connection should be mutated");
+
+    return args;
+}
+
+TEST_N(advancedMutationTest, 100) {
+
+    uint64_t nInputs  = rand_range64(args, 1, 10);
+    uint64_t nOutputs = rand_range64(args, 1, 10);
+    
+    /* recurent connection on each output
+     * from each input + bias a connection to each output
+     * a connection from each output to al other outputs
+     */
+    uint64_t nConnections = nOutputs + (nInputs + 1) * nOutputs + nOutputs * (nOutputs - 1);
+    
+    Genotype genotype1(nInputs, nOutputs);
+    Genotype genotype2(nInputs, nOutputs);
+
+    /* create all posible connections */
+    for (unsigned i = 0; i < nConnections * 100; i++) {
+        genotype1.mutateInsertConnection();
+        genotype2.mutateInsertConnection();
+    }
+
+    ASSERT_EQUAL(genotype1.getConnections().size(), 
+                 nConnections,
+                 "more than %lu connections: %lu",
+                 nConnections,
+                 genotype1.getConnections().size());
+    
+    ASSERT_EQUAL(genotype2.getConnections().size(), 
+                 nConnections,
+                 "more than %lu connections: %lu",
+                 nConnections,
+                 genotype2.getConnections().size());
+
+    unordered_map<uint64_t, NeuronGene> neurons1 = genotype1.getNeurons();
+    unordered_map<uint64_t, NeuronGene> neurons2 = genotype2.getNeurons();
+    unordered_map<uint64_t, ConnectionGene> connections1 = genotype1.getConnections();
+    unordered_map<uint64_t, ConnectionGene> connections2 = genotype2.getConnections();
+
+    /* neurons of both genotypes should be the same */
+    ASSERT_EQUAL(neurons1.size(), neurons2.size(), "not the same number of neurons");
+    for (auto const &e : neurons1)
+        ASSERT_EQUAL(neurons2.count(e.second.getID()), 1, "neuron not found");
+
+    /* all connections sould be equal */
+    ASSERT_EQUAL(connections1.size(), connections2.size(), "not the same number of connections");
+    for (auto const &e : connections1)
+        ASSERT_EQUAL(connections2.count(e.second.getID()), 1, "connection not found");
+
+    vector<ConnectionGene> vConnections;
+    for (auto const &e : connections1)
+        vConnections.push_back(e.second);
+
+    /* find a connection between a input and a output neuron */
+    uint64_t randIndex = rand64(args) % vConnections.size();
+    while (vConnections[randIndex].getInput().getType()  != NeuronType::INPUT ||
+          vConnections[randIndex].getOutput().getType() != NeuronType::OUTPUT) {
+
+        randIndex = rand64(args) % vConnections.size();
+    }
+
+    /* add a new neuron */
+    genotype1.addNeuron(vConnections[randIndex]);
+    genotype2.addNeuron(vConnections[randIndex]);
+
+    /* recalculate the number of possible connections: 
+     * 1 recurent connection
+     * 1 Bias connection
+     * a connection from each input
+     * a connection to and from each output
+     */
+    nConnections += 1 + 1 + nInputs + 2 * nOutputs;
+
+    /* create all posible connections */
+    for (unsigned i = 0; i < nConnections * 100; i++) {
+        genotype1.mutateInsertConnection();
+        genotype2.mutateInsertConnection();
+    }
+
+    ASSERT_EQUAL(genotype1.getConnections().size(), 
+                 nConnections,
+                 "more than %lu connections: %lu",
+                 nConnections,
+                 genotype1.getConnections().size());
+    
+    ASSERT_EQUAL(genotype2.getConnections().size(), 
+                 nConnections,
+                 "more than %lu connections: %lu",
+                 nConnections,
+                 genotype2.getConnections().size());
+
+    neurons1 = genotype1.getNeurons();
+    neurons2 = genotype2.getNeurons();
+    connections1 = genotype1.getConnections();
+    connections2 = genotype2.getConnections();
+
+    /* neurons of both genotypes should be the same */
+    ASSERT_EQUAL(neurons1.size(), neurons2.size(), "not the same number of neurons");
+    for (auto const &e : neurons1)
+        ASSERT_EQUAL(neurons2.count(e.second.getID()), 1, "neuron not found");
+
+    /* all connections sould be equal */
+    ASSERT_EQUAL(connections1.size(), connections2.size(), "not the same number of connections");
+    for (auto const &e : connections1)
+        ASSERT_EQUAL(connections2.count(e.second.getID()), 1, "connection not found");
 
     return args;
 }
