@@ -53,6 +53,12 @@ namespace NEAT {
             /* create a new Genotype for the given number of input and output neurons */
             Genotype(const unsigned inputs, const unsigned outputs);
 
+            /* creat a new Genotype mixing the genes of better with other */
+            Genotype(const Genotype &fitter, const Genotype &other);
+
+            /* calculates the similarity with this and other */
+            uint64_t similarity(const Genotype &other);
+
 #ifdef __DEBUG__ 
             NeuronGene &addNeuron(const ConnectionGene &gene);
             ConnectionGene &addConnection(const NeuronGene &gene1, const NeuronGene &gene2);

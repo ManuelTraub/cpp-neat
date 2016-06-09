@@ -41,7 +41,7 @@ TEST(basicTest) {
     vector<NeuronGene> inputs1, inputs2;
     vector<NeuronGene> outputs1, outputs2;
     
-    for (auto const &e : neuronsMap1) {
+    for (const auto &e : neuronsMap1) {
         if (e.second.getType() == NeuronType::INPUT || 
             e.second.getType() == NeuronType::BIAS)
             inputs1.push_back(e.second);
@@ -51,7 +51,7 @@ TEST(basicTest) {
             ASSERT_FAIL("network should not have hidden neurons");
     }
 
-    for (auto const &e : neuronsMap2) {
+    for (const auto &e : neuronsMap2) {
         if (e.second.getType() == NeuronType::INPUT || 
             e.second.getType() == NeuronType::BIAS)
             inputs2.push_back(e.second);
@@ -109,7 +109,7 @@ TEST(basic2DTest) {
     vector<NeuronGene> inputs;
     vector<NeuronGene> outputs;
     
-    for (auto const &e : neuronsMap) {
+    for (const auto &e : neuronsMap) {
         if (e.second.getType() == NeuronType::INPUT || 
             e.second.getType() == NeuronType::BIAS)
             inputs.push_back(e.second);
@@ -149,11 +149,11 @@ TEST(basic2DTest) {
 
     NeuronGene hidden1, hidden2;
 
-    for (auto const &e : neurons1)
+    for (const auto &e : neurons1)
         if (e.second.getType() == NeuronType::HIDDEN)
             hidden1 = e.second;
 
-    for (auto const &e : neurons2)
+    for (const auto &e : neurons2)
         if (e.second.getType() == NeuronType::HIDDEN)
             hidden2 = e.second;
 
@@ -174,7 +174,7 @@ TEST(basicInLayerTestTest) {
     vector<NeuronGene> inputs;
     vector<NeuronGene> outputs;
     
-    for (auto const &e : neuronsMap) {
+    for (const auto &e : neuronsMap) {
         if (e.second.getType() == NeuronType::INPUT || 
             e.second.getType() == NeuronType::BIAS)
             inputs.push_back(e.second);
@@ -211,11 +211,11 @@ TEST(basicInLayerTestTest) {
 
     vector<NeuronGene> hidden1, hidden2;
 
-    for (auto const &e : neurons1)
+    for (const auto &e : neurons1)
         if (e.second.getType() == NeuronType::HIDDEN)
             hidden1.push_back(e.second);
 
-    for (auto const &e : neurons2)
+    for (const auto &e : neurons2)
         if (e.second.getType() == NeuronType::HIDDEN)
             hidden2.push_back(e.second);
 
@@ -252,12 +252,12 @@ TEST(basicInLayerTestTest) {
 
     /* neurons of both genotypes should be the same */
     ASSERT_EQUAL(neurons1.size(), neurons2.size(), "not the same number of neurons");
-    for (auto const &e : neurons1)
+    for (const auto &e : neurons1)
         ASSERT_EQUAL(neurons2.count(e.second.getID()), 1, "neuron not found");
 
     /* all connections sould be equal */
     ASSERT_EQUAL(connections1.size(), connections2.size(), "not the same number of connections");
-    for (auto const &e : connections1)
+    for (const auto &e : connections1)
         ASSERT_EQUAL(connections2.count(e.second.getID()), 1, "connection not found");
 
     return args;
@@ -353,16 +353,16 @@ TEST_N(advancedMutationTest, 100) {
 
     /* neurons of both genotypes should be the same */
     ASSERT_EQUAL(neurons1.size(), neurons2.size(), "not the same number of neurons");
-    for (auto const &e : neurons1)
+    for (const auto &e : neurons1)
         ASSERT_EQUAL(neurons2.count(e.second.getID()), 1, "neuron not found");
 
     /* all connections sould be equal */
     ASSERT_EQUAL(connections1.size(), connections2.size(), "not the same number of connections");
-    for (auto const &e : connections1)
+    for (const auto &e : connections1)
         ASSERT_EQUAL(connections2.count(e.second.getID()), 1, "connection not found");
 
     vector<ConnectionGene> vConnections;
-    for (auto const &e : connections1)
+    for (const auto &e : connections1)
         vConnections.push_back(e.second);
 
     /* find a connection between a input and a output neuron */
@@ -410,12 +410,12 @@ TEST_N(advancedMutationTest, 100) {
 
     /* neurons of both genotypes should be the same */
     ASSERT_EQUAL(neurons1.size(), neurons2.size(), "not the same number of neurons");
-    for (auto const &e : neurons1)
+    for (const auto &e : neurons1)
         ASSERT_EQUAL(neurons2.count(e.second.getID()), 1, "neuron not found");
 
     /* all connections sould be equal */
     ASSERT_EQUAL(connections1.size(), connections2.size(), "not the same number of connections");
-    for (auto const &e : connections1)
+    for (const auto &e : connections1)
         ASSERT_EQUAL(connections2.count(e.second.getID()), 1, "connection not found");
 
     return args;

@@ -134,6 +134,46 @@ Genotype::Genotype(const unsigned inputs, const unsigned outputs) :
     }
 }
 
+/* creat a new Genotype mixing the genes of this with other */
+Genotype::Genotype(const Genotype &fitter, const Genotype &other) : 
+                   history(GeneHistory::getInstance()) {
+
+    this->neurons = fitter.neurons;
+
+    for (const auto &e : fitter.connections) {
+
+        /* if a connection with the same historical id exists in other
+         * choose a random weight from fitter or other
+         */
+        if (other.connections.count(e.first) != 0) {
+            if (rand64(rand) % 2 == 1)
+                this->connections[e.first] = other.connections.at(e.first);
+            else
+                this->connections[e.first] = fitter.connections.at(e.first);
+
+        /* use only missing genes from the fitter individual */
+        } else 
+            this->connections[e.first] = fitter.connections.at(e.first);
+    }
+}
+
+/* calculates the similarity with this and other */
+uint64_t Genotype::similarity(const Genotype &other) {
+    
+    uint64_t similarity = this->neurons.size() + this->connections.size() +
+                          other.neurons.size() + other.connections.size();
+
+    for (const auto &e : neurons)
+        if (other.neurons.count(e.first))
+            similarity -= 2;;
+
+    for (const auto &e : connections)
+        if (other.connections.count(e.first))
+            similarity -= 2;
+                          
+    return similarity;
+}
+
 #ifdef __DEBUG__ 
 NeuronGene &Genotype::addNeuron(const ConnectionGene &gene) {
 

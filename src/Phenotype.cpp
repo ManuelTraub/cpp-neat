@@ -21,7 +21,7 @@ Phenotype::Phenotype(const Genotype &genome) : genome(genome) {
      */
     set<uint64_t> layerIDs;
 
-    for (auto const &e : neuronGenes)
+    for (const auto &e : neuronGenes)
         layerIDs.insert(e.second.getLayerID());
 
     /* map a layer index to each different xValue */
@@ -39,7 +39,7 @@ Phenotype::Phenotype(const Genotype &genome) : genome(genome) {
     /* create all neurons and store them efficiently in a unordered_map */
     unordered_map<uint64_t, Neuron *> neuronMap;
 
-    for (auto const &e : neuronGenes) {
+    for (const auto &e : neuronGenes) {
 
         /* store neuron for efficient access */
         Neuron *const newNeuron = new Neuron();
@@ -82,7 +82,7 @@ Phenotype::Phenotype(const Genotype &genome) : genome(genome) {
     this->bias->setValue(1);
 
     /* connect the neurons */
-    for (auto const &e : connectionGenes) {
+    for (const auto &e : connectionGenes) {
         
         Neuron *const input  = neuronMap[e.second.getInput().getID()];
         Neuron *const output = neuronMap[e.second.getOutput().getID()];

@@ -84,7 +84,7 @@ TEST(basicBinaryANDTest) {
     vector<NeuronGene> outputs;
     NeuronGene bias;
     
-    for (auto const &e : neuronsMap) {
+    for (const auto &e : neuronsMap) {
         if (e.second.getType() == NeuronType::INPUT)
             inputs.push_back(e.second);
         else if (e.second.getType() == NeuronType::BIAS)
@@ -126,7 +126,7 @@ TEST(advancedBinaryANDTest) {
     vector<NeuronGene> outputs;
     NeuronGene bias;
     
-    for (auto const &e : neuronsMap) {
+    for (const auto &e : neuronsMap) {
         if (e.second.getType() == NeuronType::INPUT)
             inputs.push_back(e.second);
         else if (e.second.getType() == NeuronType::BIAS)
