@@ -173,15 +173,16 @@ void Phenotype::saveAsSVG(string fname) {
                 const unsigned green = (weights[i] < 0) ? 255.0 * (1 + weights[i]) : 255;
                 const unsigned red   = (weights[i] > 0) ? 255.0 * (1 - weights[i]) : 255;
                 
+                 /* color node fill color if bias connection */
+                 if (inputs[i] == bias) {
+                     colorsBias[neuron] = Color(red, green, 0);
+
                  /* color node border if self recurent */
-                 if (points[inputs[i]].x == points[neuron].x &&
+                 } else if (points[inputs[i]].x == points[neuron].x &&
                      points[inputs[i]].y == points[neuron].y) {
 
                      colorsRecurent[neuron] = Color(red, green, 0);
 
-                 /* color node fill color if bias connection */
-                 } else if (inputs[i] == bias) {
-                     colorsBias[neuron] = Color(red, green, 0);
                  } else {
                 
                     doc << (Polyline(Stroke(connectionSize, Color(red, green, 0))) << 

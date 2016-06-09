@@ -74,24 +74,40 @@ TEST_N(advancedTest, 100) {
 
     return args;
 }
-/*
+
 TEST(binaryANDTest) {
 
     Genotype genotype(2, 1);
 
-    vector<NeuronGene *> neurons = genotype.getNeurons();
+    unordered_map<uint64_t, NeuronGene> neuronsMap = genotype.getNeurons();
+    vector<NeuronGene> inputs;
+    vector<NeuronGene> outputs;
+    NeuronGene bias;
+    
+    for (auto const &e : neuronsMap) {
+        if (e.second.getType() == NeuronType::INPUT)
+            inputs.push_back(e.second);
+        else if (e.second.getType() == NeuronType::BIAS)
+            bias = e.second;
+        else if (e.second.getType() == NeuronType::OUTPUT)
+            outputs.push_back(e.second);
+        else
+            ASSERT_FAIL("network should not have hidden neurons");
+    }
 
-    genotype.addConnection(new ConnectionGene(*neurons[0], *neurons[3]));
-    genotype.addConnection(new ConnectionGene(*neurons[1], *neurons[3]));
-    genotype.addConnection(new ConnectionGene(*neurons[2], *neurons[3]));
+    ASSERT_EQUAL(inputs.size(), 2, "there should be 2 inputs");
+    ASSERT_EQUAL(outputs.size(), 1, "there should be 1 output");
 
-    genotype.getConnections()[0]->setWeight(0.5);
-    genotype.getConnections()[1]->setWeight(0.5);
-    genotype.getConnections()[2]->setWeight(-0.8);
+    ConnectionGene &inCon1  = genotype.addConnection(inputs[0], outputs[0]);
+    ConnectionGene &inCon2  = genotype.addConnection(inputs[1], outputs[0]);
+    ConnectionGene &biasCon = genotype.addConnection(bias, outputs[0]);
 
-    Phenotype phenotype(&genotype);
+    inCon1.setWeight(0.5);
+    inCon2.setWeight(0.5);
+    biasCon.setWeight(-0.8);
+
+    Phenotype phenotype(genotype);
     phenotype.saveAsSVG("Phenotype-binary-AND.svg");
-
 
     ASSERT_TRUE(phenotype.run({0,0})[0] < 0.5, "AND(0,0) = 0: %F", phenotype.run({0,0})[0]);
     ASSERT_TRUE(phenotype.run({0,1})[0] < 0.5, "AND(0,1) = 0: %F", phenotype.run({0,1})[0]);
@@ -99,4 +115,4 @@ TEST(binaryANDTest) {
     ASSERT_TRUE(phenotype.run({1,1})[0] > 0.5, "AND(1,1) = 1: %F", phenotype.run({1,1})[0]);
 
     return args;
-}*/
+}

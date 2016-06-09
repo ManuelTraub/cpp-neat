@@ -54,8 +54,8 @@ namespace NEAT {
             Genotype(const unsigned inputs, const unsigned outputs);
 
 #ifdef __DEBUG__ 
-            NeuronGene addNeuron(const ConnectionGene &gene);
-            ConnectionGene addConnection(const NeuronGene &gene1, const NeuronGene &gene2);
+            NeuronGene &addNeuron(const ConnectionGene &gene);
+            ConnectionGene &addConnection(const NeuronGene &gene1, const NeuronGene &gene2);
 #endif
     };
 }

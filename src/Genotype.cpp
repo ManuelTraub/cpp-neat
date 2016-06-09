@@ -135,7 +135,7 @@ Genotype::Genotype(const unsigned inputs, const unsigned outputs) :
 }
 
 #ifdef __DEBUG__ 
-NeuronGene Genotype::addNeuron(const ConnectionGene &gene) {
+NeuronGene &Genotype::addNeuron(const ConnectionGene &gene) {
 
     const NeuronGene neuron = history.insertNeuron(gene);
 
@@ -144,7 +144,7 @@ NeuronGene Genotype::addNeuron(const ConnectionGene &gene) {
 
     return neurons[neuron.getID()];
 }
-ConnectionGene Genotype::addConnection(const NeuronGene &gene1, const NeuronGene &gene2) {
+ConnectionGene &Genotype::addConnection(const NeuronGene &gene1, const NeuronGene &gene2) {
 
     const ConnectionGene connection = history.insertConnection(gene1, gene2);
 
