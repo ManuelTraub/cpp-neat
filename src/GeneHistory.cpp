@@ -11,12 +11,35 @@ GeneHistory &GeneHistory::getInstance() {
 
 /* insert a new input, bias or output Neuron
  */
-void GeneHistory::insertNeuron(NeuronGene const &gene) {
-    assert(gene.getType() == NeuronType::INPUT ||
-           gene.getType() == NeuronType::BIAS  ||
-           gene.getType() == NeuronType::OUTPUT);
+NeuronGene GeneHistory::insertNeuron(NeuronType const type, uint64_t number) {
+    assert(type == NeuronType::INPUT ||
+           type == NeuronType::BIAS  ||
+           type == NeuronType::OUTPUT);
 
-    neuronMap.insert(make_pair(gene.getID(), NeuronGeneConnections(gene)));
+    if (type == NeuronType::INPUT) {
+        while (inputs.size() <= number) {
+            inputs.push_back(NeuronGene(NeuronType::INPUT, 0));
+            neuronMap.insert({inputs.back().getID(), inputs.back()});
+        }
+        return inputs[number];
+
+    } else if (type == NeuronType::BIAS) {
+        while (bias.size() <= number) {
+            bias.push_back(NeuronGene(NeuronType::BIAS, 0));
+            neuronMap.insert({bias.back().getID(), bias.back()});
+        }
+        return bias[number];
+
+    } else if (type == NeuronType::OUTPUT) {
+        while (outputs.size() <= number) {
+            outputs.push_back(NeuronGene(NeuronType::OUTPUT, UINT64_MAX));
+            neuronMap.insert({outputs.back().getID(), outputs.back()});
+        }
+        return outputs[number];
+    }
+    
+    assert(false);
+    return NeuronGene();
 }
 
 /* insert a new Neuron between the given connection 
@@ -72,4 +95,13 @@ ConnectionGene GeneHistory::insertConnection(NeuronGene const &input, NeuronGene
 
     connectionsTree(input.getID(), output.getID()) = ConnectionGene(input, output);
     return connectionsTree(input.getID(), output.getID());
+}
+
+/* clears all stored genes */
+void GeneHistory::clear() {
+    neuronMap.clear();
+    connectionsTree.clear();
+    inputs.clear();
+    outputs.clear();
+    bias.clear();
 }

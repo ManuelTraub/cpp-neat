@@ -20,7 +20,7 @@ AFTER_ALL() {
 }
 
 BEVOR() {
-    Genotype::clearGlobalConnections();
+    GeneHistory::getInstance().clear();
     return args;
 }
 
@@ -32,26 +32,217 @@ TEST(basicTest) {
     
     Genotype genotype1(2, 2);
     Genotype genotype2(2, 2);
+    Genotype genotype3(2, 2);
+    Genotype genotype4(2, 2);
 
-    vector<NeuronGene *> neurons = genotype1.getNeurons();
+    unordered_map<uint64_t, NeuronGene> neuronsMap = genotype1.getNeurons();
+    vector<NeuronGene> inputs;
+    vector<NeuronGene> outputs;
+    
+    for (auto const &e : neuronsMap) {
+        if (e.second.getType() == NeuronType::INPUT || 
+            e.second.getType() == NeuronType::BIAS)
+            inputs.push_back(e.second);
+        else if (e.second.getType() == NeuronType::OUTPUT)
+            outputs.push_back(e.second);
+        else
+            ASSERT_FAIL("network should not have hidden neurons");
+    }
 
-    genotype1.addConnection(new ConnectionGene(*neurons[0], *neurons[3]));
-    genotype2.addConnection(new ConnectionGene(*neurons[0], *neurons[3]));
+    ASSERT_EQUAL(inputs.size(), 3, "more than 3 inputs");
+    ASSERT_EQUAL(outputs.size(), 2, "more than 2 outputs");
 
-    ASSERT_EQUAL(genotype1.getConnections()[0]->getID(),
-                 genotype2.getConnections()[0]->getID(),
+    genotype1.addConnection(inputs[0], outputs[0]);
+    genotype2.addConnection(inputs[0], outputs[0]);
+
+    unordered_map<uint64_t, ConnectionGene> connections1 = genotype1.getConnections();
+    unordered_map<uint64_t, ConnectionGene> connections2 = genotype2.getConnections();
+
+    ASSERT_EQUAL(connections1.size(), 1, "more than one connection");
+    ASSERT_EQUAL(connections2.size(), 1, "more than one connection");
+
+    ASSERT_EQUAL(connections1.begin()->second.getID(),
+                 connections2.begin()->second.getID(),
                  "Historical ids unequal: %lu != %lu",
-                 genotype1.getConnections()[0]->getID(),
-                 genotype2.getConnections()[0]->getID());
+                 connections1.begin()->second.getID(),
+                 connections2.begin()->second.getID());
+    
 
-    genotype1.addConnection(new ConnectionGene(*neurons[1], *neurons[3]));
-    genotype2.addConnection(new ConnectionGene(*neurons[1], *neurons[2]));
+    genotype3.addConnection(inputs[0], outputs[1]);
+    genotype4.addConnection(inputs[1], outputs[0]);
 
-    ASSERT_TRUE(genotype1.getConnections()[1]->getID() !=
-                genotype2.getConnections()[1]->getID(),
+    connections1 = genotype3.getConnections();
+    connections2 = genotype4.getConnections();
+
+    ASSERT_EQUAL(connections1.size(), 1, "more than one connection");
+    ASSERT_EQUAL(connections2.size(), 1, "more than one connection");
+
+    ASSERT_TRUE(connections1.begin()->second.getID() !=
+                connections2.begin()->second.getID(),
                  "Historical ids shouldn't be equal: %lu == %lu",
-                 genotype1.getConnections()[1]->getID(),
-                 genotype2.getConnections()[1]->getID());
+                 connections1.begin()->second.getID(),
+                 connections2.begin()->second.getID());
+
+    return args;
+}
+
+TEST(basic2DTest) {
+    
+    Genotype genotype1(1, 2);
+    Genotype genotype2(1, 2);
+
+    unordered_map<uint64_t, NeuronGene> neuronsMap = genotype1.getNeurons();
+    vector<NeuronGene> inputs;
+    vector<NeuronGene> outputs;
+    
+    for (auto const &e : neuronsMap) {
+        if (e.second.getType() == NeuronType::INPUT || 
+            e.second.getType() == NeuronType::BIAS)
+            inputs.push_back(e.second);
+        else if (e.second.getType() == NeuronType::OUTPUT)
+            outputs.push_back(e.second);
+        else
+            ASSERT_FAIL("network should not have hidden neurons");
+    }
+
+    ASSERT_EQUAL(inputs.size(), 2, "more than 2 inputs");
+    ASSERT_EQUAL(outputs.size(), 2, "more than 2 outputs");
+
+    genotype1.addConnection(inputs[0], outputs[1]);
+    genotype2.addConnection(inputs[1], outputs[0]);
+
+    unordered_map<uint64_t, ConnectionGene> connections1 = genotype1.getConnections();
+    unordered_map<uint64_t, ConnectionGene> connections2 = genotype2.getConnections();
+
+    ASSERT_EQUAL(connections1.size(), 1, "more than one connection");
+    ASSERT_EQUAL(connections2.size(), 1, "more than one connection");
+
+    ASSERT_TRUE(connections1.begin()->second.getID() !=
+                connections2.begin()->second.getID(),
+                "Historical ids equal: %lu == %lu",
+                connections1.begin()->second.getID(),
+                connections2.begin()->second.getID());
+    
+
+    genotype1.addNeuron(connections1.begin()->second);
+    genotype2.addNeuron(connections2.begin()->second);
+
+    unordered_map<uint64_t, NeuronGene> neurons1 = genotype1.getNeurons();
+    unordered_map<uint64_t, NeuronGene> neurons2 = genotype2.getNeurons();
+
+    ASSERT_EQUAL(neurons1.size(), 5, "more than 5 neurons");
+    ASSERT_EQUAL(neurons2.size(), 5, "more than 5 neurons");
+
+    NeuronGene hidden1, hidden2;
+
+    for (auto const &e : neurons1)
+        if (e.second.getType() == NeuronType::HIDDEN)
+            hidden1 = e.second;
+
+    for (auto const &e : neurons2)
+        if (e.second.getType() == NeuronType::HIDDEN)
+            hidden2 = e.second;
+
+    ASSERT_TRUE(hidden1.getID() != hidden2.getID(),
+                "Historical ids shouldn't be equal: %lu == %lu",
+                hidden1.getID(), hidden2.getID());
+
+
+    return args;
+}
+
+TEST(basicInLayerTestTest) {
+    
+    Genotype genotype1(1, 2);
+    Genotype genotype2(1, 2);
+
+    unordered_map<uint64_t, NeuronGene> neuronsMap = genotype1.getNeurons();
+    vector<NeuronGene> inputs;
+    vector<NeuronGene> outputs;
+    
+    for (auto const &e : neuronsMap) {
+        if (e.second.getType() == NeuronType::INPUT || 
+            e.second.getType() == NeuronType::BIAS)
+            inputs.push_back(e.second);
+        else if (e.second.getType() == NeuronType::OUTPUT)
+            outputs.push_back(e.second);
+        else
+            ASSERT_FAIL("network should not have hidden neurons");
+    }
+
+    ASSERT_EQUAL(inputs.size(), 2, "more than 2 inputs");
+    ASSERT_EQUAL(outputs.size(), 2, "more than 2 outputs");
+
+    genotype1.addConnection(inputs[0], outputs[1]);
+    genotype1.addConnection(inputs[1], outputs[0]);
+    genotype2.addConnection(inputs[0], outputs[1]);
+    genotype2.addConnection(inputs[1], outputs[0]);
+
+    unordered_map<uint64_t, ConnectionGene> connections1 = genotype1.getConnections();
+    unordered_map<uint64_t, ConnectionGene> connections2 = genotype2.getConnections();
+
+    ASSERT_EQUAL(connections1.size(), 2, "more than one connection");
+    ASSERT_EQUAL(connections2.size(), 2, "more than one connection");
+
+    genotype1.addNeuron(connections1.begin()->second);
+    genotype1.addNeuron((++connections1.begin())->second);
+    genotype2.addNeuron(connections2.begin()->second);
+    genotype2.addNeuron((++connections2.begin())->second);
+
+    unordered_map<uint64_t, NeuronGene> neurons1 = genotype1.getNeurons();
+    unordered_map<uint64_t, NeuronGene> neurons2 = genotype2.getNeurons();
+
+    ASSERT_EQUAL(neurons1.size(), 6, "more than 6 neurons");
+    ASSERT_EQUAL(neurons2.size(), 6, "more than 6 neurons");
+
+    vector<NeuronGene> hidden1, hidden2;
+
+    for (auto const &e : neurons1)
+        if (e.second.getType() == NeuronType::HIDDEN)
+            hidden1.push_back(e.second);
+
+    for (auto const &e : neurons2)
+        if (e.second.getType() == NeuronType::HIDDEN)
+            hidden2.push_back(e.second);
+
+    ASSERT_EQUAL(hidden1.size(), 2, "more than 2 hidden neurons");
+    ASSERT_EQUAL(hidden2.size(), 2, "more than 2 hidden neurons");
+
+    /* switch neurons if they are not in the same order */
+    if (hidden1[0].getID() != hidden2[0].getID()) {
+        NeuronGene tmp = hidden1[0];
+        hidden1[0] = hidden1[1];
+        hidden1[1] = tmp;
+    }
+
+    ASSERT_EQUAL(hidden1[0].getID(), hidden2[0].getID(), "ids sould be equal");
+    ASSERT_EQUAL(hidden1[1].getID(), hidden2[1].getID(), "ids sould be equal");
+
+    ConnectionGene connection1 = genotype1.addConnection(hidden1[0], hidden1[1]);
+    ConnectionGene connection2 = genotype2.addConnection(hidden2[0], hidden2[1]);
+
+    ASSERT_EQUAL(connection1.getID(), connection2.getID(), "conections hsould be equal");
+
+    genotype1.addNeuron(connection1);
+    genotype2.addNeuron(connection2);
+
+    neurons1 = genotype1.getNeurons();
+    neurons2 = genotype2.getNeurons();
+    connections1 = genotype1.getConnections();
+    connections2 = genotype2.getConnections();
+    
+    ASSERT_EQUAL(neurons1.size(), 7, "should be 7 neurons");
+    ASSERT_EQUAL(neurons2.size(), 7, "should be 7 neurons");
+    ASSERT_EQUAL(connections1.size(), 3, "should be 3 connections: %lu", connections1.size());
+    ASSERT_EQUAL(connections2.size(), 3, "should be 3 connections: %lu", connections2.size());
+
+    /* neurons of both genotypes should be the same */
+    for (auto const &e : neurons1)
+        ASSERT_EQUAL(neurons2.count(e.second.getID()), 1, "neuron not found");
+
+    /* all connections sould be equal */
+    for (auto const &e : connections1)
+        ASSERT_EQUAL(connections2.count(e.second.getID()), 1, "connection not found");
 
     return args;
 }
@@ -76,7 +267,7 @@ TEST_N(basicMutationTest, 1000) {
     while (!genotype.mutateInsertNeuron());
 
     ASSERT_EQUAL(genotype.getNeurons().size(), 5,
-                 "genotype should have 4 neurons: %lu",
+                 "genotype should have 5 neurons: %lu",
                  genotype.getNeurons().size());
 
     /* create all posible connections */
@@ -94,13 +285,14 @@ TEST_N(basicMutationTest, 1000) {
                  "more than 10 connections: %lu", 
                  genotype.getConnections().size());
 
-    double weight = genotype.getConnections()[0]->getWeight();
+    uint64_t key  = genotype.getConnections().begin()->first;
+    double weight = genotype.getConnections()[key].getWeight();
 
     /* mutate all connections */
     for (unsigned i = 0; i < 1000; i++)
         genotype.mutateConnections(0.5);
 
-    ASSERT_TRUE(weight != genotype.getConnections()[0]->getWeight(),
+    ASSERT_TRUE(weight != genotype.getConnections()[key].getWeight(),
                 "connection should be mutated");
 
     return args;

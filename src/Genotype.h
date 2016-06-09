@@ -5,11 +5,12 @@
 #define __GENOTYPE_H__
 
 #include <vector>
+#include <unordered_map>
 #include "utils.h"
 #include "Gene.h"
+#include "GeneHistory.h"
 
-using std::vector;
-using std::pair;
+using std::unordered_map;
 
 namespace NEAT {
     
@@ -20,31 +21,22 @@ namespace NEAT {
             /* global random value to mutate this */
             static rand64_t *rand;
 
-            /* the HexTree storing all created Connections */
-            static ConnectionTree globalConnections;
-
-            /* global lock */
-            static pthread_mutex_t mutex;
-
             /* the neurons of this */
-            vector<NeuronGene *> neurons;
-
-            /* fast access to the neurons of this */
-            NeuronTree neuronsTree;
+            unordered_map<uint64_t, NeuronGene> neurons;
 
             /* the ConnectionGenes of this */
-            vector<ConnectionGene *> connections;
+            unordered_map<uint64_t, ConnectionGene> connections;
 
-            /* fast access to the connections of this */
-            ConnectionTree connectionsTree;
+            /* the GeneHistory reference of this */
+            GeneHistory &history;
 
         public:
 
             /* return the neurons of this */
-            vector<NeuronGene *> getNeurons() const { return neurons; }
+            unordered_map<uint64_t, NeuronGene> getNeurons() const { return neurons; }
 
             /* returns the connections of this */
-            vector<ConnectionGene *> getConnections() const { return connections; }
+            unordered_map<uint64_t, ConnectionGene> getConnections() const { return connections; }
             
             /* mutate this by inserting a new hidden neuron */
             bool mutateInsertNeuron();
@@ -61,13 +53,9 @@ namespace NEAT {
             /* create a new Genotype for the given number of input and output neurons */
             Genotype(const unsigned inputs, const unsigned outputs);
 
-            /* destructor */
-            ~Genotype();
-
 #ifdef __DEBUG__ 
-            void addNeuron(NeuronGene *gene);
-            void addConnection(ConnectionGene *gene);
-            static void clearGlobalConnections();
+            NeuronGene addNeuron(const ConnectionGene &gene);
+            ConnectionGene addConnection(const NeuronGene &gene1, const NeuronGene &gene2);
 #endif
     };
 }

@@ -11,7 +11,6 @@
 #include <assert.h>
 #include "utils.h"
 #include "QuadTree.h"
-#include "HexTree.h"
 
 namespace NEAT {
 
@@ -58,6 +57,10 @@ namespace NEAT {
             NeuronGene(const NeuronType type, const uint64_t layerID) : 
                        type(type), layerID(layerID) { 
 
+                assert(type == NeuronType::INPUT  || 
+                       type == NeuronType::OUTPUT ||
+                       type == NeuronType::BIAS);
+
                 pthread_mutex_lock(&mutex);
                 this->id = idCounter++;
                 pthread_mutex_unlock(&mutex);
@@ -69,10 +72,9 @@ namespace NEAT {
 
             /* create a new node between two nodes */
             NeuronGene(
-                const NeuronType type,
                 const NeuronGene &gene1, 
                 const NeuronGene &gene2
-            ) : type(type),
+            ) : type(NeuronType::HIDDEN),
                 layerID(middle(gene1.layerID, gene2.layerID)) {
 
                 assert(canBeInserted(gene1, gene2));
@@ -188,7 +190,7 @@ namespace NEAT {
             /* returns a new NeuronGene spliting this */
             NeuronGene split() const {
                 assert(id != UINT64_MAX);  
-                return NeuronGene(NeuronType::HIDDEN, inputNeuron, outputNeuron);
+                return NeuronGene(inputNeuron, outputNeuron);
             }
     };
 }

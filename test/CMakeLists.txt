@@ -18,7 +18,7 @@ endif()
 
 add_executable(QuadTreeTest QuadTreeTest ../src/utils)
 add_executable(HexTreeTest HexTreeTest ../src/utils)
-add_executable(GenotypeTest GenotypeTest ../src/utils ../src/Genotype ../src/Gene)
+add_executable(GenotypeTest GenotypeTest ../src/utils ../src/Genotype ../src/Gene ../src/GeneHistory)
 add_executable(PhenotypeTest PhenotypeTest ../src/utils ../src/Genotype ../src/Phenotype ../src/Gene)
 add_executable(DeterministicDoubleTest DeterministicDoubleTest ../src/utils)
 add_executable(GeneHistoryTest GeneHistoryTest ../src/GeneHistory ../src/utils ../src/Gene)

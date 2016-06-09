@@ -77,13 +77,22 @@ namespace NEAT {
             /* the Global ConnectionGenes of this */
             QuadTree<ConnectionGene> connectionsTree;
 
+            /* the input neurons of this */
+            vector<NeuronGene> inputs;
+
+            /* the bias Neuron of this */
+            vector<NeuronGene> bias;
+
+            /* the output neurons of this */
+            vector<NeuronGene> outputs;
+
         public:
 
             /* access the only instance of this */
             static GeneHistory &getInstance();
 
             /* insert a new input, bias or output Neuron */
-            void insertNeuron(NeuronGene const &gene);
+            NeuronGene insertNeuron(NeuronType const type, uint64_t number);
 
             /* insert a new Neuron between the given connection 
              * Note: the gene must be splitable 
@@ -92,6 +101,9 @@ namespace NEAT {
 
             /* insert a new input, bias or output Neuron */
             ConnectionGene insertConnection(NeuronGene const &input, NeuronGene const &output);
+
+            /* clears all stored genes */
+            void clear();
 
     };
 
