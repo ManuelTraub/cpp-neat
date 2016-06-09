@@ -11,84 +11,84 @@ using std::unordered_map;
 using std::make_pair;
 
 /* create a new Phenotype out of the given Genotype */
-Phenotype::Phenotype(Genotype *genome) : genome(genome) {
+Phenotype::Phenotype(const Genotype &genome) : genome(genome) {
 
-    vector<NeuronGene *> neuronGenes         = genome->getNeurons();
-    vector<ConnectionGene *> connectionGenes = genome->getConnections();
+    unordered_map<uint64_t, NeuronGene> neuronGenes         = genome.getNeurons();
+    unordered_map<uint64_t, ConnectionGene> connectionGenes = genome.getConnections();
 
-    /* create a sorted list of the x values from all 
+    /* create a sorted list of layer ids from all 
      * neurons in order to calculate the number of layers 
      */
-    set<uint64_t> xValues;
+    set<uint64_t> layerIDs;
 
-    for (auto &neuron : neuronGenes)
-        xValues.insert(neuron->getX());
+    for (auto const &e : neuronGenes)
+        layerIDs.insert(e.second.getLayerID());
 
     /* map a layer index to each different xValue */
     unordered_map<uint64_t, unsigned> layerIndices;
     
     unsigned layerIndex = 0;
-    for (auto &value : xValues) {
-        layerIndices.insert(make_pair(value, layerIndex));
+    for (auto &id: layerIDs) {
+        layerIndices.insert({id, layerIndex});
         layerIndex++;
 
         /* create the desired number of layers */
         this->neuronLayers.push_back(vector<Neuron *>());
     }
 
-    /* create all neurons and store them efficiently in a QuadTree */
-    QuadTree<Neuron> neuronTree;
+    /* create all neurons and store them efficiently in a unordered_map */
+    unordered_map<uint64_t, Neuron *> neuronMap;
 
-    for (auto &neuron : neuronGenes) {
+    for (auto const &e : neuronGenes) {
 
         /* store neuron for efficient access */
         Neuron *const newNeuron = new Neuron();
-        neuronTree.insert(newNeuron, neuron->getX(), neuron->getY());
+        neuronMap.insert({e.second.getID(), newNeuron});
 
         /* store the neuron in its desired layer */
-        const unsigned layer = layerIndices[neuron->getX()];
-        if (neuron->getType() == NeuronType::BIAS)
+        const unsigned layer = layerIndices[e.second.getLayerID()];
+        if (e.second.getType() == NeuronType::BIAS)
             this->bias = newNeuron;
         else
             this->neuronLayers[layer].push_back(newNeuron);
 
 #ifdef __DEBUG__
+        const NeuronGene &neuron = e.second;
+
         if (layer == 0 && 
-            neuron->getType() != NeuronType::INPUT && 
-            neuron->getType() != NeuronType::BIAS) {
+            neuron.getType() != NeuronType::INPUT && 
+            neuron.getType() != NeuronType::BIAS) {
             
-            assertf(false, "invalid neuron in first layer: type(%u) (%lu, %lu)\n", 
-                    (unsigned) neuron->getType(), neuron->getX(), neuron->getY());
+            assertf(false, "invalid neuron in first layer: type(%u) id(%lu)\n", 
+                    (unsigned) neuron.getType(), neuron.getID());
         }
 
-        if (layer == this->neuronLayers.size() - 1 && neuron->getType() != NeuronType::OUTPUT) {
-            assertf(false, "invalid neuron in last layer: type(%u) (%lu, %lu)\n", 
-                    (unsigned) neuron->getType(), neuron->getX(), neuron->getY());
+        if (layer == this->neuronLayers.size() - 1 && neuron.getType() != NeuronType::OUTPUT) {
+            assertf(false, "invalid neuron in last layer: type(%u) id(%lu)\n", 
+                    (unsigned) neuron.getType(), neuron.getID());
         }
 
         if (layer > 0 && 
             layer < this->neuronLayers.size() - 1 && 
-            neuron->getType() != NeuronType::HIDDEN) {
+            neuron.getType() != NeuronType::HIDDEN) {
 
-            assertf(false, "invalid neuron in hidden layer %u: type(%u) (%lu, %lu)\n", layer,
-                    (unsigned) neuron->getType(), neuron->getX(), neuron->getY());
+            assertf(false, "invalid neuron in hidden layer %u: type(%u) id(%lu)\n", layer,
+                    (unsigned) neuron.getType(), neuron.getID());
         }
 #endif /* __DEBUG__ */
     }
 
     /* set the bias to 1 */
-    bias->setValue(1);
+    this->bias->setValue(1);
 
     /* connect the neurons */
-    for (auto &connection : connectionGenes) {
+    for (auto const &e : connectionGenes) {
         
-        Neuron *const input  = neuronTree.get(connection->getInput().getX(), 
-                                              connection->getInput().getY());
-        Neuron *const output = neuronTree.get(connection->getOutput().getX(), 
-                                              connection->getOutput().getY());
+        Neuron *const input  = neuronMap[e.second.getInput().getID()];
+        Neuron *const output = neuronMap[e.second.getOutput().getID()];
 
         assert(input != NULL && output != NULL);
-        output->addInput(input, connection->getWeight());
+        output->addInput(input, e.second.getWeight());
     }
 }
 

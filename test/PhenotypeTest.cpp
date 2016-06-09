@@ -20,7 +20,7 @@ AFTER_ALL() {
 }
 
 BEVOR() {
-    Genotype::clearGlobalConnections();
+    GeneHistory::getInstance().clear();
     return args;
 }
 
@@ -36,7 +36,7 @@ TEST(basicTest) {
     for (unsigned i = 0; i < 1000; i++)
         genotype.mutateInsertConnection();
 
-    Phenotype phenotype(&genotype);
+    Phenotype phenotype(genotype);
 
     ASSERT_EQUAL(phenotype.getLayers().size(), 2,
                  "expected 2 layers within phenotype: %lu",
@@ -69,12 +69,12 @@ TEST_N(advancedTest, 100) {
         while (!genotype.mutateInsertNeuron());
     }
 
-    Phenotype phenotype(&genotype);
+    Phenotype phenotype(genotype);
     phenotype.saveAsSVG("Phenotype2.svg");
 
     return args;
 }
-
+/*
 TEST(binaryANDTest) {
 
     Genotype genotype(2, 1);
@@ -99,4 +99,4 @@ TEST(binaryANDTest) {
     ASSERT_TRUE(phenotype.run({1,1})[0] > 0.5, "AND(1,1) = 1: %F", phenotype.run({1,1})[0]);
 
     return args;
-}
+}*/

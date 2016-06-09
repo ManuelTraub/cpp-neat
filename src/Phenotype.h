@@ -29,7 +29,7 @@ namespace NEAT {
             Neuron *bias;
 
             /* the genotype of this */
-            const Genotype *const genome;
+            const Genotype &genome;
 
         public:
 
@@ -37,7 +37,7 @@ namespace NEAT {
             vector<vector<Neuron *>> getLayers() const { return neuronLayers; }
 
             /* create a new Phenotype out of the given Genotype */
-            Phenotype(Genotype *genome); 
+            Phenotype(const Genotype &genome); 
 
             /* calculate the output for a given input */
             vector<double> run(vector<double> inputs);
