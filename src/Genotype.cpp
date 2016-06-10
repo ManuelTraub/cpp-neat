@@ -139,6 +139,7 @@ Genotype::Genotype(const Genotype &fitter, const Genotype &other) :
                    history(GeneHistory::getInstance()) {
 
     this->neurons = fitter.neurons;
+    this->connections.reserve(fitter.connections.size());
 
     for (const auto &e : fitter.connections) {
 
