@@ -158,21 +158,33 @@ Genotype::Genotype(const Genotype &fitter, const Genotype &other) :
     }
 }
 
+/* the gene multiplayer for calculating similarity */
+double Genotype::geneMultiplier = 1.0;
+
+/* avg weight diference multiplier when calculating the similarity */
+double Genotype::weightMultiplier = 1.0;
+
 /* calculates the similarity with this and other */
-uint64_t Genotype::similarity(const Genotype &other) {
+double Genotype::similarity(const Genotype &other) {
     
-    uint64_t similarity = this->neurons.size() + this->connections.size() +
-                          other.neurons.size() + other.connections.size();
+    double geneSimilarity = this->neurons.size() + this->connections.size() +
+                            other.neurons.size() + other.connections.size();
+
+    double weightSimilarity = 0.0;
 
     for (const auto &e : neurons)
         if (other.neurons.count(e.first))
-            similarity -= 2;;
+            geneSimilarity -= 2; 
 
-    for (const auto &e : connections)
-        if (other.connections.count(e.first))
-            similarity -= 2;
+    for (const auto &e : connections) {
+        if (other.connections.count(e.first)) {
+            geneSimilarity   -= 2;
+            weightSimilarity += absDiff(e.second.getWeight(), 
+                                        other.connections.at(e.first).getWeight());
+        }
+    }
                           
-    return similarity;
+    return geneMultiplier * geneSimilarity + weightMultiplier * weightSimilarity;
 }
 
 #ifdef __DEBUG__ 

@@ -57,7 +57,13 @@ namespace NEAT {
             Genotype(const Genotype &fitter, const Genotype &other);
 
             /* calculates the similarity with this and other */
-            uint64_t similarity(const Genotype &other);
+            double similarity(const Genotype &other);
+
+            /* the gene multiplayer for calculating similarity */
+            static double geneMultiplier;
+
+            /* avg weight diference multiplier when calculating the similarity */
+            static double weightMultiplier;
 
 #ifdef __DEBUG__ 
             NeuronGene &addNeuron(const ConnectionGene &gene);
