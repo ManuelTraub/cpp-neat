@@ -16,4 +16,4 @@ else()
   SET (CMAKE_C_FLAGS                "-Wall -Wextra -g -ffast-math -O3 -march=native")
 endif()
 
-add_executable(net main Genotype Phenotype Gene utils GeneHistory)
+add_executable(net main Genotype Phenotype Gene utils GeneHistory GenerationCounter)
