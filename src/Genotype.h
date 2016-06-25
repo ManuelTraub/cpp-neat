@@ -30,6 +30,9 @@ namespace NEAT {
             /* the GeneHistory reference of this */
             GeneHistory &history;
 
+            /* the latest gene generation number */
+            uint64_t generation;
+
         public:
 
             /* return the neurons of this */
@@ -64,6 +67,9 @@ namespace NEAT {
 
             /* avg weight diference multiplier when calculating the similarity */
             static double weightMultiplier;
+
+            /* returns the genome age of this (GenerationCounter - jungest gene) */
+            uint64_t genomeAge() const { return GenerationCounter::get() - generation; }
 
 #ifdef __DEBUG__ 
             NeuronGene &addNeuron(const ConnectionGene &gene);

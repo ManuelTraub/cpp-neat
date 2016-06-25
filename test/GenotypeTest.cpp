@@ -547,3 +547,70 @@ TEST(basicRecombinationTest) {
 
     return args;
 }
+
+TEST(basicAgeingTest) {
+    
+    Genotype genotype1(2, 2);
+    Genotype genotype2(2, 2);
+
+    /* sort the neurons by input and output */
+    unordered_map<uint64_t, NeuronGene> neuronsMap1 = genotype1.getNeurons();
+    unordered_map<uint64_t, NeuronGene> neuronsMap2 = genotype2.getNeurons();
+    vector<NeuronGene> inputs1, inputs2;
+    vector<NeuronGene> outputs1, outputs2;
+    
+    for (const auto &e : neuronsMap1) {
+        if (e.second.getType() == NeuronType::INPUT || 
+            e.second.getType() == NeuronType::BIAS)
+            inputs1.push_back(e.second);
+        else if (e.second.getType() == NeuronType::OUTPUT)
+            outputs1.push_back(e.second);
+        else
+            ASSERT_FAIL("network should not have hidden neurons");
+    }
+
+    for (const auto &e : neuronsMap2) {
+        if (e.second.getType() == NeuronType::INPUT || 
+            e.second.getType() == NeuronType::BIAS)
+            inputs2.push_back(e.second);
+        else if (e.second.getType() == NeuronType::OUTPUT)
+            outputs2.push_back(e.second);
+        else
+            ASSERT_FAIL("network should not have hidden neurons");
+    }
+
+    ASSERT_EQUAL(inputs1.size(), 3, "more than 3 inputs");
+    ASSERT_EQUAL(outputs1.size(), 2, "more than 2 outputs");
+    ASSERT_EQUAL(inputs2.size(), 3, "more than 3 inputs");
+    ASSERT_EQUAL(outputs2.size(), 2, "more than 2 outputs");
+
+    ASSERT_EQUAL(genotype1.genomeAge(), 0);
+    ASSERT_EQUAL(genotype2.genomeAge(), 0);
+
+    GenerationCounter::inc();
+    genotype1.addConnection(inputs1[0], outputs1[0]);
+    GenerationCounter::inc();
+    genotype2.addConnection(inputs2[0], outputs2[0]);
+
+    unordered_map<uint64_t, ConnectionGene> connections1 = genotype1.getConnections();
+    unordered_map<uint64_t, ConnectionGene> connections2 = genotype2.getConnections();
+
+    ASSERT_EQUAL(connections1.size(), 1, "more than one connection");
+    ASSERT_EQUAL(connections2.size(), 1, "more than one connection");
+
+    ASSERT_EQUAL(connections1.begin()->second.getID(),
+                 connections2.begin()->second.getID(),
+                 "Historical ids unequal: %lu != %lu",
+                 connections1.begin()->second.getID(),
+                 connections2.begin()->second.getID());
+
+    ASSERT_EQUAL(genotype1.genomeAge(), 1);
+    ASSERT_EQUAL(genotype2.genomeAge(), 1);
+    
+    GenerationCounter::inc();
+    genotype2.addConnection(inputs2[1], outputs2[0]);
+    ASSERT_EQUAL(genotype1.genomeAge(), 2);
+    ASSERT_EQUAL(genotype2.genomeAge(), 0);
+
+    return args;
+}

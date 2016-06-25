@@ -56,6 +56,16 @@ bool Genotype::mutateInsertNeuron() {
 
     if (connections.count(connection2.getID()) == 0)
         connections.insert({connection2.getID(), connection2});
+
+    /* set the generation number of this */
+    if (generation < connections.at(connection1.getID()).getGeneration())
+        generation = connections.at(connection1.getID()).getGeneration();
+
+    if (generation < connections.at(connection2.getID()).getGeneration())
+        generation = connections.at(connection2.getID()).getGeneration();
+
+    if (generation < neuron.getGeneration())
+        generation = neuron.getGeneration();
     
     return true;
 }
@@ -86,6 +96,9 @@ bool Genotype::mutateInsertConnection() {
     /* store the new connection */
     connections.insert({connection.getID(), connection});
 
+    if (generation < connection.getGeneration())
+        generation = connection.getGeneration();
+
     return true;
 }
 
@@ -98,6 +111,9 @@ void Genotype::mutateConnections(double percent) {
         auto random_it = std::next(std::begin(connections), rand64(rand) % connections.size());
         random_it->second.mutate();
     }
+
+    if (size > 0)
+        generation = GenerationCounter::get();
 }
 
 /* mutate this by disabeling a connection */
@@ -110,12 +126,16 @@ bool Genotype::mutateDisableConnection() {
         return false;
 
     mutatingGene.disable();
+    
+    if (generation < mutatingGene.getGeneration())
+        generation = mutatingGene.getGeneration();
+
     return true;
 }
 
 /* create a new Genotype for the given number of input and output neurons */
 Genotype::Genotype(const unsigned inputs, const unsigned outputs) : 
-                   history(GeneHistory::getInstance()) {
+                   history(GeneHistory::getInstance()), generation(GenerationCounter::get()) {
     
     /* create the input neurons */
     for (unsigned i = 0; i < inputs; i++) {
@@ -136,10 +156,15 @@ Genotype::Genotype(const unsigned inputs, const unsigned outputs) :
 
 /* creat a new Genotype mixing the genes of this with other */
 Genotype::Genotype(const Genotype &fitter, const Genotype &other) : 
-                   history(GeneHistory::getInstance()) {
+                   history(GeneHistory::getInstance()), generation(0) {
 
     this->neurons = fitter.neurons;
     this->connections.reserve(fitter.connections.size());
+
+    /* actualize the generation number */
+    for (const auto &e : this->neurons)
+        if (generation < this->neurons.at(e.first).getGeneration())
+            generation = this->neurons.at(e.first).getGeneration();
 
     for (const auto &e : fitter.connections) {
 
@@ -155,6 +180,10 @@ Genotype::Genotype(const Genotype &fitter, const Genotype &other) :
         /* use only missing genes from the fitter individual */
         } else 
             this->connections[e.first] = fitter.connections.at(e.first);
+
+        /* actualize the generation number */
+        if (generation < this->connections.at(e.first).getGeneration())
+            generation = this->connections.at(e.first).getGeneration();
     }
 }
 
@@ -195,6 +224,9 @@ NeuronGene &Genotype::addNeuron(const ConnectionGene &gene) {
     if (neurons.count(neuron.getID()) == 0) 
         neurons.insert({neuron.getID(), neuron});
 
+    if (generation < neurons[neuron.getID()].getGeneration())
+        generation = neurons[neuron.getID()].getGeneration();
+
     return neurons[neuron.getID()];
 }
 ConnectionGene &Genotype::addConnection(const NeuronGene &gene1, const NeuronGene &gene2) {
@@ -203,6 +235,9 @@ ConnectionGene &Genotype::addConnection(const NeuronGene &gene1, const NeuronGen
 
     if (connections.count(connection.getID()) == 0) 
         connections.insert({connection.getID(), connection});
+
+    if (generation < connections[connection.getID()].getGeneration())
+        generation = connections[connection.getID()].getGeneration();
 
     return connections[connection.getID()];
 }

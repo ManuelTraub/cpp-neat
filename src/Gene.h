@@ -181,12 +181,16 @@ namespace NEAT {
             void setWeight(const double weight) {
                 assert(weight >= -1.0 && weight <= 1.0);
                 assert(!isDummy());
-                generation = GenerationCounter::get();
+                generation   = GenerationCounter::get();
                 this->weight = weight;
             }
 
             /* disables this gene */
-            void disable() { assert(!isDummy() && enabled); enabled = false; }
+            void disable() { 
+                assert(!isDummy() && enabled); 
+                enabled    = false; 
+                generation = GenerationCounter::get();
+            }
 
             /* returns if this is enabled */
             bool isEnabled() const { assert(!isDummy()); return enabled; }
