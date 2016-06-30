@@ -194,7 +194,7 @@ double Genotype::geneMultiplier = 1.0;
 double Genotype::weightMultiplier = 1.0;
 
 /* calculates the similarity with this and other */
-double Genotype::similarity(const Genotype &other) {
+double Genotype::similarity(const Genotype &other) const {
     
     double geneSimilarity = this->neurons.size() + this->connections.size() +
                             other.neurons.size() + other.connections.size();

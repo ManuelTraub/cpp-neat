@@ -60,7 +60,7 @@ namespace NEAT {
             Genotype(const Genotype &fitter, const Genotype &other);
 
             /* calculates the similarity with this and other */
-            double similarity(const Genotype &other);
+            double similarity(const Genotype &other) const;
 
             /* the gene multiplayer for calculating similarity */
             static double geneMultiplier;
