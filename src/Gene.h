@@ -153,6 +153,9 @@ namespace NEAT {
             /* bool indicates if this gene is expressed within the phenotype */
             bool enabled;
 
+            /* the weight range for initialization and random mutation */
+            static const double weightRange[2];
+
         public: 
 
             /* generate a dummy placeholder gene */
@@ -161,7 +164,7 @@ namespace NEAT {
             /* creats a new Gene with two given neuron ids */
             ConnectionGene(const NeuronGene inputNeuron, 
                            const NeuronGene outputNeuron,
-                           double weight = rand_range_d64(rand, -1.0, 1.0)) : 
+                           double weight = rand_range_d64(rand, weightRange[0], weightRange[1])) : 
                            Gene(false),
                            inputNeuron(inputNeuron),
                            outputNeuron(outputNeuron),
@@ -179,7 +182,6 @@ namespace NEAT {
 
             /* set the weight */
             void setWeight(const double weight) {
-                assert(weight >= -1.0 && weight <= 1.0);
                 assert(!isDummy());
                 generation   = GenerationCounter::get();
                 this->weight = weight;
@@ -198,7 +200,14 @@ namespace NEAT {
             /* resets the waight of this to a random value */
             void mutate() { 
                 assert(!isDummy()); 
-                weight = rand_range_d64(rand, -1.0, 1.0); 
+                weight = rand_range_d64(rand, weightRange[0], weightRange[1]); 
+                generation = GenerationCounter::get();
+            }
+
+            /* uniformly perturbe the weight of this */
+            void mutate(double weightRange[2]) {
+                assert(!isDummy()); 
+                weight += rand_range_d64(rand, weightRange[0], weightRange[1]); 
                 generation = GenerationCounter::get();
             }
 

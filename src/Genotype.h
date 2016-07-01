@@ -68,6 +68,12 @@ namespace NEAT {
             /* avg weight diference multiplier when calculating the similarity */
             static double weightMultiplier;
 
+            /* the perturbe weight range */
+            static double perturbeWeightRange[2];
+
+            /* the propability of reasining a gene a new random value during mutation */
+            static double hardMutationPropability;
+
             /* returns the genome age of this (GenerationCounter - jungest gene) */
             uint64_t genomeAge() const { return GenerationCounter::get() - generation; }
 

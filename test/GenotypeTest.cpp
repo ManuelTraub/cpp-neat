@@ -421,7 +421,7 @@ TEST_N(advancedMutationTest, 100) {
     return args;
 }
 
-TEST(basicSimilarityTest) {
+TEST_N(basicSimilarityTest, 100) {
     
     Genotype genotype1(2, 2);
     Genotype genotype2(2, 2);
@@ -482,7 +482,7 @@ TEST(basicSimilarityTest) {
 
     connection.mutate();
 
-    ASSERT_TRUE(genotype1.similarity(genotype2) > 0 && genotype1.similarity(genotype2) < 2, 
+    ASSERT_TRUE(genotype1.similarity(genotype2) > 0 && genotype1.similarity(genotype2) < 10, 
                 "genotyps shouldn't be equal: %F", genotype1.similarity(genotype2));
 
     ASSERT_EQUAL(genotype2.similarity(genotype1), genotype1.similarity(genotype2), 

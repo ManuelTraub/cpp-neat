@@ -102,6 +102,14 @@ bool Genotype::mutateInsertConnection() {
     return true;
 }
 
+
+/* the perturbe weight range */
+double Genotype::perturbeWeightRange[2] = { -0.5, 0.5 };
+
+/* the propability of reasining a gene a new random value during mutation */
+double Genotype::hardMutationPropability = 0.1;
+
+// TODO experiment with lovering the propability of mutating older genes
 /* mutate a given percentage of connections */
 void Genotype::mutateConnections(double percent) {
     
@@ -109,7 +117,11 @@ void Genotype::mutateConnections(double percent) {
 
     for (unsigned i = 0; i < size; i++) {
         auto random_it = std::next(std::begin(connections), rand64(rand) % connections.size());
-        random_it->second.mutate();
+
+        if (rand_range_d64(rand, 0, 1.0) < hardMutationPropability)
+            random_it->second.mutate();
+        else
+            random_it->second.mutate(perturbeWeightRange);
     }
 
     if (size > 0)
@@ -213,6 +225,10 @@ double Genotype::similarity(const Genotype &other) const {
         }
     }
                           
+    // TODO experiment with nominalisation for genome length
+    //      (geneSimilarity + weightSimilarity) / nGenes
+    //      this should put the similarity in realation with Network size
+    //      (in a giant network smal changes are cuses not a big dissimilarity as in a smal network)
     return geneMultiplier * geneSimilarity + weightMultiplier * weightSimilarity;
 }
 
