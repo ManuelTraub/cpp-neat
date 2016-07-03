@@ -132,5 +132,7 @@ int get_arg_i(int argc,
  */
 #define middle(x, y) (((x) < (y)) ? ((x) + ((y) - (x)) / 2) : ((y) + ((x) - (y)) / 2))
 
+/* returns the decimal part of an double value */
+#define decimals(x) ((x) - ((uint64_t) (x)))
 
 #endif /* __UTILS_H__ */

@@ -4,47 +4,106 @@ using namespace NEAT;
 
 /* increase the genaration counter and sort all genomes by theyr fitness */
 void Population::calcNextGeneration() {
+
+    vector<shared_ptr<Organisms>> organisms;
+
+    /* calculate the fitness of all Organisms */
+    for (auto &s : this->species) {
+        s.calculateFittness(inputs, outputs);
+        organisms.push_back(s.getOrganisms());
+    }
+
+    /* stort the organisms by theyr fitness */
+    std::sort(organisms.begin(), organisms.end());
+
+    /* kill the Organisms with the worst fitness */
+    unsigned deaths    = organisms.size() * this->survivalRate;
+    unsigned killStart = organisms.size() - deaths;
+    for (unsigned i = killStart; i < organisms.size(); i++)
+        organisms[i]->kill();
+
+    organisms.erase(organisms.begin() + killStart, organisms.end());
     
-    assert(genomes.size() == genomeSpecies.size() && genome.size() == fitnes.size());
+    /* calculate the interspecies offsprings 
+     * (add one offsprings more based on the propability given from the decimal part )
+     */
+    vector<shared_ptr<Organisms>> offsprings;
+    unsigned interSpeciesOffsprings = 0;
+    if (this->species.size() > 1) {
+        interSpeciesOffsprings = populationSize * interSpeciesMatingPropability + 
+                                 rand_range_d64(rand, 0, 1);
+    }
 
-    /* calculate the fitness of all genomes */
-    for (auto &iv : ivs)
-        iv.calculateFittness(inputs, outputs);
-
-    /* stort the individuals by theyr fitness */
-    std::sort(ivs.begin(), ivs.end());
-
-
-    // TODO kill recombinate and mutate ivs
-    
-
-    /* resort the individuals into species */
-    for (auto &s : species)
-        s.clear();
-
-    for (auto &iv : ivs) {
-
-        bool createNewSpecies = true;
-        for (auto &s : species) {
-            if (s.similarity(iv) < similarityThreshold) {
-                s.add(iv.getGenome());
-                iv.setSpecies(s);
-                createNewSpecies = false;
-                break;
-            }
-        }
+    for (unsigned i = 0; i < interSpeciesOffsprings; i++) {
         
-        /* create a new species if the individuum does not belong to any species */
-        if (createNewSpecies) {
-            species.push_back(Species());
-            species.back().add(iv.getGenome());
-            species.back().refresh();
-            iv.setSpecies(species.back());
+        const unsigned index1 = rand64(rand) % this->species.size();
+        unsigned index2       = rand64(rand) % this->species.size();
+
+        while (index2 == index1) 
+            index2 = rand64(rand) % this->species.size();
+        
+        offsprings.push_back(this->species[index1].createOffspring(this->species[index2]));
+    }
+
+//TODO remove deaths bevor this && sort species by fitness
+    /* calculate the numer of offsprings per species */
+    double offspringsPerOrganism = (populationSize - interSpeciesOffsprings) / 
+                                   organisms.size();
+
+    vector<unsigned> offspringsPerSpecies(this->species.size());
+    unsigned nOffsprings = 0;
+    for (unsigned i = 0; i < this->species.size(); i++) {
+
+        /* add one offspring more based on the propability if the decimal part */
+        offspringsPerSpecies[i] = this->species[i].size() * offspringsPerOrganism + 
+                                  rand_range_d64(rand, 0, 1);
+
+        nOffsprings += offspringsPerSpecies[i];
+    }
+
+    /* if we have to much offsprings remove them from the worst species */
+    while (nOffsprings > populationSize) {
+        for (unsigned i = this->species.size(); i > 0; i--) {
+            if (offspringsPerSpecies[i - 1] > 1) {
+                offspringsPerSpecies[i - 1]--;
+                nOffsprings--;
+            }
         }
     }
 
-    /* recalculate the oldest individuum for all species */
-    for (auto &s : species)
-        s.refresh();
+    /* calculate the offsprings per species */
+    for (unsigned i = 0; i < offspringsPerSpecies.size(); i++) {
+        vector<shared_ptr<Organisms>> currentOffsprings;
+        currentOffsprings = this->species[i].createOffsprings(offspringsPerSpecies[i]);
 
+        /* try adding the offsprings to ist species */
+        for (const auto &o : currentOffsprings) {
+            if (this->species[i].similarity(o) < Species::similarityThreshold)
+                this->species[i].add(o);
+            else
+                offsprings.push_back(o);
+        }
+    }
+
+    /* sort the remaining offsprings into species */
+    for (const auto &o : offsprings) {
+
+        bool newSpecies = true;
+        for (auto &s : this->species) {
+            if (s.similarity(o) < Species::similarityThreshold) {
+                s.add(o);
+                newSpecies = false;
+                break;
+            }
+        }
+
+        if (newSpecies) {
+            this->species.push_back(Species());
+            this->species.back().add(o); // TODO make shure the oldest is set here
+        }
+    }
+    
+    /* kill the remaining Organisms from the last species */
+    for (auto &o: organisms)
+        o.kill();
 }

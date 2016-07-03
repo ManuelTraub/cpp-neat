@@ -4,7 +4,7 @@
 #ifndef __POPULATION_H__
 #define __POPULATION_H__
 
-#include "Individuum.h"
+#include "Organism.h"
 
 using std::vector;
 
@@ -14,9 +14,6 @@ namespace NEAT {
 
         private:
 
-            /* the Individuums of this */
-            vector<Individuums> ivs;
-            
             /* the species of this */
             vector<Species> species;
 
@@ -25,6 +22,12 @@ namespace NEAT {
 
             /* the similarity threshold for individuals to be in the same species */
             double similarityThreshold;
+
+            /* propability of interspecies mating */
+            double interSpeciesMatingPropability;
+
+            /* desired number of Organism per generation */
+            unsigned populationSize;
 
             /* the training data set */
             vector<vector<double>> inputs;
