@@ -1,16 +1,26 @@
 #include "Population.h"
+#include "Organism.h"
+#include "Opts.h"
+#include <memory>
+#include <algorithm>
 
+using std::shared_ptr;
+using std::make_shared;
 using namespace NEAT;
+
+/* global random value */
+rand64_t *Population::rand = new_rand64_t(time(NULL));
 
 /* increase the genaration counter and sort all genomes by theyr fitness */
 void Population::calcNextGeneration() {
 
-    vector<shared_ptr<Organisms>> organisms;
+    vector<shared_ptr<Organism>> organisms;
 
     /* calculate the fitness of all Organisms */
     for (auto &s : this->species) {
-        s.calculateFittness(inputs, outputs);
-        organisms.push_back(s.getOrganisms());
+        s->calculateFittness(inputs, outputs);
+        vector<shared_ptr<Organism>> currentOrganisms = s->getOrganisms();
+        organisms.insert(organisms.end(), currentOrganisms.begin(), currentOrganisms.end());
     }
 
     /* stort the organisms by theyr fitness */
@@ -23,11 +33,26 @@ void Population::calcNextGeneration() {
         organisms[i]->kill();
 
     organisms.erase(organisms.begin() + killStart, organisms.end());
+
+    /* remove all death Organisms from their Species */
+    for (auto &s : this->species)
+        s->removeDeaths();
+
+    /* remove ectinct species */
+    for (int i = 0; i < (int) this->species.size(); i++) {
+        if (this->species[i]->size() == 0) {
+            this->species.erase(this->species.begin() + i);
+            i--;
+        }
+    }
+
+    /* sort species by their best fitness */
+    std::sort(this->species.begin(), this->species.end());
     
     /* calculate the interspecies offsprings 
      * (add one offsprings more based on the propability given from the decimal part )
      */
-    vector<shared_ptr<Organisms>> offsprings;
+    vector<shared_ptr<Organism>> offsprings;
     unsigned interSpeciesOffsprings = 0;
     if (this->species.size() > 1) {
         interSpeciesOffsprings = populationSize * interSpeciesMatingPropability + 
@@ -42,10 +67,9 @@ void Population::calcNextGeneration() {
         while (index2 == index1) 
             index2 = rand64(rand) % this->species.size();
         
-        offsprings.push_back(this->species[index1].createOffspring(this->species[index2]));
+        offsprings.push_back(this->species[index1]->createOffspring(*this->species[index2].get()));
     }
 
-//TODO remove deaths bevor this && sort species by fitness
     /* calculate the numer of offsprings per species */
     double offspringsPerOrganism = (populationSize - interSpeciesOffsprings) / 
                                    organisms.size();
@@ -55,7 +79,7 @@ void Population::calcNextGeneration() {
     for (unsigned i = 0; i < this->species.size(); i++) {
 
         /* add one offspring more based on the propability if the decimal part */
-        offspringsPerSpecies[i] = this->species[i].size() * offspringsPerOrganism + 
+        offspringsPerSpecies[i] = this->species[i]->size() * offspringsPerOrganism + 
                                   rand_range_d64(rand, 0, 1);
 
         nOffsprings += offspringsPerSpecies[i];
@@ -73,37 +97,45 @@ void Population::calcNextGeneration() {
 
     /* calculate the offsprings per species */
     for (unsigned i = 0; i < offspringsPerSpecies.size(); i++) {
-        vector<shared_ptr<Organisms>> currentOffsprings;
-        currentOffsprings = this->species[i].createOffsprings(offspringsPerSpecies[i]);
+        vector<shared_ptr<Organism>> currentOffsprings;
+        currentOffsprings = this->species[i]->createOffsprings(offspringsPerSpecies[i]);
 
         /* try adding the offsprings to ist species */
-        for (const auto &o : currentOffsprings) {
-            if (this->species[i].similarity(o) < Species::similarityThreshold)
-                this->species[i].add(o);
+        for (auto &o : currentOffsprings) {
+            if (this->species[i]->similarity(o) < Opts::similarityThreshold())
+                this->species[i]->add(o);
             else
                 offsprings.push_back(o);
         }
     }
 
     /* sort the remaining offsprings into species */
-    for (const auto &o : offsprings) {
+    for (auto &o : offsprings) {
 
         bool newSpecies = true;
         for (auto &s : this->species) {
-            if (s.similarity(o) < Species::similarityThreshold) {
-                s.add(o);
+            if (s->similarity(o) < Opts::similarityThreshold()) {
+                s->add(o);
                 newSpecies = false;
                 break;
             }
         }
 
         if (newSpecies) {
-            this->species.push_back(Species());
-            this->species.back().add(o); // TODO make shure the oldest is set here
+            this->species.push_back(make_shared<Species>());
+            this->species.back()->add(o); 
+            this->species.back()->calculateOldesGenome();
         }
     }
     
-    /* kill the remaining Organisms from the last species */
+    /* kill the remaining Organisms from the last generation */
     for (auto &o: organisms)
-        o.kill();
+        o->kill();
+
+    for (auto &s : this->species) {
+        s->removeDeaths();
+        s->calculateOldesGenome();
+    }
+
+    // TODO increase generation counter here
 }

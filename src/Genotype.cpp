@@ -6,6 +6,9 @@ using namespace NEAT;
 /* global random value to mutate this */
 rand64_t *Genotype::rand = new_rand64_t(time(NULL));
 
+/* the GeneHistory reference of this */
+GeneHistory &Genotype::history = GeneHistory::getInstance();
+
 /* mutate this by inserting a new hidden neuron */
 bool Genotype::mutateInsertNeuron() {
 
@@ -147,7 +150,7 @@ bool Genotype::mutateDisableConnection() {
 
 /* create a new Genotype for the given number of input and output neurons */
 Genotype::Genotype(const unsigned inputs, const unsigned outputs) : 
-                   history(GeneHistory::getInstance()), generation(GenerationCounter::get()) {
+                   generation(GenerationCounter::get()) {
     
     /* create the input neurons */
     for (unsigned i = 0; i < inputs; i++) {
@@ -167,8 +170,7 @@ Genotype::Genotype(const unsigned inputs, const unsigned outputs) :
 }
 
 /* creat a new Genotype mixing the genes of this with other */
-Genotype::Genotype(const Genotype &fitter, const Genotype &other) : 
-                   history(GeneHistory::getInstance()), generation(0) {
+Genotype::Genotype(const Genotype &fitter, const Genotype &other) : generation(0) {
 
     this->neurons = fitter.neurons;
     this->connections.reserve(fitter.connections.size());
@@ -197,7 +199,7 @@ Genotype::Genotype(const Genotype &fitter, const Genotype &other) :
         if (generation < this->connections.at(e.first).getGeneration())
             generation = this->connections.at(e.first).getGeneration();
     }
-}
+} // TODO undisable connection by 25% if only on parrent has a disabled connection, also check fittnes bevor calling these
 
 /* the gene multiplayer for calculating similarity */
 double Genotype::geneMultiplier = 1.0;

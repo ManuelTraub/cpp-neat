@@ -7,7 +7,6 @@
 
 #include "Genotype.h"
 #include "Phenotype.h"
-#include "Species.h"
 
 namespace NEAT {
 
@@ -31,7 +30,7 @@ namespace NEAT {
 
             /* creates a new individuum from the given Genome */
             Organism(const Genotype &genome) :
-                genome(genome), fitness(std::nan), alive(true) { }
+                genome(genome), fitness(std::nan("Organism")), alive(true) { }
 
             /* calculates the fitness of this */
             void calculateFittness(vector<vector<double>> inputs, 
@@ -40,7 +39,7 @@ namespace NEAT {
 
 
             /* returns a reference to the genome of this */
-            Genotype &getGenome() const { return genome; }
+            Genotype &getGenome() { return genome; }
 
             /* returns the fitness of this */
             double getFitness() const { 

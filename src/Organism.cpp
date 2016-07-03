@@ -1,5 +1,6 @@
 #include "Organism.h"
 #include "Species.h"
+#include "Opts.h"
 
 using namespace NEAT;
 
@@ -10,20 +11,20 @@ void Organism::calculateFittness(vector<vector<double>> inputs,
 
     /* calculate the raw fitness of this */
     if (std::isnan(fitness)) {
-        const Phenotype phenotype(genome);
+        Phenotype phenotype(genome);
         this->fitness = phenotype.calculateError(inputs, outputs);
     }
 
-    /* adjust fittnes according to the size of the Species */
-    this->fittnes /= species.size();
+    /* adjust fitness according to the size of the Species */
+    this->fitness /= species.size();
 
     /* adjust fitness according to the age of the species 
      * younger species will get a fitness boost
      */
-    if (species.age() < Species::youthThreshold)
-        this->fitness *= Species::youthBoost;
+    if (species.age() < Opts::youthThreshold())
+        this->fitness *= Opts::youthBoost();
 
     /* adjust fitness of stagnant species */
-    if (species.stagnantAge() > Species::stagnantThreshold)
-        this->fitness *= species::stagnantPenalty;
+    if (species.stagnantAge() > Opts::stagnantThreshold())
+        this->fitness *= Opts::stagnantPenalty();
 }

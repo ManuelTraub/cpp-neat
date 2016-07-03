@@ -28,7 +28,7 @@ namespace NEAT {
             unordered_map<uint64_t, ConnectionGene> connections;
 
             /* the GeneHistory reference of this */
-            GeneHistory &history;
+            static GeneHistory &history;
 
             /* the latest gene generation number */
             uint64_t generation;
@@ -52,6 +52,9 @@ namespace NEAT {
 
             /* mutate this by disabeling a connection */
             bool mutateDisableConnection();
+
+            /* create a new dummy Genotype */
+            Genotype() : generation(GenerationCounter::get()) { }
 
             /* create a new Genotype for the given number of input and output neurons */
             Genotype(const unsigned inputs, const unsigned outputs);

@@ -4,8 +4,10 @@
 #ifndef __POPULATION_H__
 #define __POPULATION_H__
 
-#include "Organism.h"
+#include "Species.h"
+#include <memory>
 
+using std::shared_ptr;
 using std::vector;
 
 namespace NEAT {
@@ -15,7 +17,7 @@ namespace NEAT {
         private:
 
             /* the species of this */
-            vector<Species> species;
+            vector<shared_ptr<Species>> species;
 
             /* the survival rate of this poppulation during generation change */
             double survivalRate;
@@ -32,6 +34,9 @@ namespace NEAT {
             /* the training data set */
             vector<vector<double>> inputs;
             vector<vector<double>> outputs;
+
+            /* global random value */
+            static rand64_t *rand;
 
         public:
 

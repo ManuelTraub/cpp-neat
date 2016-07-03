@@ -4,44 +4,27 @@
 #ifndef __SPECIES_H__
 #define __SPECIES_H__
 
-#include "Organism.h"
 #include <memory>
+#include "utils.h"
+#include "Genotype.h"
 
 using std::shared_ptr;
 
 namespace NEAT {
+
+    /* forward declaration */
+    class Organism;
     
     class Species {
         
         private:
 
-            /* threshold for young species to get a fitness boost */
-            static unsigned youthThreshold;
-
-            /* the fitness boost a young generation gets (in percent / 100) */
-            static double youthBoost;
-
-            /* threshold after which a stagnant species will get a fittnes penalty */
-            static unsigned stagnantThreshold;
-
-            /* the penalty for a stagnant species (in percent / 100) */
-            static double stagnantPenalty;
-
-            /* propability for a mutation only offspring */
-            static double mutationOnlyPropability;
-
-            /* threshold for species size to have the fittest Organism survive an epoch */
-            static unsigned fittestSurvivalThreshold;
-
-            /* the similarity threshold for Organism to be in the same species */
-            static double similarityThreshold;
-
             /* global random value */
             static rand64_t *rand;
 
-            /* The oldest Organism of this species 
+            /* The oldest Genome of this species 
              * which is used as base for similarity calculation */
-            shared_ptr<Organism> oldest;
+            Genotype oldestGenome;
 
             /* the Organisms of this */
             vector<shared_ptr<Organism>> organisms;
@@ -55,11 +38,8 @@ namespace NEAT {
             /* the generation of the last fittnes improvment of this */
             uint64_t lastImproveGeneration;
 
-            /* recalculates the oldes genome */
-            void refresh();
-
             /* chose a Organisms for reproduction, propability based on the organisms fittnes */
-            vector<unsigned> chooseOrganisms();
+            vector<unsigned> chooseOrganisms(unsigned nOffsprings);
 
             /* creates a new offspring from the Organism with the given index */
             shared_ptr<Organism> createOffspring(unsigned index);
@@ -67,8 +47,7 @@ namespace NEAT {
         public:
             
             /* creats a new species */
-            Species() : oldest(nullptr), 
-                        bestFittness(std::nan), 
+            Species() : bestFittness(std::nan("Species")), 
                         birthGeneration(GenerationCounter::get()),
                         lastImproveGeneration(GenerationCounter::get()) { }
 
@@ -78,22 +57,41 @@ namespace NEAT {
             /* add a Organism at the end of this */
             void add(const shared_ptr<Organism> &o) { organisms.push_back(o); }
 
+            /* remove all dead Organisms */
+            void removeDeaths();
+
+            /* calculates the new oldest genome */
+            void calculateOldesGenome();
+
             /* calculate the simmilarity of the given Genotype
              * to the oldest genome of this species 
              */
-            double similarity(const Organism &o) const { 
-                assert(oldest != nullptr);
-                return oldest->getGenome()->similarity(o->getGenome()); 
-            }
+            double similarity(shared_ptr<Organism> &o) const;
 
             /* clalculate the fittness of all Organism */
             void calculateFittness(vector<vector<double>> inputs, vector<vector<double>> outputs);
 
             /* calculates the given number of offsprings for the next generation */
-            vector<shared_ptr<Organism>> createOffsprings(unsigned nOffsprings)
+            vector<shared_ptr<Organism>> createOffsprings(unsigned nOffsprings);
 
             /* calculate an inter species offspring */
-            shared_ptr<Organism> Species::createOffspring(Species &other) {
+            shared_ptr<Organism> createOffspring(Species &other);
+
+            /* returns the age of this */
+            uint64_t age() const { return GenerationCounter::get() - birthGeneration; }
+
+            /* returns the stagnant age */
+            uint64_t stagnantAge() const { 
+                return GenerationCounter::get() - lastImproveGeneration; 
+            }
+
+            /* compares this with other based on the best fitness of this */
+            bool operator < (const Species &other) const {
+                return bestFittness < other.bestFittness;
+            }
+
+            /* returns the Organisms of this */
+            vector<shared_ptr<Organism>> getOrganisms() const { return organisms; }
 
     };
 }
