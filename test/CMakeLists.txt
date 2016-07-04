@@ -22,6 +22,7 @@ add_executable(QuadTreeTest
 
 add_executable(GenotypeTest 
                GenotypeTest 
+               ../src/Opts
                ../src/utils 
                ../src/Genotype 
                ../src/Gene 
@@ -30,6 +31,7 @@ add_executable(GenotypeTest
 
 add_executable(PhenotypeTest 
                PhenotypeTest 
+               ../src/Opts
                ../src/utils 
                ../src/Genotype 
                ../src/Phenotype 
@@ -44,8 +46,32 @@ add_executable(GeneHistoryTest
                ../src/Gene 
                ../src/GenerationCounter)
 
-add_test(NAME QuadTree COMMAND QuadTreeTest)
-add_test(NAME Genotype COMMAND GenotypeTest)
-add_test(NAME Phenotype COMMAND PhenotypeTest)
-add_test(NAME DeterministicDouble COMMAND DeterministicDoubleTest)
-add_test(NAME GeneHistory COMMAND GeneHistoryTest)
+add_executable(OrganismTest
+               OrganismTest
+               ../src/Opts
+               ../src/Organism
+               ../src/utils 
+               ../src/Genotype 
+               ../src/Phenotype 
+               ../src/Gene 
+               ../src/GeneHistory 
+               ../src/GenerationCounter)
+
+add_executable(SpeciesTest
+               SpeciesTest
+               ../src/Species
+               ../src/Opts
+               ../src/Organism
+               ../src/utils 
+               ../src/Genotype 
+               ../src/Phenotype 
+               ../src/Gene 
+               ../src/GeneHistory 
+               ../src/GenerationCounter)
+
+add_test(NAME QuadTree            COMMAND QuadTreeTest)
+add_test(NAME Genotype            COMMAND GenotypeTest)
+add_test(NAME Phenotype           COMMAND PhenotypeTest)
+add_test(NAME GeneHistory         COMMAND GeneHistoryTest)
+add_test(NAME Organism            COMMAND OrganismTest)
+add_test(NAME Species             COMMAND SpeciesTest)

@@ -13,6 +13,11 @@ using std::vector;
 using std::unordered_map;
 using std::make_pair;
 
+/* adds an option to the Opts class */
+#define addOption(type, name, value) \
+    private : type _##name = value;  \
+    public  : static type name() { return onlyInstance._##name; }
+
 namespace NEAT {
     
     class Opts {
@@ -23,7 +28,7 @@ namespace NEAT {
             static Opts onlyInstance;
 
             /* private constructor and destructor to make this a singleton */
-            Opts();
+            Opts() { }
 
             /* private destructor to avoid deletion of the singleton */
             ~Opts() { }
@@ -32,52 +37,66 @@ namespace NEAT {
             Opts(const Opts &) = delete;
 
             /* threshold for young species to get a fitness boost */
-            unsigned _youthThreshold;
+            addOption(unsigned, youthThreshold, 10)
 
             /* the fitness boost a young generation gets (in percent / 100) */
-            double _youthBoost;
+            addOption(double, youthBoost, 1.01)
 
             /* threshold after which a stagnant species will get a fittnes penalty */
-            unsigned _stagnantThreshold;
+            addOption(unsigned, stagnantThreshold, 15)
 
             /* the penalty for a stagnant species (in percent / 100) */
-            double _stagnantPenalty;
+            addOption(double, stagnantPenalty, 0.01)
 
             /* propability for a mutation only offspring */
-            double _mutationOnlyPropability;
+            addOption(double, mutationOnlyPropability, 0.25)
 
             /* threshold for species size to have the fittest Organism survive an epoch */
-            unsigned _fittestSurvivalThreshold;
+            addOption(unsigned, fittestSurvivalThreshold, 5)
 
             /* the similarity threshold for Organism to be in the same species */
-            double _similarityThreshold;
+            addOption(double, speciesSimilarityThreshold, 3.0)
 
+            /* the property for disabeling a connection gene if 
+             * eighter one parrent has the gene disabled
+             */
+            addOption(double, recombinationGeneDisablePropability, 0.75)
 
-        public:
+            /* the survival rate of the population during generation change */
+            addOption(double, survivalRate, 0.5)
 
-            /* access the only instance of this */
-            static Opts &getInstance();
+            /* propability of interspecies mating */
+            addOption(double, interSpeciesMatingPropability, 0.001)
 
-            /* threshold for young species to get a fitness boost */
-            static unsigned youthThreshold() { return onlyInstance._youthThreshold; }
+            /* desired number of Organism per generation */
+            addOption(unsigned, populationSize, 150)
 
-            /* the fitness boost a young generation gets (in percent / 100) */
-            static double youthBoost() { return onlyInstance._youthBoost; }
+            /* propability of adding a new Neuron during mutation */
+            addOption(double, addNeuronMutationPropability, 0.03)
 
-            /* threshold after which a stagnant species will get a fittnes penalty */
-            static unsigned stagnantThreshold() { return onlyInstance._stagnantThreshold; }
+            /* propability of adding a new Connection between two Neurons during mutation */
+            addOption(double, addConnectionMutationPropability, 0.05)
 
-            /* the penalty for a stagnant species (in percent / 100) */
-            static double stagnantPenalty() { return onlyInstance._stagnantPenalty; }
+            /* the propability of mutating the weights of a Genome during mutation */
+            addOption(double, mutateWeightsPropability, 0.8)
 
-            /* propability for a mutation only offspring */
-            static double mutationOnlyPropability() { return onlyInstance._mutationOnlyPropability; }
+            /* the percentage of weights mutated during a weight mutation */
+            addOption(double, mutateWeightsPercent, 1.0)
 
-            /* threshold for species size to have the fittest Organism survive an epoch */
-            static unsigned fittestSurvivalThreshold() { return onlyInstance._fittestSurvivalThreshold; }
+            /* the gene multiplayer for calculating similarity */
+            addOption(double, geneMultiplier, 1.0)
 
-            /* the similarity threshold for Organism to be in the same species */
-            static double similarityThreshold() { return onlyInstance._similarityThreshold; }
+            /* avg weight diference multiplier when calculating the similarity */
+            addOption(double, weightMultiplier, 1.0)
+
+            /* the perturbe weight range start and end */
+            addOption(double, perturbeWeightRangeStart, -0.5)
+            addOption(double, perturbeWeightRangeEnd, 0.5)
+
+            /* the propability of setting a connection weight to 
+             * a new random value during mutation 
+             */
+            addOption(double, hardMutationPropability, 0.1)
 
     };
 

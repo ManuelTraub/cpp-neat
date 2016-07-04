@@ -9,9 +9,12 @@
 #include <inttypes.h>
 #include <pthread.h>
 #include <assert.h>
+#include <vector>
 #include "utils.h"
 #include "QuadTree.h"
 #include "GenerationCounter.h"
+
+using std::vector;
 
 namespace NEAT {
 
@@ -205,7 +208,7 @@ namespace NEAT {
             }
 
             /* uniformly perturbe the weight of this */
-            void mutate(double weightRange[2]) {
+            void mutate(vector<double> weightRange) {
                 assert(!isDummy()); 
                 weight += rand_range_d64(rand, weightRange[0], weightRange[1]); 
                 generation = GenerationCounter::get();

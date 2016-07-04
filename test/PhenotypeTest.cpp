@@ -117,7 +117,7 @@ TEST(basicBinaryANDTest) {
     return args;
 }
 
-TEST(advancedBinaryANDTest) {
+TEST_N(advancedBinaryANDTest, 1000) {
 
     Genotype genotype(2, 1);
 
@@ -153,7 +153,7 @@ TEST(advancedBinaryANDTest) {
 
 
     double minError = UINT64_MAX;
-    while (minError > 0.09) {
+    while (minError > 0.01) {
         genotype.mutateConnections(rand_range_d64(args, 0.34, 1.0));
         Phenotype phenotype(genotype);
         double curError = phenotype.calculateError(trainingInputs, trainingOutputs);

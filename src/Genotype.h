@@ -50,12 +50,6 @@ namespace NEAT {
             /* mutate a given percentage of connections */
             void mutateConnections(double percent);
 
-            /* mutate this by disabeling a connection */
-            bool mutateDisableConnection();
-
-            /* create a new dummy Genotype */
-            Genotype() : generation(GenerationCounter::get()) { }
-
             /* create a new Genotype for the given number of input and output neurons */
             Genotype(const unsigned inputs, const unsigned outputs);
 
@@ -64,18 +58,6 @@ namespace NEAT {
 
             /* calculates the similarity with this and other */
             double similarity(const Genotype &other) const;
-
-            /* the gene multiplayer for calculating similarity */
-            static double geneMultiplier;
-
-            /* avg weight diference multiplier when calculating the similarity */
-            static double weightMultiplier;
-
-            /* the perturbe weight range */
-            static double perturbeWeightRange[2];
-
-            /* the propability of reasining a gene a new random value during mutation */
-            static double hardMutationPropability;
 
             /* returns the genome age of this (GenerationCounter - jungest gene) */
             uint64_t genomeAge() const { return GenerationCounter::get() - generation; }

@@ -9,13 +9,6 @@ using std::make_shared;
 /* global random value */
 rand64_t *Species::rand = new_rand64_t(time(NULL));
 
-/* calculate the simmilarity of the given Genotype
- * to the oldest genome of this species 
- */
-double Species::similarity(shared_ptr<Organism> &o) const { 
-    return oldestGenome.similarity(o->getGenome()); 
-}
-
 /* remove all dead Organisms */
 void Species::removeDeaths() {
 
@@ -31,12 +24,12 @@ void Species::removeDeaths() {
 /* calculates the new oldest genome */
 void Species::calculateOldesGenome() {
 
-    oldestGenome = Genotype();
+    oldestGenome = nullptr;
 
     /* recalculate the oldest Organism */
-    for (const auto &o : organisms)
-        if (oldestGenome.genomeAge() < o->getGenome().genomeAge())
-            oldestGenome = o->getGenome();
+    for (const auto &o : organisms) 
+        if (oldestGenome->genomeAge() < o->getGenome().genomeAge()) 
+            oldestGenome = make_shared<Genotype>(o->getGenome());
 }
 
 
@@ -44,17 +37,17 @@ void Species::calculateOldesGenome() {
 void Species::calculateFittness(vector<vector<double>> inputs, vector<vector<double>> outputs) {
     
     for (auto &o : organisms) {
-        o->calculateFittness(inputs, outputs, *this);
+        o->calculateFittness(inputs, outputs, this->size(), this->age(), this->stagnantAge());
 
         /* actualitze the best fitness of this */
-        if (o->getFitness() < this->bestFittness) {
-            this->bestFittness = o->getFitness();
+        if (o->getOriginalFitness() < this->bestFittness) {
+            this->bestFittness = o->getOriginalFitness();
             this->lastImproveGeneration = GenerationCounter::get();
         }
     }
 
     /* sort the organisms by fitness */
-    std::sort(organisms.begin(), organisms.end());
+    std::sort(organisms.begin(), organisms.end(), OrganismComparator());
 }
 
 /* chose a Organisms for reproduction, propability based on the organisms fittnes */
@@ -68,8 +61,8 @@ vector<unsigned> Species::chooseOrganisms(unsigned nOffsprings) {
 
     double maxPropability = 0.0;
     for (unsigned i = 0; i < organisms.size(); i++) {
-        propability[i] = organisms[i]->getFitness() / organisms[0]->getFitness();
-        maxPropability += propability[i];
+        propability[i] = organisms[i]->getAdjustedFitness() / organisms[0]->getAdjustedFitness();
+        maxPropability += propability[i]; 
     }
 
     for (unsigned i = 0; i < nOffsprings; i++) {
@@ -91,9 +84,7 @@ shared_ptr<Organism> Species::createOffspring(unsigned index) {
     if (rand_range_d64(rand, 0, 1) < Opts::mutationOnlyPropability() || this->size() == 1) {
 
         /* create new Organism and mutate its Genome */
-        shared_ptr<Organism> offspring = make_shared<Organism>(organisms[index]->getGenome());
-        //offspring->getGenome().mutate(); TODO
-        return offspring;
+       return make_shared<Organism>(*this->organisms[index]);
         
     } else {
         
@@ -102,8 +93,7 @@ shared_ptr<Organism> Species::createOffspring(unsigned index) {
         while (index2 == index)
             index2 = rand64(rand) % this->size();
 
-        return make_shared<Organism>(Genotype(organisms[index]->getGenome(), 
-                                              organisms[index2]->getGenome()));
+        return make_shared<Organism>(*this->organisms[index], *this->organisms[index2]);
     }
 }
 
@@ -115,7 +105,7 @@ vector<shared_ptr<Organism>> Species::createOffsprings(unsigned nOffsprings) {
     if (this->size() > Opts::fittestSurvivalThreshold() && nOffsprings > 1) {
 
         /* copy the fittest Organism */
-        newGeneration.push_back(make_shared<Organism>(this->organisms[0]->getGenome()));
+        newGeneration.push_back(make_shared<Organism>(*this->organisms[0]));
         nOffsprings--;
     }
 
@@ -136,7 +126,5 @@ shared_ptr<Organism> Species::createOffspring(Species &other) {
     const unsigned thisIndex  = this->chooseOrganisms(1)[0];
     const unsigned otherIndex = other.chooseOrganisms(1)[0];
 
-    return make_shared<Organism>(Genotype(this->organisms[thisIndex]->getGenome(), 
-                                          other.organisms[otherIndex]->getGenome()));
-    
+    return make_shared<Organism>(*this->organisms[thisIndex], *other.organisms[otherIndex]);
 }

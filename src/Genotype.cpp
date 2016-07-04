@@ -1,4 +1,5 @@
 #include "Genotype.h"
+#include "Opts.h"
 #include <iterator>
 
 using namespace NEAT;
@@ -105,14 +106,8 @@ bool Genotype::mutateInsertConnection() {
     return true;
 }
 
-
-/* the perturbe weight range */
-double Genotype::perturbeWeightRange[2] = { -0.5, 0.5 };
-
-/* the propability of reasining a gene a new random value during mutation */
-double Genotype::hardMutationPropability = 0.1;
-
 // TODO experiment with lovering the propability of mutating older genes
+// TODO add Opts for mutation percent
 /* mutate a given percentage of connections */
 void Genotype::mutateConnections(double percent) {
     
@@ -121,31 +116,15 @@ void Genotype::mutateConnections(double percent) {
     for (unsigned i = 0; i < size; i++) {
         auto random_it = std::next(std::begin(connections), rand64(rand) % connections.size());
 
-        if (rand_range_d64(rand, 0, 1.0) < hardMutationPropability)
+        if (rand_range_d64(rand, 0, 1.0) < Opts::hardMutationPropability())
             random_it->second.mutate();
         else
-            random_it->second.mutate(perturbeWeightRange);
+            random_it->second.mutate({Opts::perturbeWeightRangeStart(), 
+                                      Opts::perturbeWeightRangeEnd()});
     }
 
     if (size > 0)
         generation = GenerationCounter::get();
-}
-
-/* mutate this by disabeling a connection */
-bool Genotype::mutateDisableConnection() {
-
-    const unsigned index = rand64(rand) % connections.size();
-    ConnectionGene &mutatingGene = connections[index];
-
-    if (!mutatingGene.isEnabled())
-        return false;
-
-    mutatingGene.disable();
-    
-    if (generation < mutatingGene.getGeneration())
-        generation = mutatingGene.getGeneration();
-
-    return true;
 }
 
 /* create a new Genotype for the given number of input and output neurons */
@@ -201,12 +180,6 @@ Genotype::Genotype(const Genotype &fitter, const Genotype &other) : generation(0
     }
 } // TODO undisable connection by 25% if only on parrent has a disabled connection, also check fittnes bevor calling these
 
-/* the gene multiplayer for calculating similarity */
-double Genotype::geneMultiplier = 1.0;
-
-/* avg weight diference multiplier when calculating the similarity */
-double Genotype::weightMultiplier = 1.0;
-
 /* calculates the similarity with this and other */
 double Genotype::similarity(const Genotype &other) const {
     
@@ -231,7 +204,7 @@ double Genotype::similarity(const Genotype &other) const {
     //      (geneSimilarity + weightSimilarity) / nGenes
     //      this should put the similarity in realation with Network size
     //      (in a giant network smal changes are cuses not a big dissimilarity as in a smal network)
-    return geneMultiplier * geneSimilarity + weightMultiplier * weightSimilarity;
+    return Opts::geneMultiplier() * geneSimilarity + Opts::weightMultiplier() * weightSimilarity;
 }
 
 #ifdef __DEBUG__ 

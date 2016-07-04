@@ -7,14 +7,12 @@
 #include <memory>
 #include "utils.h"
 #include "Genotype.h"
+#include "Organism.h"
 
 using std::shared_ptr;
 
 namespace NEAT {
 
-    /* forward declaration */
-    class Organism;
-    
     class Species {
         
         private:
@@ -24,7 +22,7 @@ namespace NEAT {
 
             /* The oldest Genome of this species 
              * which is used as base for similarity calculation */
-            Genotype oldestGenome;
+            shared_ptr<Genotype> oldestGenome;
 
             /* the Organisms of this */
             vector<shared_ptr<Organism>> organisms;
@@ -66,7 +64,10 @@ namespace NEAT {
             /* calculate the simmilarity of the given Genotype
              * to the oldest genome of this species 
              */
-            double similarity(shared_ptr<Organism> &o) const;
+            double similarity(const shared_ptr<Organism> &o) const { 
+                assert(this->oldestGenome != nullptr);
+                return o->similarity(*this->oldestGenome);
+            }
 
             /* clalculate the fittness of all Organism */
             void calculateFittness(vector<vector<double>> inputs, vector<vector<double>> outputs);
@@ -93,6 +94,20 @@ namespace NEAT {
             /* returns the Organisms of this */
             vector<shared_ptr<Organism>> getOrganisms() const { return organisms; }
 
+#ifdef __DEBUG__ 
+            void setBestFitness(double fitness) { bestFittness = fitness; }
+            double getBestFitness() const { return bestFittness; }
+#endif
+
+    };
+
+    /* compares two Species based on theyr best fittness */
+    struct SpeciesComparator {
+            bool operator () (const shared_ptr<Species> &a,
+                              const shared_ptr<Species> &b) const {
+
+                return *a < *b;
+            }
     };
 }
 

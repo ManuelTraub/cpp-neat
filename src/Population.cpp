@@ -24,10 +24,10 @@ void Population::calcNextGeneration() {
     }
 
     /* stort the organisms by theyr fitness */
-    std::sort(organisms.begin(), organisms.end());
+    std::sort(organisms.begin(), organisms.end(), OrganismComparator());
 
     /* kill the Organisms with the worst fitness */
-    unsigned deaths    = organisms.size() * this->survivalRate;
+    unsigned deaths    = organisms.size() * Opts::survivalRate();
     unsigned killStart = organisms.size() - deaths;
     for (unsigned i = killStart; i < organisms.size(); i++)
         organisms[i]->kill();
@@ -47,7 +47,7 @@ void Population::calcNextGeneration() {
     }
 
     /* sort species by their best fitness */
-    std::sort(this->species.begin(), this->species.end());
+    std::sort(this->species.begin(), this->species.end(), SpeciesComparator());
     
     /* calculate the interspecies offsprings 
      * (add one offsprings more based on the propability given from the decimal part )
@@ -55,7 +55,7 @@ void Population::calcNextGeneration() {
     vector<shared_ptr<Organism>> offsprings;
     unsigned interSpeciesOffsprings = 0;
     if (this->species.size() > 1) {
-        interSpeciesOffsprings = populationSize * interSpeciesMatingPropability + 
+        interSpeciesOffsprings = Opts::populationSize() * Opts::interSpeciesMatingPropability() + 
                                  rand_range_d64(rand, 0, 1);
     }
 
@@ -70,8 +70,8 @@ void Population::calcNextGeneration() {
         offsprings.push_back(this->species[index1]->createOffspring(*this->species[index2].get()));
     }
 
-    /* calculate the numer of offsprings per species */
-    double offspringsPerOrganism = (populationSize - interSpeciesOffsprings) / 
+    /* calculate the numer of offsprings per species */ // TODO calculate the ofsprings per organism based on the fittness of the Organism!!!
+    double offspringsPerOrganism = (Opts::populationSize() - interSpeciesOffsprings) / 
                                    organisms.size();
 
     vector<unsigned> offspringsPerSpecies(this->species.size());
@@ -86,7 +86,7 @@ void Population::calcNextGeneration() {
     }
 
     /* if we have to much offsprings remove them from the worst species */
-    while (nOffsprings > populationSize) {
+    while (nOffsprings > Opts::populationSize()) {
         for (unsigned i = this->species.size(); i > 0; i--) {
             if (offspringsPerSpecies[i - 1] > 1) {
                 offspringsPerSpecies[i - 1]--;
@@ -102,7 +102,7 @@ void Population::calcNextGeneration() {
 
         /* try adding the offsprings to ist species */
         for (auto &o : currentOffsprings) {
-            if (this->species[i]->similarity(o) < Opts::similarityThreshold())
+            if (this->species[i]->similarity(o) < Opts::speciesSimilarityThreshold())
                 this->species[i]->add(o);
             else
                 offsprings.push_back(o);
@@ -114,7 +114,7 @@ void Population::calcNextGeneration() {
 
         bool newSpecies = true;
         for (auto &s : this->species) {
-            if (s->similarity(o) < Opts::similarityThreshold()) {
+            if (s->similarity(o) < Opts::speciesSimilarityThreshold()) {
                 s->add(o);
                 newSpecies = false;
                 break;
