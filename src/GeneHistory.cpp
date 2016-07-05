@@ -39,7 +39,7 @@ NeuronGene GeneHistory::insertNeuron(NeuronType const type, uint64_t number) {
     }
     
     assert(false);
-    return NeuronGene();
+    return NeuronGene(NeuronType::BIAS, 0);
 }
 
 /* insert a new Neuron between the given connection 
@@ -56,8 +56,8 @@ NeuronGene GeneHistory::insertNeuron(const ConnectionGene &gene) {
     assert(neuronMap.count(inpuID)   == 1);
     assert(neuronMap.count(outputID) == 1);
 
-    NeuronGeneConnections &inputConnections  = neuronMap[inpuID];
-    NeuronGeneConnections &outputConnections = neuronMap[outputID];
+    NeuronGeneConnections &inputConnections  = neuronMap.at(inpuID);
+    NeuronGeneConnections &outputConnections = neuronMap.at(outputID);
 
     /* checks if the connection was allready splitted by checkign for and
      * Neuron with conected to input and output of the connection
@@ -65,7 +65,7 @@ NeuronGene GeneHistory::insertNeuron(const ConnectionGene &gene) {
     for (uint64_t &inID : inputConnections.getOutputs()) {
         for (uint64_t &outID : outputConnections.getInputs()) {
             if (inID == outID)
-                return neuronMap[inID].getGene();
+                return neuronMap.at(inID).getGene();
         }
     }
 
@@ -75,10 +75,10 @@ NeuronGene GeneHistory::insertNeuron(const ConnectionGene &gene) {
     inputConnections.addOutput(newNeuron.getID());
     outputConnections.addInput(newNeuron.getID());
 
-    neuronMap.insert(make_pair(newNeuron.getID(), NeuronGeneConnections(newNeuron)));
+    neuronMap.insert({newNeuron.getID(), NeuronGeneConnections(newNeuron)});
 
-    neuronMap[newNeuron.getID()].addInput(inpuID);
-    neuronMap[newNeuron.getID()].addOutput(outputID);
+    neuronMap.at(newNeuron.getID()).addInput(inpuID);
+    neuronMap.at(newNeuron.getID()).addOutput(outputID);
 
     return newNeuron;
 }

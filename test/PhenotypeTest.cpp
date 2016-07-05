@@ -82,13 +82,13 @@ TEST(basicBinaryANDTest) {
     unordered_map<uint64_t, NeuronGene> neuronsMap = genotype.getNeurons();
     vector<NeuronGene> inputs;
     vector<NeuronGene> outputs;
-    NeuronGene bias;
+    const NeuronGene *bias;
     
     for (const auto &e : neuronsMap) {
         if (e.second.getType() == NeuronType::INPUT)
             inputs.push_back(e.second);
         else if (e.second.getType() == NeuronType::BIAS)
-            bias = e.second;
+            bias = &e.second;
         else if (e.second.getType() == NeuronType::OUTPUT)
             outputs.push_back(e.second);
         else
@@ -100,7 +100,7 @@ TEST(basicBinaryANDTest) {
 
     ConnectionGene &inCon1  = genotype.addConnection(inputs[0], outputs[0]);
     ConnectionGene &inCon2  = genotype.addConnection(inputs[1], outputs[0]);
-    ConnectionGene &biasCon = genotype.addConnection(bias, outputs[0]);
+    ConnectionGene &biasCon = genotype.addConnection(*bias, outputs[0]);
 
     inCon1.setWeight(0.5);
     inCon2.setWeight(0.5);
@@ -124,13 +124,13 @@ TEST_N(advancedBinaryANDTest, 1000) {
     unordered_map<uint64_t, NeuronGene> neuronsMap = genotype.getNeurons();
     vector<NeuronGene> inputs;
     vector<NeuronGene> outputs;
-    NeuronGene bias;
+    const NeuronGene *bias;
     
     for (const auto &e : neuronsMap) {
         if (e.second.getType() == NeuronType::INPUT)
             inputs.push_back(e.second);
         else if (e.second.getType() == NeuronType::BIAS)
-            bias = e.second;
+            bias = &e.second;
         else if (e.second.getType() == NeuronType::OUTPUT)
             outputs.push_back(e.second);
         else
@@ -142,7 +142,7 @@ TEST_N(advancedBinaryANDTest, 1000) {
 
     ConnectionGene &inCon1  = genotype.addConnection(inputs[0], outputs[0]);
     ConnectionGene &inCon2  = genotype.addConnection(inputs[1], outputs[0]);
-    ConnectionGene &biasCon = genotype.addConnection(bias, outputs[0]);
+    ConnectionGene &biasCon = genotype.addConnection(*bias, outputs[0]);
 
     double weight1 = inCon1.getWeight(), 
            weight2 = inCon2.getWeight(), 

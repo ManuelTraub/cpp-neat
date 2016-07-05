@@ -170,13 +170,13 @@ Genotype::Genotype(const Genotype &fitter, const Genotype &other) : generation(0
          */
         if (other.connections.count(e.first) != 0) {
             if (rand64(rand) % 2 == 1)
-                this->connections[e.first] = other.connections.at(e.first);
+                this->connections.insert({e.first, other.connections.at(e.first)});
             else
-                this->connections[e.first] = fitter.connections.at(e.first);
+                this->connections.insert({e.first, fitter.connections.at(e.first)});
 
         /* use only missing genes from the fitter individual */
         } else 
-            this->connections[e.first] = fitter.connections.at(e.first);
+            this->connections.insert({e.first, fitter.connections.at(e.first)});
 
         /* actualize the generation number */
         if (generation < this->connections.at(e.first).getGeneration())
@@ -219,10 +219,10 @@ NeuronGene &Genotype::addNeuron(const ConnectionGene &gene) {
     if (neurons.count(neuron.getID()) == 0) 
         neurons.insert({neuron.getID(), neuron});
 
-    if (generation < neurons[neuron.getID()].getGeneration())
-        generation = neurons[neuron.getID()].getGeneration();
+    if (generation < neurons.at(neuron.getID()).getGeneration())
+        generation = neurons.at(neuron.getID()).getGeneration();
 
-    return neurons[neuron.getID()];
+    return neurons.at(neuron.getID());
 }
 ConnectionGene &Genotype::addConnection(const NeuronGene &gene1, const NeuronGene &gene2) {
 
@@ -231,9 +231,9 @@ ConnectionGene &Genotype::addConnection(const NeuronGene &gene1, const NeuronGen
     if (connections.count(connection.getID()) == 0) 
         connections.insert({connection.getID(), connection});
 
-    if (generation < connections[connection.getID()].getGeneration())
-        generation = connections[connection.getID()].getGeneration();
+    if (generation < connections.at(connection.getID()).getGeneration())
+        generation = connections.at(connection.getID()).getGeneration();
 
-    return connections[connection.getID()];
+    return connections.at(connection.getID());
 }
 #endif

@@ -44,33 +44,21 @@ namespace NEAT {
         public:
             
             /* creates a new Gene */
-            Gene(bool dummy = true) : generation(GenerationCounter::get()) {
+            Gene() : generation(GenerationCounter::get()) {
 
-                if (dummy) {
-                    this->id         = UINT64_MAX;
-                    this->generation = UINT64_MAX;
-                } else {
-                    pthread_mutex_lock(&mutex);
-                    this->id = idCounter++;
-                    pthread_mutex_unlock(&mutex);
+                pthread_mutex_lock(&mutex);
+                this->id = idCounter++;
+                pthread_mutex_unlock(&mutex);
 
-                    assert(id != UINT64_MAX);
-                    assert(generation <= GenerationCounter::get());
-                }
+                assert(id != UINT64_MAX);
+                assert(generation <= GenerationCounter::get());
             }
-
-            /* returns whether this is a dummy gene */
-            bool isDummy() const { return id == UINT64_MAX; }
 
             /* returns the xRaster of this */
-            uint64_t getID() const { 
-                assert(!isDummy());
-                return id; 
-            }
+            uint64_t getID() const { return id; }
 
             /* returns the generation number this was invented or mutated */
             uint64_t getGeneration() const { 
-                assert(!isDummy());
                 assert(generation <= GenerationCounter::get());
                 return generation; 
             }
@@ -95,14 +83,14 @@ namespace NEAT {
         public:
 
             /* returns the type of this */
-            NeuronType getType() const { assert(!isDummy()); return type; }
+            NeuronType getType() const { return type; }
 
             /* returns the layer if of this */
-            uint64_t getLayerID() const { assert(!isDummy()); return layerID; }
+            uint64_t getLayerID() const { return layerID; }
 
             /* creats a new NeuronGeneID */
             NeuronGene(const NeuronType type, const uint64_t layerID) : 
-                       Gene(false), type(type), layerID(layerID) { 
+                       type(type), layerID(layerID) { 
 
                 assert(type == NeuronType::INPUT  || 
                        type == NeuronType::OUTPUT ||
@@ -116,8 +104,7 @@ namespace NEAT {
             NeuronGene(
                 const NeuronGene &gene1, 
                 const NeuronGene &gene2
-            ) : Gene(false),
-                type(NeuronType::HIDDEN),
+            ) : type(NeuronType::HIDDEN),
                 layerID(middle(gene1.layerID, gene2.layerID)) {
 
                 assert(canBeInserted(gene1, gene2));
@@ -125,15 +112,11 @@ namespace NEAT {
 
             /* compare operator */
             bool operator == (const NeuronGene &other) const {
-                assert(!isDummy() && !other.isDummy());
                 assert((getID() == other.getID() && layerID == other.layerID) ||
                        getID() != other.getID());
 
                 return getID() == other.getID();
             }
-
-            /* generate a dummy placeholder gene */
-            NeuronGene() : type(NeuronType::HIDDEN), layerID(UINT64_MAX) { }
     };
 
     /**
@@ -160,75 +143,64 @@ namespace NEAT {
 
         public: 
 
-            /* generate a dummy placeholder gene */
-            ConnectionGene() : weight(0), enabled(false) { }
-
             /* creats a new Gene with two given neuron ids */
             ConnectionGene(const NeuronGene inputNeuron, 
                            const NeuronGene outputNeuron,
                            double weight = rand_range_d64(rand, weightRange[0], weightRange[1])) : 
-                           Gene(false),
                            inputNeuron(inputNeuron),
                            outputNeuron(outputNeuron),
                            weight(weight),
                            enabled(true) { }
 
             /* returns the inputNeuron of this */
-            NeuronGene getInput() const { assert(!isDummy()); return inputNeuron; }
+            NeuronGene getInput() const { return inputNeuron; }
 
             /* returns the outputNeuron of this */
-            NeuronGene getOutput() const { assert(!isDummy()); return outputNeuron; }
+            NeuronGene getOutput() const { return outputNeuron; }
             
             /* returns the weight of this */
-            double getWeight() const { assert(!isDummy()); return weight; }
+            double getWeight() const { return weight; }
 
             /* set the weight */
             void setWeight(const double weight) {
-                assert(!isDummy());
                 generation   = GenerationCounter::get();
                 this->weight = weight;
             }
 
             /* disables this gene */
             void disable() { 
-                assert(!isDummy() && enabled); 
                 enabled    = false; 
                 generation = GenerationCounter::get();
             }
 
             /* returns if this is enabled */
-            bool isEnabled() const { assert(!isDummy()); return enabled; }
+            bool isEnabled() const { return enabled; }
 
             /* resets the waight of this to a random value */
             void mutate() { 
-                assert(!isDummy()); 
                 weight = rand_range_d64(rand, weightRange[0], weightRange[1]); 
                 generation = GenerationCounter::get();
             }
 
             /* uniformly perturbe the weight of this */
             void mutate(vector<double> weightRange) {
-                assert(!isDummy()); 
                 weight += rand_range_d64(rand, weightRange[0], weightRange[1]); 
                 generation = GenerationCounter::get();
             }
 
             /* compares to genes based on their 2D location */
             bool operator == (const ConnectionGene &other) const {
-                assert(!isDummy() && !other.isDummy());
                 return inputNeuron  == other.inputNeuron && 
                        outputNeuron == other.outputNeuron;
             }
 
             /* returns thrue if the NeuronGene can be splitted */
             bool canBeSplitted() const {
-                assert(!isDummy());
                 return NeuronGene::canBeInserted(inputNeuron, outputNeuron);
             }
 
             /* returns a new NeuronGene spliting this */
             NeuronGene split() const {
-                assert(!isDummy());
                 return NeuronGene(inputNeuron, outputNeuron);
             }
     };

@@ -49,9 +49,6 @@ namespace NEAT {
             /* constructor */
             NeuronGeneConnections(const NeuronGene &gene) : gene(gene) { }
 
-            /* generate a dummy placeholder gene */
-            NeuronGeneConnections() { }
-
     };
 
     class GeneHistory {

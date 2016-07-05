@@ -10,7 +10,6 @@ pthread_mutex_t Gene::mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /* returns wether a new node can be created between the two given nodes */
 bool NeuronGene::canBeInserted(const NeuronGene &gene1, const NeuronGene &gene2) {
-    assert(!gene1.isDummy() && !gene2.isDummy());
 
     /* alow insertion in the same layer and also
      * between the same layers if ley are more then one id apart */

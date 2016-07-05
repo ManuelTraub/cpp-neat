@@ -147,19 +147,19 @@ TEST(basic2DTest) {
     ASSERT_EQUAL(neurons1.size(), 5, "more than 5 neurons");
     ASSERT_EQUAL(neurons2.size(), 5, "more than 5 neurons");
 
-    NeuronGene hidden1, hidden2;
+    const NeuronGene *hidden1, *hidden2;
 
     for (const auto &e : neurons1)
         if (e.second.getType() == NeuronType::HIDDEN)
-            hidden1 = e.second;
+            hidden1 = &e.second;
 
     for (const auto &e : neurons2)
         if (e.second.getType() == NeuronType::HIDDEN)
-            hidden2 = e.second;
+            hidden2 = &e.second;
 
-    ASSERT_TRUE(hidden1.getID() != hidden2.getID(),
+    ASSERT_TRUE(hidden1->getID() != hidden2->getID(),
                 "Historical ids shouldn't be equal: %lu == %lu",
-                hidden1.getID(), hidden2.getID());
+                hidden1->getID(), hidden2->getID());
 
 
     return args;
@@ -302,13 +302,13 @@ TEST_N(basicMutationTest, 1000) {
                  genotype.getConnections().size());
 
     uint64_t key  = genotype.getConnections().begin()->first;
-    double weight = genotype.getConnections()[key].getWeight();
+    double weight = genotype.getConnections().at(key).getWeight();
 
     /* mutate all connections */
     for (unsigned i = 0; i < 1000; i++)
         genotype.mutateConnections(0.5);
 
-    ASSERT_TRUE(weight != genotype.getConnections()[key].getWeight(),
+    ASSERT_TRUE(weight != genotype.getConnections().at(key).getWeight(),
                 "connection should be mutated");
 
     return args;
