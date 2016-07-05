@@ -180,7 +180,7 @@ void Phenotype::saveAsSVG(string fname) {
     Dimensions dimensions(width, height);
     Document doc(fname, Layout(dimensions, Layout::BottomLeft));
 
-    /* store the neurons and store them efficiently in a QuadTree */
+    /* create the neurons and store them efficiently */
     unordered_map<Neuron *, Point> points;
     unordered_map<Neuron *, Color> colorsRecurent;
     unordered_map<Neuron *, Color> colorsBias;

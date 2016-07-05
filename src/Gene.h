@@ -11,7 +11,6 @@
 #include <assert.h>
 #include <vector>
 #include "utils.h"
-#include "QuadTree.h"
 #include "GenerationCounter.h"
 
 using std::vector;

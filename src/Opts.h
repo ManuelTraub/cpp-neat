@@ -5,7 +5,6 @@
 #define __OPTS_H__
 
 #include "Gene.h"
-#include "QuadTree.h"
 #include <vector>
 #include <unordered_map>
 
@@ -13,10 +12,21 @@ using std::vector;
 using std::unordered_map;
 using std::make_pair;
 
+#ifdef __DEBUG__ 
+
+/* adds an option to the Opts class */
+#define addOption(type, name, value) \
+    public  : type _##name = value;  \
+    public  : static type name() { return onlyInstance._##name; }
+
+#else
+
 /* adds an option to the Opts class */
 #define addOption(type, name, value) \
     private : type _##name = value;  \
     public  : static type name() { return onlyInstance._##name; }
+
+#endif /* __DEBUG__ */
 
 namespace NEAT {
     
@@ -98,8 +108,14 @@ namespace NEAT {
              */
             addOption(double, hardMutationPropability, 0.1)
 
+#ifdef __DEBUG__
+            static Opts &getInstance() { return onlyInstance; }
+#endif 
+
     };
 
 }
+
+#undef addOption
 
 #endif /* __OPTS_H__ */

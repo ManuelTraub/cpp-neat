@@ -90,17 +90,26 @@ ConnectionGene GeneHistory::insertConnection(NeuronGene const &input, NeuronGene
     assert(neuronMap.count(input.getID())  == 1);
     assert(neuronMap.count(output.getID()) == 1);
 
-    if (connectionsTree.contains(input.getID(), output.getID()))
-        return connectionsTree(input.getID(), output.getID());
+    /* to map the input and output id to an single number 
+     * they both need to be smaler than 2^32 */
+    assert(input.getID() < UINT32_MAX && output.getID() < UINT32_MAX);
 
-    connectionsTree(input.getID(), output.getID()) = ConnectionGene(input, output);
-    return connectionsTree(input.getID(), output.getID());
+    /* convert the input and output id to a unique uint64_t value */
+    uint64_t geneID = input.getID() | (output.getID() << 32);
+
+    /* only insert a new ConnectionGene if there isn't allready one 
+     * with the same input and output id
+     */
+    if (!connectionsMap.count(geneID))
+        connectionsMap.insert({geneID, ConnectionGene(input, output)});
+
+    return connectionsMap.at(geneID);
 }
 
 /* clears all stored genes */
 void GeneHistory::clear() {
     neuronMap.clear();
-    connectionsTree.clear();
+    connectionsMap.clear();
     inputs.clear();
     outputs.clear();
     bias.clear();

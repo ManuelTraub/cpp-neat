@@ -13,6 +13,10 @@ GeneHistory &Genotype::history = GeneHistory::getInstance();
 /* mutate this by inserting a new hidden neuron */
 bool Genotype::mutateInsertNeuron() {
 
+    /* stop if there are no connections */
+    if (connections.empty())
+        return false;
+
     auto random_it = std::next(std::begin(connections), rand64(rand) % connections.size());
     ConnectionGene &mutatingGene = random_it->second;
 

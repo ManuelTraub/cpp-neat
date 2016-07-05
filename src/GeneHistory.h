@@ -6,7 +6,6 @@
 #define __GENE_HISTORY_H__
 
 #include "Gene.h"
-#include "QuadTree.h"
 #include <vector>
 #include <unordered_map>
 
@@ -75,7 +74,7 @@ namespace NEAT {
             unordered_map<uint64_t, NeuronGeneConnections> neuronMap;
             
             /* the Global ConnectionGenes of this */
-            QuadTree<ConnectionGene> connectionsTree;
+            unordered_map<uint64_t, ConnectionGene> connectionsMap;
 
             /* the input neurons of this */
             vector<NeuronGene> inputs;

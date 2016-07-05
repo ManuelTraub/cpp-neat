@@ -35,18 +35,25 @@ void Species::calculateOldesGenome() {
 
 /* clalculate the fittness of all Organism */
 void Species::calculateFittness(vector<vector<double>> inputs, vector<vector<double>> outputs) {
+
+    this->averageAdjustedFitness = 0;
     
     for (auto &o : organisms) {
         o->calculateFittness(inputs, outputs, this->size(), this->age(), this->stagnantAge());
 
         /* actualitze the best fitness of this */
-        if (o->getOriginalFitness() < this->bestFittness) {
-            this->bestFittness = o->getOriginalFitness();
+        if (o->getOriginalFitness() < this->bestOriginalFitness) {
+            this->bestOriginalFitness   = o->getOriginalFitness();
             this->lastImproveGeneration = GenerationCounter::get();
         }
+
+        /* actualitze the average adjusted fitness of this */
+        this->averageAdjustedFitness += o->getAdjustedFitness();
     }
 
-    /* sort the organisms by fitness */
+    this->averageAdjustedFitness /= this->size();
+
+    /* sort the organisms by theyr adjusted fitness */
     std::sort(organisms.begin(), organisms.end(), OrganismComparator());
 }
 

@@ -16,10 +16,6 @@ else()
   SET (CMAKE_C_FLAGS                "-Wall -Wextra -g")
 endif()
 
-add_executable(QuadTreeTest 
-               QuadTreeTest 
-               ../src/utils)
-
 add_executable(GenotypeTest 
                GenotypeTest 
                ../src/Opts
@@ -69,7 +65,6 @@ add_executable(SpeciesTest
                ../src/GeneHistory 
                ../src/GenerationCounter)
 
-add_test(NAME QuadTree            COMMAND QuadTreeTest)
 add_test(NAME Genotype            COMMAND GenotypeTest)
 add_test(NAME Phenotype           COMMAND PhenotypeTest)
 add_test(NAME GeneHistory         COMMAND GeneHistoryTest)

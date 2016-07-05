@@ -1,5 +1,6 @@
 #include "../src/utils.h"
 #include "../src/Organism.h"
+#include "../src/Opts.h"
 
 #include <vector>
 #include <memory>
@@ -43,7 +44,41 @@ TEST(basicSortingTest) {
     std::sort(organisms.begin(), organisms.end(), OrganismComparator());
 
     for (unsigned i = 1; i < organisms.size(); i++) {
-        ASSERT_TRUE(organisms[i - 1]->getAdjustedFitness() > organisms[i]->getAdjustedFitness(),
+        ASSERT_TRUE(organisms[i - 1]->getAdjustedFitness() >= organisms[i]->getAdjustedFitness(),
+                    "organisms not sorted: %d:%F < %d:%F",
+                    i - 1,
+                    organisms[i - 1]->getAdjustedFitness(),
+                    i,
+                    organisms[i]->getAdjustedFitness());
+    }
+
+    return args;
+}
+
+TEST(advancedSortingTest) {
+
+    /* speedup mutation for testing */
+    Opts::getInstance()._addNeuronMutationPropability = 0.3;
+    Opts::getInstance()._addConnectionMutationPropability = 0.5;
+
+    /* training data */
+    vector<vector<double>> trainingInputs  = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
+    vector<vector<double>> trainingOutputs = {{0}, {0}, {0}, {1}};
+    
+    vector<shared_ptr<Organism>> organisms;
+    organisms.push_back(make_shared<Organism>(2, 1));
+    organisms.back()->calculateFittness(trainingInputs, trainingOutputs, 10, 15, 2);
+
+
+    for (unsigned i = 0; i < 1000; i++) {
+        organisms.push_back(make_shared<Organism>(*organisms.back()));
+        organisms.back()->calculateFittness(trainingInputs, trainingOutputs, 10, 15, 2);
+    }
+
+    std::sort(organisms.begin(), organisms.end(), OrganismComparator());
+
+    for (unsigned i = 1; i < organisms.size(); i++) {
+        ASSERT_TRUE(organisms[i - 1]->getAdjustedFitness() >= organisms[i]->getAdjustedFitness(),
                     "organisms not sorted: %d:%F < %d:%F",
                     i - 1,
                     organisms[i - 1]->getAdjustedFitness(),

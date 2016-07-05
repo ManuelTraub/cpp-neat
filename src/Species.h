@@ -28,7 +28,10 @@ namespace NEAT {
             vector<shared_ptr<Organism>> organisms;
 
             /* the best fittnes of this */
-            double bestFittness;
+            double bestOriginalFitness;
+
+            /* the average adjusted fitness of this species */
+            double averageAdjustedFitness;
 
             /* the generation this was born */
             uint64_t birthGeneration;
@@ -45,7 +48,8 @@ namespace NEAT {
         public:
             
             /* creats a new species */
-            Species() : bestFittness(std::nan("Species")), 
+            Species() : bestOriginalFitness(std::nan("Species")), 
+                        averageAdjustedFitness(std::nan("Species")),
                         birthGeneration(GenerationCounter::get()),
                         lastImproveGeneration(GenerationCounter::get()) { }
 
@@ -86,17 +90,14 @@ namespace NEAT {
                 return GenerationCounter::get() - lastImproveGeneration; 
             }
 
-            /* compares this with other based on the best fitness of this */
-            bool operator < (const Species &other) const {
-                return bestFittness < other.bestFittness;
-            }
-
             /* returns the Organisms of this */
             vector<shared_ptr<Organism>> getOrganisms() const { return organisms; }
 
+            /* returns the averageAdjustedFitness of this */
+            double getAverageAdjustedFitness() const { return averageAdjustedFitness; }
+
 #ifdef __DEBUG__ 
-            void setBestFitness(double fitness) { bestFittness = fitness; }
-            double getBestFitness() const { return bestFittness; }
+            void setAverageAdjustedFitness(double fitness) { averageAdjustedFitness = fitness; }
 #endif
 
     };
@@ -106,7 +107,7 @@ namespace NEAT {
             bool operator () (const shared_ptr<Species> &a,
                               const shared_ptr<Species> &b) const {
 
-                return *a < *b;
+                return a->getAverageAdjustedFitness() > b->getAverageAdjustedFitness();
             }
     };
 }

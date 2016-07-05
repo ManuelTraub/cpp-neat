@@ -36,18 +36,19 @@ TEST(basicSortingTest) {
 
     for (unsigned i = 0; i < 1000; i++) {
         species.push_back(make_shared<Species>());
-        species.back()->setBestFitness(rand_range_d64(args, 0, 100));
+        species.back()->setAverageAdjustedFitness(rand_range_d64(args, 0, 100));
     }
 
     std::sort(species.begin(), species.end(), SpeciesComparator());
 
     for (unsigned i = 1; i < species.size(); i++) {
-        ASSERT_TRUE(species[i - 1]->getBestFitness() < species[i]->getBestFitness(),
-                    "species not sorted: %d:%F < %d:%F",
+        ASSERT_TRUE(species[i - 1]->getAverageAdjustedFitness() >=
+                    species[i]->getAverageAdjustedFitness(),
+                    "species not sorted: %d:%F > %d:%F",
                     i - 1,
-                    species[i - 1]->getBestFitness(),
+                    species[i - 1]->getAverageAdjustedFitness(),
                     i,
-                    species[i]->getBestFitness());
+                    species[i]->getAverageAdjustedFitness());
     }
 
     return args;
