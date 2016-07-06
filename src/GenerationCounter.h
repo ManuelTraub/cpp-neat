@@ -7,8 +7,13 @@
 #include <inttypes.h>
 
 namespace NEAT {
+
+    /* forward declaration */
+    class Population;
     
     class GenerationCounter {
+
+        friend class Population;
 
         private:
 

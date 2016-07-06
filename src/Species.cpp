@@ -72,10 +72,13 @@ vector<unsigned> Species::chooseOrganisms(unsigned nOffsprings) {
         maxPropability += propability[i]; 
     }
 
+    for (unsigned i = 1; i < propability.size(); i++)
+        propability[i] += propability[i - 1];
+
     for (unsigned i = 0; i < nOffsprings; i++) {
         const double randValue = rand_range_d64(rand, 0.0, maxPropability);
         for (unsigned o = 0; o < organisms.size(); o++) {
-            if (propability[o] < randValue) {
+            if (propability[o] > randValue) {
                 choosen[i] = o;           
             }
         }
@@ -85,7 +88,6 @@ vector<unsigned> Species::chooseOrganisms(unsigned nOffsprings) {
 }
 
 /* creates a new offspring from the Organism with the given index */
-// TODO add structural mutations
 shared_ptr<Organism> Species::createOffspring(unsigned index) {
     
     if (rand_range_d64(rand, 0, 1) < Opts::mutationOnlyPropability() || this->size() == 1) {

@@ -11,8 +11,23 @@ using namespace NEAT;
 /* global random value */
 rand64_t *Population::rand = new_rand64_t(time(NULL));
 
-/* increase the genaration counter and sort all genomes by theyr fitness */
-void Population::calcNextGeneration() {
+/* create a new Population */
+Population::Population(vector<vector<double>> inputs, vector<vector<double>> outputs) {
+    this->inputs  = inputs;
+    this->outputs = outputs;
+
+    this->species.push_back(make_shared<Species>());
+
+    for (unsigned i = 0; i < Opts::populationSize(); i++)
+        this->species.back()->add(make_shared<Organism>(inputs[0].size(), outputs[0].size()));
+
+    this->species.back()->calculateOldesGenome();
+}
+
+/* sorts the Organisms and species as removing the deaths 
+ * returns the organisms left for reproduction
+ */
+vector<shared_ptr<Organism>> Population::prepareGenerationChange() {
 
     vector<shared_ptr<Organism>> organisms;
 
@@ -49,9 +64,52 @@ void Population::calcNextGeneration() {
     /* sort species by their best fitness */
     std::sort(this->species.begin(), this->species.end(), SpeciesComparator());
     
-    /* calculate the interspecies offsprings 
-     * (add one offsprings more based on the propability given from the decimal part )
+    return organisms;
+}
+
+/* calculate the ofsprings per species */
+vector<unsigned> Population::calculateOffspringsPerSpecies(unsigned nOffsprings) {
+    
+    /* create a vector of propability distribution for each fittness */
+    vector<double> propabilityDistribution;
+    double overallAverageFitness = 0;
+
+    for (const auto &s : this->species) {
+        propabilityDistribution.push_back(s->getAverageAdjustedFitness());
+        overallAverageFitness += propabilityDistribution.back();
+    }
+
+    overallAverageFitness /= this->species.size();
+
+    double propabilitySum = 0;
+    for (auto &p : propabilityDistribution) {
+        p /= overallAverageFitness;
+        propabilitySum += p;
+    }
+
+    for (unsigned i = 1; i < propabilityDistribution.size(); i++)
+        propabilityDistribution[i] += propabilityDistribution[i - 1];
+
+    /* distribute the Organisms of the new generation 
+     * based on the average fitness of each Species
      */
+    vector<unsigned> offspringsPerSpecies(this->species.size(), 0);
+    for (unsigned i = 0; i < nOffsprings; i++) {
+        const double randValue = rand_range_d64(rand, 0.0, propabilitySum);
+        
+        for (unsigned p = 0; p < this->species.size(); i++) {
+            if (propabilityDistribution[p] > randValue) {
+                offspringsPerSpecies[p]++;
+            }
+        }
+    }
+        
+    return offspringsPerSpecies;
+}
+
+/* calculate the interspecies offsprings */
+vector<shared_ptr<Organism>> Population::calculateInterSpeciesOffsprings() {
+
     vector<shared_ptr<Organism>> offsprings;
     unsigned interSpeciesOffsprings = 0;
     if (this->species.size() > 1) {
@@ -70,30 +128,25 @@ void Population::calcNextGeneration() {
         offsprings.push_back(this->species[index1]->createOffspring(*this->species[index2].get()));
     }
 
-    /* calculate the numer of offsprings per species */ // TODO calculate the ofsprings per organism based on the fittness of the Organism!!!
-    double offspringsPerOrganism = (Opts::populationSize() - interSpeciesOffsprings) / 
-                                   organisms.size();
+    return offsprings;
+}
 
-    vector<unsigned> offspringsPerSpecies(this->species.size());
-    unsigned nOffsprings = 0;
-    for (unsigned i = 0; i < this->species.size(); i++) {
+/* increase the genaration counter and sort all genomes by theyr fitness */
+void Population::calcNextGeneration() {
 
-        /* add one offspring more based on the propability if the decimal part */
-        offspringsPerSpecies[i] = this->species[i]->size() * offspringsPerOrganism + 
-                                  rand_range_d64(rand, 0, 1);
+    /* calculate the Organisms for reproduction */
+    vector<shared_ptr<Organism>> organisms = this->prepareGenerationChange();
 
-        nOffsprings += offspringsPerSpecies[i];
-    }
+    /* calculate the interspecies offsprings 
+     * (add one offsprings more based on the propability given from the decimal part )
+     */
+    vector<shared_ptr<Organism>> offsprings = this->calculateInterSpeciesOffsprings();
 
-    /* if we have to much offsprings remove them from the worst species */
-    while (nOffsprings > Opts::populationSize()) {
-        for (unsigned i = this->species.size(); i > 0; i--) {
-            if (offspringsPerSpecies[i - 1] > 1) {
-                offspringsPerSpecies[i - 1]--;
-                nOffsprings--;
-            }
-        }
-    }
+    /* calculate the number of offsprings per species */
+    vector<unsigned> offspringsPerSpecies = this->calculateOffspringsPerSpecies(
+        Opts::populationSize() - offsprings.size()
+    );
+
 
     /* calculate the offsprings per species */
     for (unsigned i = 0; i < offspringsPerSpecies.size(); i++) {
@@ -137,5 +190,6 @@ void Population::calcNextGeneration() {
         s->calculateOldesGenome();
     }
 
-    // TODO increase generation counter here
+    /* increase the generation counter */
+    GenerationCounter::onlyInstance.generation++;
 }

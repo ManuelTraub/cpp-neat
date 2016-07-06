@@ -26,7 +26,21 @@ namespace NEAT {
             /* global random value */
             static rand64_t *rand;
 
+            /* sorts the Organisms and species as removing the deaths 
+             * returns the organisms left for reproduction 
+             */
+            vector<shared_ptr<Organism>> prepareGenerationChange();
+
+            /* calculate the ofsprings per species */
+            vector<unsigned> calculateOffspringsPerSpecies(unsigned nOffsprings);
+
+            /* calculate the interspecies offsprings */
+            vector<shared_ptr<Organism>> calculateInterSpeciesOffsprings();
+
         public:
+
+            /* create a new Population */
+            Population(vector<vector<double>> inputs, vector<vector<double>> outputs);
 
             /* increase the genaration counter and sort all genomes by theyr fitness */
             void calcNextGeneration();
