@@ -255,3 +255,19 @@ shared_ptr<Organism> Population::getBestOrganism() {
 
     return bestOrganism;
 }
+
+/* create all initial connections */
+void Population::createInitialConnections(bool connectBias) {
+
+    vector<shared_ptr<Organism>> organisms;
+
+    for (auto &s : this->species) {
+        s->calculateFittness(inputs, outputs);
+        vector<shared_ptr<Organism>> currentOrganisms = s->getOrganisms();
+        organisms.insert(organisms.end(), currentOrganisms.begin(), currentOrganisms.end());
+    }
+
+    for (auto &o : organisms)
+        o->createInitialConnections(connectBias);
+
+}

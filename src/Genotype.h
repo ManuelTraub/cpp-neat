@@ -62,6 +62,11 @@ namespace NEAT {
             /* returns the genome age of this (GenerationCounter - jungest gene) */
             uint64_t genomeAge() const { return GenerationCounter::get() - generation; }
 
+            /* create the initial connections which 
+             * fully connects the input and output Neurons of this 
+             */
+            void createInitialConnections(bool connectBias = true);
+
 #ifdef __DEBUG__ 
             NeuronGene &addNeuron(const ConnectionGene &gene);
             ConnectionGene &addConnection(const NeuronGene &gene1, const NeuronGene &gene2);

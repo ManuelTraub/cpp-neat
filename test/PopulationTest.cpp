@@ -305,18 +305,19 @@ TEST(basicGenerationChangeSpeedTest) {
 TEST(basicBinaryXORTest) {
 
     Opts::getInstance()._speciesSimilarityThreshold = 0.2;
-    Opts::getInstance()._addNeuronMutationPropability = 0.003;
-    Opts::getInstance()._addConnectionMutationPropability = 0.005;
+    //Opts::getInstance()._addNeuronMutationPropability = 0.003;
+    //Opts::getInstance()._addConnectionMutationPropability = 0.005;
 
     /* training data */
     vector<vector<double>> trainingInputs  = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
     vector<vector<double>> trainingOutputs = {{0}, {1}, {1}, {0}};
 
     Population population(trainingInputs, trainingOutputs);
+    population.createInitialConnections();
 
-    for (unsigned i = 0; i < 1000; i++) {
+    for (unsigned i = 0; i < 500; i++) {
         uint64_t time = gettime_usec();
-        TEST_MSGD("Generation [%d/1000]", i);
+        TEST_MSGD("Generation [%d/500]", i);
 
         /* calculate the Organisms for reproduction */
         vector<shared_ptr<Organism>> lastGeneration = population.prepareGenerationChange();
@@ -405,6 +406,46 @@ TEST(basicBinaryXORTest) {
     ASSERT_TRUE(phenotype.run({0,1})[0] > 0.5, "XOR(0,1) = 1: %F", phenotype.run({0,1})[0]);
     ASSERT_TRUE(phenotype.run({1,0})[0] > 0.5, "XOR(1,0) = 1: %F", phenotype.run({1,0})[0]);
     ASSERT_TRUE(phenotype.run({1,1})[0] < 0.5, "XOR(1,1) = 0: %F", phenotype.run({1,1})[0]);
+
+    return args;
+}
+
+TEST_N(speciesOffspringDistributionTest, 10) {
+    SKIP_TEST("esel");
+
+    /* training data */
+    vector<vector<double>> trainingInputs  = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
+    vector<vector<double>> trainingOutputs = {{0}, {1}, {1}, {0}};
+
+    Population population(trainingInputs, trainingOutputs);
+    vector<shared_ptr<Species>> &species = population.getSpecies();
+
+    species.push_back(make_shared<Species>());
+    species.push_back(make_shared<Species>());
+    
+    species[0]->setAverageAdjustedFitness(0.1);
+    species[1]->setAverageAdjustedFitness(0.6);
+    species[2]->setAverageAdjustedFitness(0.3);
+
+    double choosen[3] = { 0, 0, 0 };
+    vector<unsigned> offspringsPerSpecies = population.calculateOffspringsPerSpecies(1000000);
+
+    ASSERT_EQUAL(offspringsPerSpecies.size(), 3, "offsprings for more than 3 species");
+    ASSERT_EQUAL(offspringsPerSpecies[0] + offspringsPerSpecies[1] + offspringsPerSpecies[2],
+                 1000000, "more than 100000 offsprings");
+
+
+    choosen[0] = ((double) offspringsPerSpecies[0]) / 1000000.0; 
+    choosen[1] = ((double) offspringsPerSpecies[1]) / 1000000.0; 
+    choosen[2] = ((double) offspringsPerSpecies[2]) / 1000000.0; 
+
+    TEST_MSGD("0.1 ~= %F", choosen[0]);
+    TEST_MSGD("0.6 ~= %F", choosen[1]);
+    TEST_MSGD("0.3 ~= %F", choosen[2]);
+    
+    ASSERT_TRUE(absDiff(choosen[0], 0.1) < 0.01);
+    ASSERT_TRUE(absDiff(choosen[1], 0.6) < 0.01);
+    ASSERT_TRUE(absDiff(choosen[2], 0.3) < 0.01);
 
     return args;
 }

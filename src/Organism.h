@@ -106,6 +106,11 @@ namespace NEAT {
             /* returns a copy of the Genome of this */
             Genotype getGenome() const { return genome; }
 
+            /* create all initial connections */
+            void createInitialConnections(bool connectBias = true) {
+                this->genome.createInitialConnections(connectBias);
+            }
+
 #ifdef __DEBUG__
             void setOriginalFitness(double fitness) { originalFitness = fitness; }
             void setAdjustedFitness(double fitness) { adjustedFitness = fitness; }

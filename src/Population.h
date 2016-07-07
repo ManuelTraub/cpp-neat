@@ -69,8 +69,11 @@ namespace NEAT {
             /* returns the best Organism */
             shared_ptr<Organism> getBestOrganism();
 
+            /* create all initial connections */
+            void createInitialConnections(bool connectBias = true);
+
 #ifdef __DEBUG__
-            vector<shared_ptr<Species>> getSpecies() const { return this->species; }
+            vector<shared_ptr<Species>> &getSpecies() { return this->species; }
 #endif 
     };
 }

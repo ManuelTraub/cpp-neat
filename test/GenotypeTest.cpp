@@ -768,3 +768,24 @@ TEST_N(advancedSimilarityTest2, 100) {
 
     return args;
 }
+
+TEST_N(basicInitialConnectionsTest, 100) {
+
+    uint64_t nInputs  = rand_range64(args, 1, 10);
+    uint64_t nOutputs = rand_range64(args, 1, 10);
+    
+    Genotype genotype1(nInputs, nOutputs);
+    Genotype genotype2(nInputs, nOutputs);
+
+    genotype1.createInitialConnections(true);
+    genotype2.createInitialConnections(false);
+
+    ASSERT_TRUE(genotype1.getConnections().size() == (nInputs + 1) * nOutputs);
+    ASSERT_TRUE(genotype2.getConnections().size() == nInputs * nOutputs);
+    
+    genotype2.createInitialConnections(true);
+
+    ASSERT_TRUE(genotype2.getConnections().size() == (nInputs + 1) * nOutputs);
+
+    return args;
+}

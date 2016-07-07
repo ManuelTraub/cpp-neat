@@ -215,8 +215,41 @@ double Genotype::similarity(const Genotype &other) const {
     if (nWeights > 0)
         similarity += Opts::weightMultiplier() * (weightSimilarity / nWeights);
 
+    printf("weightSimilarity: %F\n", weightSimilarity / nWeights);
+
     assert(!std::isnan(similarity));
     return similarity;
+}
+
+/* create the initial connections which 
+ * fully connects the input and output Neurons of this 
+ */
+void Genotype::createInitialConnections(bool connectBias) {
+
+    /* sort the Neurons by input and output connections */
+    vector<NeuronGene> inputs, outputs;
+
+    for (const auto &e : neurons) {
+        if (e.second.getType() == NeuronType::INPUT)
+            inputs.push_back(e.second);
+        else if (e.second.getType() == NeuronType::BIAS && connectBias)
+            inputs.push_back(e.second);
+        else if (e.second.getType() == NeuronType::OUTPUT)
+            outputs.push_back(e.second);
+    }
+
+    for (const auto &i : inputs) {
+        for (const auto &o : outputs) {
+
+            const ConnectionGene connection = history.insertConnection(i, o);
+  
+            if (connections.count(connection.getID()) == 0) 
+                connections.insert({connection.getID(), connection});
+  
+            if (generation < connections.at(connection.getID()).getGeneration())
+                generation = connections.at(connection.getID()).getGeneration();
+        }
+    }
 }
 
 #ifdef __DEBUG__ 
