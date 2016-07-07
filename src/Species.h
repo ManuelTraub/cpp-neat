@@ -100,6 +100,16 @@ namespace NEAT {
             /* returns the averageAdjustedFitness of this */
             double getAverageAdjustedFitness() const { return averageAdjustedFitness; }
 
+            /* removes all individuals from this and resets a values */
+            void reset() {
+                this->organisms.clear();
+                this->oldestGenome           = nullptr;
+                this->bestOriginalFitness    = std::nan("Species");
+                this->averageAdjustedFitness = std::nan("Species");
+                this->birthGeneration        = GenerationCounter::get();
+                this->lastImproveGeneration  = GenerationCounter::get();
+            }
+
 #ifdef __DEBUG__ 
             void setAverageAdjustedFitness(double fitness) { averageAdjustedFitness = fitness; }
 #endif

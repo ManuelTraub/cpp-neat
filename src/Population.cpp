@@ -270,4 +270,9 @@ void Population::createInitialConnections(bool connectBias) {
     for (auto &o : organisms)
         o->createInitialConnections(connectBias);
 
+    for (auto &s : this->species)
+        s->reset();
+
+    this->species.clear();
+    this->sortOffspringsIntoSpecies(organisms);
 }

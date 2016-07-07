@@ -215,8 +215,6 @@ double Genotype::similarity(const Genotype &other) const {
     if (nWeights > 0)
         similarity += Opts::weightMultiplier() * (weightSimilarity / nWeights);
 
-    printf("weightSimilarity: %F\n", weightSimilarity / nWeights);
-
     assert(!std::isnan(similarity));
     return similarity;
 }
@@ -248,6 +246,8 @@ void Genotype::createInitialConnections(bool connectBias) {
   
             if (generation < connections.at(connection.getID()).getGeneration())
                 generation = connections.at(connection.getID()).getGeneration();
+
+            connections.at(connection.getID()).mutate();
         }
     }
 }

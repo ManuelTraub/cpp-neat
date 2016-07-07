@@ -134,7 +134,7 @@ double Phenotype::calculateError(vector<vector<double>> inputs, vector<vector<do
         assert(outputs[k].size() == neuronLayers.back().size());
         
         /* set the input neurons */
-        for (unsigned i = 0; i < inputs[k].size(); i++)
+        for (unsigned i = 0; i < neuronLayers[0].size(); i++)
             this->neuronLayers[0][i]->setValue(inputs[k][i]);
         
         /* calculate the output for each layer (except the input layers)

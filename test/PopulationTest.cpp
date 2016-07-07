@@ -309,15 +309,33 @@ TEST(basicBinaryXORTest) {
     //Opts::getInstance()._addConnectionMutationPropability = 0.005;
 
     /* training data */
-    vector<vector<double>> trainingInputs  = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
-    vector<vector<double>> trainingOutputs = {{0}, {1}, {1}, {0}};
+    vector<vector<double>> trainingInputs;
+    vector<vector<double>> trainingOutputs;
+
+    for (unsigned i = 0; i < 100; i++) {
+        unsigned randValue = rand64(args) % 4;
+        if (randValue == 0) {
+            trainingInputs.push_back({0, 0});
+            trainingOutputs.push_back({0});
+        } else if (randValue == 1) {
+            trainingInputs.push_back({0, 1});
+            trainingOutputs.push_back({1});
+        } else if (randValue == 2) {
+            trainingInputs.push_back({1, 0});
+            trainingOutputs.push_back({1});
+        } else if (randValue == 3) {
+            trainingInputs.push_back({1, 1});
+            trainingOutputs.push_back({0});
+        }
+    }
+
 
     Population population(trainingInputs, trainingOutputs);
     population.createInitialConnections();
 
-    for (unsigned i = 0; i < 500; i++) {
+    for (unsigned i = 0; i < 1500; i++) {
         uint64_t time = gettime_usec();
-        TEST_MSGD("Generation [%d/500]", i);
+        TEST_MSGD("Generation [%d/1500]", i);
 
         /* calculate the Organisms for reproduction */
         vector<shared_ptr<Organism>> lastGeneration = population.prepareGenerationChange();
