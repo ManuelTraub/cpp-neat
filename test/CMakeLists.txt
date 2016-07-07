@@ -65,8 +65,22 @@ add_executable(SpeciesTest
                ../src/GeneHistory 
                ../src/GenerationCounter)
 
+add_executable(PopulationTest
+               PopulationTest
+               ../src/Population
+               ../src/Species
+               ../src/Opts
+               ../src/Organism
+               ../src/utils 
+               ../src/Genotype 
+               ../src/Phenotype 
+               ../src/Gene 
+               ../src/GeneHistory 
+               ../src/GenerationCounter)
+
 add_test(NAME Genotype            COMMAND GenotypeTest)
 add_test(NAME Phenotype           COMMAND PhenotypeTest)
 add_test(NAME GeneHistory         COMMAND GeneHistoryTest)
 add_test(NAME Organism            COMMAND OrganismTest)
 add_test(NAME Species             COMMAND SpeciesTest)
+add_test(NAME Population          COMMAND PhenotypeTest)

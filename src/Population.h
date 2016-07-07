@@ -26,6 +26,10 @@ namespace NEAT {
             /* global random value */
             static rand64_t *rand;
 
+#ifdef __DEBUG__
+        public:
+#endif
+
             /* sorts the Organisms and species as removing the deaths 
              * returns the organisms left for reproduction 
              */
@@ -35,7 +39,21 @@ namespace NEAT {
             vector<unsigned> calculateOffspringsPerSpecies(unsigned nOffsprings);
 
             /* calculate the interspecies offsprings */
-            vector<shared_ptr<Organism>> calculateInterSpeciesOffsprings();
+            vector<shared_ptr<Organism>> createInterSpeciesOffsprings();
+
+            /* clalculates the offsprings for each species 
+             * returns the offsprings which arent similar to the species they came from
+             */
+            vector<shared_ptr<Organism>> 
+            createInSpeciesOffsprings(vector<unsigned> offspringsPerSpecies);
+
+            /* sort the given offsprings into species (create new species if neccesarry) */
+            void sortOffspringsIntoSpecies(vector<shared_ptr<Organism>> offsprings);
+
+            /* finish the generation chane by cleaning up the death individuals 
+             * and increasing the GenerationCounter
+             */
+            void finishGenerationChange(vector<shared_ptr<Organism>> lastGeneration);
 
         public:
 
@@ -44,6 +62,13 @@ namespace NEAT {
 
             /* increase the genaration counter and sort all genomes by theyr fitness */
             void calcNextGeneration();
+
+            /* returns the best Organism */
+            shared_ptr<Organism> getBestOrganism();
+
+#ifdef __DEBUG__
+            vector<shared_ptr<Species>> getSpecies() const { return this->species; }
+#endif 
     };
 }
 

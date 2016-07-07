@@ -76,7 +76,8 @@ TEST(advancedSortingTest) {
         species.push_back(make_shared<Species>());
         unsigned nOrganisms = rand_range64(args, 1, 15);
         for (unsigned n = 0; n < nOrganisms; n++) {
-            organisms.push_back(make_shared<Organism>(*organisms.back()));
+            organisms.push_back(make_shared<Organism>(organisms.back()->clone()));
+            organisms.back()->mutate();
             species.back()->add(organisms.back());
         }
         species.back()->calculateFittness(trainingInputs, trainingOutputs);
@@ -129,7 +130,8 @@ TEST(offspringTest) {
         species.push_back(make_shared<Species>());
         unsigned nOrganisms = rand_range64(args, 1, 15);
         for (unsigned n = 0; n < nOrganisms; n++) {
-            organisms.push_back(make_shared<Organism>(*organisms.back()));
+            organisms.push_back(make_shared<Organism>(organisms.back()->clone()));
+            organisms.back()->mutate();
             species.back()->add(organisms.back());
         }
         species.back()->calculateFittness(trainingInputs, trainingOutputs);

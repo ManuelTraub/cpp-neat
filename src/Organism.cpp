@@ -17,7 +17,7 @@ void Organism::calculateFittness(vector<vector<double>> inputs,
     /* calculate the original fitness of this */
     if (std::isnan(originalFitness)) {
         Phenotype phenotype(genome);
-        this->originalFitness = phenotype.calculateError(inputs, outputs);
+        this->originalFitness = 1.0 / phenotype.calculateError(inputs, outputs);
     }
 
     /* adjust fitness according to the size of the Species */
@@ -36,6 +36,9 @@ void Organism::calculateFittness(vector<vector<double>> inputs,
 
 /* mutates this */
 void Organism::mutate() {
+
+    this->originalFitness = std::nan("Organism");
+    this->adjustedFitness = std::nan("Organism");
     
     if (rand_range_d64(rand, 0, 1) < Opts::addNeuronMutationPropability())
         this->genome.mutateInsertNeuron();

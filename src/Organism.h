@@ -32,9 +32,6 @@ namespace NEAT {
             /* indicates that this Organism is alive */
             bool alive;
 
-            /* mutates this */
-            void mutate();
-
         public:
 
             /* create a new Organism for the given number of input and output neurons */
@@ -44,14 +41,14 @@ namespace NEAT {
                 adjustedFitness(std::nan("Organism")), 
                 alive(true) { }
 
-            /* creating a new Organism by mutating the given Organism */
-            Organism(const Organism &parent) :
-                genome(parent.genome),
-                originalFitness(std::nan("Organism")), 
-                adjustedFitness(std::nan("Organism")), 
-                alive(true) {
-                
-                this->mutate();
+            /* creating a new Organism by cloning this */
+            Organism clone() {
+                Organism newClone = *this;
+                newClone.originalFitness = std::nan("Organism"); 
+                newClone.adjustedFitness = std::nan("Organism"); 
+                newClone.alive = true;
+
+                return newClone;
             }
 
             /* creat a new Organism mixing the genes of the two given Organisms */
@@ -88,6 +85,9 @@ namespace NEAT {
                 assert(!std::isnan(adjustedFitness));
                 return adjustedFitness; 
             }
+
+            /* mutates this */
+            void mutate();
 
             /* returns whether this Organism is alive */
             bool isAlive() const { return alive; }

@@ -71,7 +71,8 @@ TEST(advancedSortingTest) {
 
 
     for (unsigned i = 0; i < 1000; i++) {
-        organisms.push_back(make_shared<Organism>(*organisms.back()));
+        organisms.push_back(make_shared<Organism>(organisms.back()->clone()));
+        organisms.back()->mutate();
         organisms.back()->calculateFittness(trainingInputs, trainingOutputs, 10, 15, 2);
     }
 

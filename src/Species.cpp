@@ -28,7 +28,7 @@ void Species::calculateOldesGenome() {
 
     /* recalculate the oldest Organism */
     for (const auto &o : organisms) 
-        if (oldestGenome->genomeAge() < o->getGenome().genomeAge()) 
+        if (oldestGenome == nullptr || oldestGenome->genomeAge() < o->getGenome().genomeAge()) 
             oldestGenome = make_shared<Genotype>(o->getGenome());
 }
 
@@ -80,6 +80,7 @@ vector<unsigned> Species::chooseOrganisms(unsigned nOffsprings) {
         for (unsigned o = 0; o < organisms.size(); o++) {
             if (propability[o] > randValue) {
                 choosen[i] = o;           
+                break;
             }
         }
     }
@@ -93,7 +94,9 @@ shared_ptr<Organism> Species::createOffspring(unsigned index) {
     if (rand_range_d64(rand, 0, 1) < Opts::mutationOnlyPropability() || this->size() == 1) {
 
         /* create new Organism and mutate its Genome */
-       return make_shared<Organism>(*this->organisms[index]);
+       shared_ptr<Organism> offspring = make_shared<Organism>(this->organisms[index]->clone());
+       offspring->mutate();
+       return offspring;
         
     } else {
         

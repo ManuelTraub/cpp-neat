@@ -73,7 +73,7 @@ namespace NEAT {
             addOption(double, recombinationGeneDisablePropability, 0.75)
 
             /* the survival rate of the population during generation change */
-            addOption(double, survivalRate, 0.5)
+            addOption(double, survivalRate, 0.45)
 
             /* propability of interspecies mating */
             addOption(double, interSpeciesMatingPropability, 0.001)

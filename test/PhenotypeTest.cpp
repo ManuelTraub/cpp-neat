@@ -10,6 +10,17 @@ using namespace NEAT;
 #define test_t rand64_t
 #include "TestSuite.h"
 
+/* returns the current milliseconds time */
+uint64_t gettime_usec() {
+
+  struct timeval time;
+  if (gettimeofday(&time, NULL) == -1)
+    return ((uint64_t) -1);
+
+    return ((uint64_t) time.tv_sec) * ((uint64_t) 1000000) + 
+           ((uint64_t) time.tv_usec);
+}
+
 
 BEVOR_ALL() {
     return new_rand64_t(time(NULL));
@@ -188,6 +199,25 @@ TEST_N(advancedBinaryANDTest, 1000) {
     TEST_MSGD("Input Connection 1: %F", weight1);
     TEST_MSGD("Input Connection 2: %F", weight2);
     TEST_MSGD("Bias Connection:    %F", weight3);
+
+    return args;
+}
+
+TEST(phenotypeGenerationSpeedTest) {
+
+    Genotype genotype(10, 10);
+
+    for (unsigned i = 0; i < 100; i++)
+        genotype.mutateInsertNeuron();
+
+    for (unsigned i = 0; i < 1000; i++)
+        genotype.mutateInsertConnection();
+    
+    uint64_t time = gettime_usec();
+    for (unsigned i = 0; i < 1000; i++)
+        Phenotype phenotype(genotype);
+
+    TEST_MSGD("Phenotype generation time: %.10F", ((double) (gettime_usec() - time)) / 1000000.0);
 
     return args;
 }
