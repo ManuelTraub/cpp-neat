@@ -1,5 +1,6 @@
 #include "../src/utils.h"
 #include "../src/Genotype.h"
+#include "../src/Opts.h"
 
 #include <vector>
 
@@ -611,6 +612,159 @@ TEST(basicAgeingTest) {
     genotype2.addConnection(inputs2[1], outputs2[0]);
     ASSERT_EQUAL(genotype1.genomeAge(), 2);
     ASSERT_EQUAL(genotype2.genomeAge(), 0);
+
+    return args;
+}
+
+TEST_N(advancedSimilarityTest, 10) {
+
+    uint64_t nInputs  = rand_range64(args, 1, 10);
+    uint64_t nOutputs = rand_range64(args, 1, 10);
+    
+    Genotype genotype1(nInputs, nOutputs);
+    Genotype genotype2(nInputs, nOutputs);
+
+    /* randomly create connections and Neurons */
+    for (unsigned i = 0; i < 10000; i++) {
+        if (rand64(args) % 10 == 0)
+            genotype1.mutateInsertNeuron();
+        else
+            genotype1.mutateInsertConnection();
+
+        if (rand64(args) % 10 == 0)
+            genotype2.mutateInsertNeuron();
+        else
+            genotype2.mutateInsertConnection();
+    }
+
+    unordered_map<uint64_t, ConnectionGene> connections1 = genotype1.getConnections();
+    unordered_map<uint64_t, ConnectionGene> connections2 = genotype2.getConnections();
+
+    for (const auto &e : connections1) {
+        if (connections2.count(e.first)) {
+            ASSERT_EQUAL(connections1.at(e.first).getInput().getID(),
+                         connections2.at(e.first).getInput().getID(),
+                         "similarity shoudl be zero");
+            ASSERT_EQUAL(connections1.at(e.first).getOutput().getID(),
+                         connections2.at(e.first).getOutput().getID(),
+                         "similarity shoudl be zero");
+        }
+    }
+
+    return args;
+}
+
+TEST_N(advancedSimilarityTest2, 100) {
+
+    uint64_t nInputs  = rand_range64(args, 1, 10);
+    uint64_t nOutputs = rand_range64(args, 1, 10);
+    
+    /* recurent connection on each output
+     * from each input + bias a connection to each output
+     * a connection from each output to al other outputs
+     */
+    uint64_t nConnections = nOutputs + (nInputs + 1) * nOutputs + nOutputs * (nOutputs - 1);
+    
+    Genotype genotype1(nInputs, nOutputs);
+    Genotype genotype2(nInputs, nOutputs);
+
+    /* create all posible connections */
+    for (unsigned i = 0; i < nConnections * 100; i++) {
+        genotype1.mutateInsertConnection();
+        genotype2.mutateInsertConnection();
+    }
+
+    ASSERT_EQUAL(genotype1.getConnections().size(), 
+                 nConnections,
+                 "more than %lu connections: %lu",
+                 nConnections,
+                 genotype1.getConnections().size());
+    
+    ASSERT_EQUAL(genotype2.getConnections().size(), 
+                 nConnections,
+                 "more than %lu connections: %lu",
+                 nConnections,
+                 genotype2.getConnections().size());
+
+    unordered_map<uint64_t, NeuronGene> neurons1 = genotype1.getNeurons();
+    unordered_map<uint64_t, NeuronGene> neurons2 = genotype2.getNeurons();
+    unordered_map<uint64_t, ConnectionGene> connections1 = genotype1.getConnections();
+    unordered_map<uint64_t, ConnectionGene> connections2 = genotype2.getConnections();
+
+    /* neurons of both genotypes should be the same */
+    ASSERT_EQUAL(neurons1.size(), neurons2.size(), "not the same number of neurons");
+    for (const auto &e : neurons1)
+        ASSERT_EQUAL(neurons2.count(e.second.getID()), 1, "neuron not found");
+
+    /* all connections sould be equal */
+    ASSERT_EQUAL(connections1.size(), connections2.size(), "not the same number of connections");
+    for (const auto &e : connections1)
+        ASSERT_EQUAL(connections2.count(e.second.getID()), 1, "connection not found");
+
+    vector<ConnectionGene> vConnections;
+    for (const auto &e : connections1)
+        vConnections.push_back(e.second);
+
+    /* find a connection between a input and a output neuron */
+    uint64_t randIndex = rand64(args) % vConnections.size();
+    while (vConnections[randIndex].getInput().getType()  != NeuronType::INPUT ||
+          vConnections[randIndex].getOutput().getType() != NeuronType::OUTPUT) {
+
+        randIndex = rand64(args) % vConnections.size();
+    }
+
+    /* add a new neuron */
+    genotype1.addNeuron(vConnections[randIndex]);
+    genotype2.addNeuron(vConnections[randIndex]);
+
+    /* recalculate the number of possible connections: 
+     * 1 recurent connection
+     * 1 Bias connection
+     * a connection from each input
+     * a connection to and from each output
+     */
+    nConnections += 1 + 1 + nInputs + 2 * nOutputs;
+
+    /* create all posible connections */
+    for (unsigned i = 0; i < nConnections * 100; i++) {
+        genotype1.mutateInsertConnection();
+        genotype2.mutateInsertConnection();
+    }
+
+    ASSERT_EQUAL(genotype1.getConnections().size(), 
+                 nConnections,
+                 "more than %lu connections: %lu",
+                 nConnections,
+                 genotype1.getConnections().size());
+    
+    ASSERT_EQUAL(genotype2.getConnections().size(), 
+                 nConnections,
+                 "more than %lu connections: %lu",
+                 nConnections,
+                 genotype2.getConnections().size());
+
+    neurons1 = genotype1.getNeurons();
+    neurons2 = genotype2.getNeurons();
+    connections1 = genotype1.getConnections();
+    connections2 = genotype2.getConnections();
+
+    /* neurons of both genotypes should be the same */
+    ASSERT_EQUAL(neurons1.size(), neurons2.size(), "not the same number of neurons");
+    for (const auto &e : neurons1)
+        ASSERT_EQUAL(neurons2.count(e.second.getID()), 1, "neuron not found");
+
+    /* all connections sould be equal */
+    ASSERT_EQUAL(connections1.size(), connections2.size(), "not the same number of connections");
+    for (const auto &e : connections1)
+        ASSERT_EQUAL(connections2.count(e.second.getID()), 1, "connection not found");
+
+    double weightMultiplier = Opts::getInstance()._weightMultiplier;
+    Opts::getInstance()._weightMultiplier = 0;
+
+    ASSERT_EQUAL(genotype1.similarity(genotype2), 0);
+    ASSERT_EQUAL(genotype2.similarity(genotype1), 0);
+
+    Opts::getInstance()._weightMultiplier = weightMultiplier;
 
     return args;
 }

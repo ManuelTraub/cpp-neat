@@ -46,13 +46,11 @@ void Organism::mutate() {
         boost = Opts::structuralMutationBoost();
 
     if (rand_range_d64(rand, 0, 1) < Opts::addNeuronMutationPropability() * boost) {
-        printf("addNeuron\n");
         if (this->genome.mutateInsertNeuron())
             return;
     } 
     
     if (rand_range_d64(rand, 0, 1) < Opts::addConnectionMutationPropability() * boost) {
-        printf("addConnection\n");
         if (this->genome.mutateInsertConnection())
             return;
     }

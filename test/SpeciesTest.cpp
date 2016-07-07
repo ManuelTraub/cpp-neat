@@ -166,3 +166,38 @@ TEST(offspringTest) {
 
     return args;
 }
+
+TEST(offspringChoosingTest) {
+
+    /* speedup mutation for testing */
+    Species species;
+
+    species.add(make_shared<Organism>(2, 1));
+    species.add(make_shared<Organism>(2, 1));
+    species.add(make_shared<Organism>(2, 1));
+    
+    species.getOrganisms()[0]->setAdjustedFitness(0.1);
+    species.getOrganisms()[1]->setAdjustedFitness(0.6);
+    species.getOrganisms()[2]->setAdjustedFitness(0.3);
+
+    double choosen[3] = { 0, 0, 0 };
+    vector<unsigned> speciesChooses = species.chooseOrganisms(10000);
+
+    for (const auto &c : speciesChooses)
+        choosen[c] += 1;
+
+    choosen[0] /= speciesChooses.size();
+    choosen[2] /= speciesChooses.size();
+    choosen[1] /= speciesChooses.size();
+
+    ASSERT_TRUE(absDiff(choosen[0], 0.1) < 0.01);
+    ASSERT_TRUE(absDiff(choosen[1], 0.6) < 0.01);
+    ASSERT_TRUE(absDiff(choosen[2], 0.3) < 0.01);
+
+    TEST_MSGD("0.1 ~= %F", choosen[0]);
+    TEST_MSGD("0.6 ~= %F", choosen[1]);
+    TEST_MSGD("0.3 ~= %F", choosen[2]);
+
+
+    return args;
+}

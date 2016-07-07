@@ -39,6 +39,10 @@ namespace NEAT {
             /* the generation of the last fittnes improvment of this */
             uint64_t lastImproveGeneration;
 
+#ifdef __DEBUG__
+        public:
+#endif
+
             /* chose a Organisms for reproduction, propability based on the organisms fittnes */
             vector<unsigned> chooseOrganisms(unsigned nOffsprings);
 
