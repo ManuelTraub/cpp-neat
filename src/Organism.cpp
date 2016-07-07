@@ -39,11 +39,24 @@ void Organism::mutate() {
 
     this->originalFitness = std::nan("Organism");
     this->adjustedFitness = std::nan("Organism");
+
+    double boost = 1.0;
+
+    if (GenerationCounter::get() < Opts::structuralMutationThreshold())
+        boost = Opts::structuralMutationBoost();
+
+    if (rand_range_d64(rand, 0, 1) < Opts::addNeuronMutationPropability() * boost) {
+        printf("addNeuron\n");
+        if (this->genome.mutateInsertNeuron())
+            return;
+    } 
     
-    if (rand_range_d64(rand, 0, 1) < Opts::addNeuronMutationPropability())
-        this->genome.mutateInsertNeuron();
-    else if (rand_range_d64(rand, 0, 1) < Opts::addConnectionMutationPropability())
-        this->genome.mutateInsertConnection();
-    else if (rand_range_d64(rand, 0, 1) < Opts::mutateWeightsPropability())
+    if (rand_range_d64(rand, 0, 1) < Opts::addConnectionMutationPropability() * boost) {
+        printf("addConnection\n");
+        if (this->genome.mutateInsertConnection())
+            return;
+    }
+    
+    if (rand_range_d64(rand, 0, 1) < Opts::mutateWeightsPropability())
         this->genome.mutateConnections(Opts::mutateWeightsPercent());
 }

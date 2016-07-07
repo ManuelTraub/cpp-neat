@@ -462,18 +462,18 @@ TEST_N(basicSimilarityTest, 100) {
 
     genotype1.addConnection(inputs1[0], outputs1[1]);
 
-    ASSERT_EQUAL(genotype1.similarity(genotype2), 1, "genotyps should have a similarity of 1");
-    ASSERT_EQUAL(genotype2.similarity(genotype1), 1, "genotyps should have a similarity of 1");
+    ASSERT_EQUAL(genotype1.similarity(genotype2), 1.0/(5*2 + 1));
+    ASSERT_EQUAL(genotype2.similarity(genotype1), 1.0/(5*2 + 1));
 
     genotype2.addConnection(inputs2[1], outputs2[0]);
 
-    ASSERT_EQUAL(genotype1.similarity(genotype2), 2, "genotyps should have a similarity of 2");
-    ASSERT_EQUAL(genotype2.similarity(genotype1), 2, "genotyps should have a similarity of 2");
+    ASSERT_EQUAL(genotype1.similarity(genotype2), 2.0/(5*2 + 2));
+    ASSERT_EQUAL(genotype2.similarity(genotype1), 2.0/(5*2 + 2));
 
     genotype1.addConnection(inputs2[1], outputs2[0]);
 
-    ASSERT_EQUAL(genotype1.similarity(genotype2), 1, "genotyps should have a similarity of 1");
-    ASSERT_EQUAL(genotype2.similarity(genotype1), 1, "genotyps should have a similarity of 1");
+    ASSERT_EQUAL(genotype1.similarity(genotype2), 1.0/(5*2 + 3));
+    ASSERT_EQUAL(genotype2.similarity(genotype1), 1.0/(5*2 + 3));
 
     ConnectionGene &connection = genotype2.addConnection(inputs1[0], outputs1[1]);
 

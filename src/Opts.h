@@ -65,7 +65,7 @@ namespace NEAT {
             addOption(unsigned, fittestSurvivalThreshold, 5)
 
             /* the similarity threshold for Organism to be in the same species */
-            addOption(double, speciesSimilarityThreshold, 3.0)
+            addOption(double, speciesSimilarityThreshold, 0.2)
 
             /* the property for disabeling a connection gene if 
              * eighter one parrent has the gene disabled
@@ -97,7 +97,7 @@ namespace NEAT {
             addOption(double, geneMultiplier, 1.0)
 
             /* avg weight diference multiplier when calculating the similarity */
-            addOption(double, weightMultiplier, 1.0)
+            addOption(double, weightMultiplier, 0.1)
 
             /* the perturbe weight range start and end */
             addOption(double, perturbeWeightRangeStart, -0.5)
@@ -107,6 +107,12 @@ namespace NEAT {
              * a new random value during mutation 
              */
             addOption(double, hardMutationPropability, 0.1)
+
+            /* threshold for boosting structural mutation in the first generations */
+            addOption(unsigned, structuralMutationThreshold, 5);
+
+            /* the boost for structural mutation in the first generations */
+            addOption(double, structuralMutationBoost, 10);
 
 #ifdef __DEBUG__
             static Opts &getInstance() { return onlyInstance; }

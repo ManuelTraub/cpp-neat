@@ -26,6 +26,9 @@ namespace NEAT {
             /* global random value */
             static rand64_t *rand;
 
+            /* rand function for shuffling the training data */
+            static int shuffleRand(int i) { return rand64(rand) % i; }
+
 #ifdef __DEBUG__
         public:
 #endif

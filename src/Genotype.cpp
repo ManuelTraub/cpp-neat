@@ -1,6 +1,7 @@
 #include "Genotype.h"
 #include "Opts.h"
 #include <iterator>
+#include <assert.h>
 
 using namespace NEAT;
 
@@ -187,9 +188,11 @@ Genotype::Genotype(const Genotype &fitter, const Genotype &other) : generation(0
 /* calculates the similarity with this and other */
 double Genotype::similarity(const Genotype &other) const {
     
-    double geneSimilarity = this->neurons.size() + this->connections.size() +
-                            other.neurons.size() + other.connections.size();
+    uint64_t nWeights = 0;
+    uint64_t nGenes   = this->neurons.size() + this->connections.size() +
+                        other.neurons.size() + other.connections.size();
 
+    double geneSimilarity   = nGenes;
     double weightSimilarity = 0.0;
 
     for (const auto &e : neurons)
@@ -201,14 +204,19 @@ double Genotype::similarity(const Genotype &other) const {
             geneSimilarity   -= 2;
             weightSimilarity += absDiff(e.second.getWeight(), 
                                         other.connections.at(e.first).getWeight());
+            nWeights++;
         }
     }
                           
-    // TODO experiment with nominalisation for genome length
-    //      (geneSimilarity + weightSimilarity) / nGenes
-    //      this should put the similarity in realation with Network size
-    //      (in a giant network smal changes are cuses not a big dissimilarity as in a smal network)
-    return Opts::geneMultiplier() * geneSimilarity + Opts::weightMultiplier() * weightSimilarity;
+    double similarity = 0;    
+    if (nGenes > 0)
+        similarity += Opts::geneMultiplier()   * (geneSimilarity   / nGenes);
+
+    if (nWeights > 0)
+        similarity += Opts::weightMultiplier() * (weightSimilarity / nWeights);
+
+    assert(!std::isnan(similarity));
+    return similarity;
 }
 
 #ifdef __DEBUG__ 
