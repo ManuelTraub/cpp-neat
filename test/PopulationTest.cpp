@@ -304,9 +304,12 @@ TEST(basicGenerationChangeSpeedTest) {
 
 TEST(basicBinaryXORTest) {
 
-    Opts::getInstance()._speciesSimilarityThreshold = 0.2;
-    //Opts::getInstance()._addNeuronMutationPropability = 0.003;
-    //Opts::getInstance()._addConnectionMutationPropability = 0.005;
+Opts::getInstance()._speciesSimilarityThreshold = 0.5;
+    Opts::getInstance()._structuralMutationBoost = 1;
+    Opts::getInstance()._perturbeWeightRangeStart = -3;
+    Opts::getInstance()._perturbeWeightRangeEnd = 3;
+    Opts::getInstance()._addNeuronMutationPropability = 0.003;
+    Opts::getInstance()._addConnectionMutationPropability = 0.005;
 
     /* training data */
     vector<vector<double>> trainingInputs;
@@ -394,6 +397,7 @@ TEST(basicBinaryXORTest) {
         /* check the number of Organisms */
         vector<shared_ptr<Organism>> organisms;
         unsigned si = 0;
+        printf("Generation [%d/1500]: ", i);
         for (const auto &s : population.getSpecies()) {
             vector<shared_ptr<Organism>> speciesOrganisms = s->getOrganisms();
             organisms.insert(organisms.end(), speciesOrganisms.begin(), speciesOrganisms.end());
@@ -407,6 +411,15 @@ TEST(basicBinaryXORTest) {
                      Opts::populationSize());
 
         if (gettime_usec() - time > 3000000)
+            break;
+
+        /* check if we have a wining candidate */
+        shared_ptr<Organism> best = population.getBestOrganism();
+        Phenotype phenotype(best->getGenome());
+        if (phenotype.run({0,0})[0] < 0.5 &&
+            phenotype.run({0,1})[0] > 0.5 &&
+            phenotype.run({1,0})[0] > 0.5 &&
+            phenotype.run({1,1})[0] < 0.5)
             break;
     }
 

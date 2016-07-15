@@ -33,6 +33,12 @@ namespace NEAT {
             /* the latest gene generation number */
             uint64_t generation;
 
+            /* recombinate using the weight of similar genes from a random parrent */
+            void recombinateRandomChoose(const Genotype &fitter, const Genotype &other);
+
+            /* recombinate averaging the weights of similar genes */
+            void recombinateAverage(const Genotype &fitter, const Genotype &other);
+
         public:
 
             /* return the neurons of this */

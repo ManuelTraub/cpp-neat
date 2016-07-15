@@ -92,6 +92,11 @@ bool Genotype::mutateInsertConnection() {
         outputNeuron.getType() == NeuronType::BIAS)
         return false;
 
+    /* stop if its a recurent connection and we arent allowet to create one */
+    if (!Opts::allowRecurentConnections() && 
+        outputNeuron.getLayerID() <= inputNeuron.getLayerID())
+        return false;
+
     /* create the new conncetion */
     ConnectionGene connection = history.insertConnection(inputNeuron, outputNeuron);
 
@@ -153,8 +158,8 @@ Genotype::Genotype(const unsigned inputs, const unsigned outputs) :
     }
 }
 
-/* creat a new Genotype mixing the genes of this with other */
-Genotype::Genotype(const Genotype &fitter, const Genotype &other) : generation(0) {
+/* recombinate using the weight of similar genes from a random parrent */
+void Genotype::recombinateRandomChoose(const Genotype &fitter, const Genotype &other) {
 
     this->neurons = fitter.neurons;
     this->connections.reserve(fitter.connections.size());
@@ -174,6 +179,15 @@ Genotype::Genotype(const Genotype &fitter, const Genotype &other) : generation(0
                 this->connections.insert({e.first, other.connections.at(e.first)});
             else
                 this->connections.insert({e.first, fitter.connections.at(e.first)});
+            
+            /* if only one connection is enabled disable a enable connection by the
+             * connectionDisablePropability property 
+             */
+            if ((fitter.connections.at(e.first).isEnabled() ^ 
+                 other.connections.at(e.first).isEnabled()) &&
+                this->connections.at(e.first).isEnabled()   &&
+                rand_range_d64(rand, 0, 1) > Opts::connectionDisablePropability())
+                this->connections.at(e.first).disable();
 
         /* use only missing genes from the fitter individual */
         } else 
@@ -183,7 +197,53 @@ Genotype::Genotype(const Genotype &fitter, const Genotype &other) : generation(0
         if (generation < this->connections.at(e.first).getGeneration())
             generation = this->connections.at(e.first).getGeneration();
     }
-} // TODO undisable connection by 25% if only on parrent has a disabled connection, also check fittnes bevor calling these
+}
+
+/* recombinate averaging the weights of similar genes */
+void Genotype::recombinateAverage(const Genotype &fitter, const Genotype &other) {
+
+    this->neurons     = fitter.neurons;
+    this->connections = fitter.connections;
+
+    /* actualize the generation number */
+    for (const auto &e : this->neurons)
+        if (generation < this->neurons.at(e.first).getGeneration())
+            generation = this->neurons.at(e.first).getGeneration();
+
+    for (const auto &e : fitter.connections) {
+
+        /* if a connection with the same historical id exists in other
+         * average the weith of both
+         */
+        if (other.connections.count(e.first) != 0) {
+            this->connections.at(e.first).setWeight(middle(
+                fitter.connections.at(e.first).getWeight(),
+                other.connections.at(e.first).getWeight()
+            ));
+            
+            /* if only one connection is enabled disable a enable connection by the
+             * connectionDisablePropability property 
+             */
+            if (!other.connections.at(e.first).isEnabled()  &&
+                this->connections.at(e.first).isEnabled()   &&
+                rand_range_d64(rand, 0, 1) > Opts::connectionDisablePropability())
+                this->connections.at(e.first).disable();
+        } 
+
+        /* actualize the generation number */
+        if (generation < this->connections.at(e.first).getGeneration())
+            generation = this->connections.at(e.first).getGeneration();
+    }
+}
+
+/* creat a new Genotype mixing the genes of this with other */
+Genotype::Genotype(const Genotype &fitter, const Genotype &other) : generation(0) {
+
+    if (rand_range_d64(rand, 0, 1) < Opts::avgMatingPropability())
+        this->recombinateAverage(fitter, other);
+    else
+        this->recombinateRandomChoose(fitter, other);
+} 
 
 /* calculates the similarity with this and other */
 double Genotype::similarity(const Genotype &other) const {

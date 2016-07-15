@@ -105,7 +105,13 @@ shared_ptr<Organism> Species::createOffspring(unsigned index) {
         while (index2 == index)
             index2 = rand64(rand) % this->size();
 
-        return make_shared<Organism>(*this->organisms[index], *this->organisms[index2]);
+        shared_ptr<Organism> offspring = make_shared<Organism>(*this->organisms[index], 
+                                                               *this->organisms[index2]);
+
+        if (rand_range_d64(rand, 0, 1) > Opts::mateOnlyPropability())
+            offspring->mutate();
+
+        return offspring;
     }
 }
 
@@ -114,7 +120,7 @@ vector<shared_ptr<Organism>> Species::createOffsprings(unsigned nOffsprings) {
     
     /* let the fittest Organism survive if this species is big enought */
     vector<shared_ptr<Organism>> newGeneration;
-    if (this->size() > Opts::fittestSurvivalThreshold() && nOffsprings > 1) {
+    if (nOffsprings > Opts::fittestSurvivalThreshold()) {
 
         /* copy the fittest Organism */
         newGeneration.push_back(make_shared<Organism>(*this->organisms[0]));
