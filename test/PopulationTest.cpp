@@ -293,8 +293,9 @@ TEST(basicGenerationChangeSpeedTest) {
 }
 
 TEST(basicBinaryXORTest) {
+    SKIP_TEST("esel");
 
-Opts::getInstance()._speciesSimilarityThreshold = 0.5;
+    Opts::getInstance()._speciesSimilarityThreshold = 0.5;
     Opts::getInstance()._structuralMutationBoost = 1;
     Opts::getInstance()._perturbeWeightRangeStart = -3;
     Opts::getInstance()._perturbeWeightRangeEnd = 3;
@@ -467,6 +468,63 @@ TEST_N(speciesOffspringDistributionTest, 10) {
     ASSERT_TRUE(absDiff(choosen[0], 0.1) < 0.01);
     ASSERT_TRUE(absDiff(choosen[1], 0.6) < 0.01);
     ASSERT_TRUE(absDiff(choosen[2], 0.3) < 0.01);
+
+    return args;
+}
+
+TEST(binaryXORSpeedTest) {
+
+    Opts::getInstance()._speciesSimilarityThreshold = 0.5;
+    Opts::getInstance()._structuralMutationBoost = 1;
+    Opts::getInstance()._perturbeWeightRangeStart = -3;
+    Opts::getInstance()._perturbeWeightRangeEnd = 3;
+    //Opts::getInstance()._addNeuronMutationPropability = 0.003;
+    //Opts::getInstance()._addConnectionMutationPropability = 0.005;
+
+    /* training data */
+    vector<vector<double>> trainingInputs  = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
+    vector<vector<double>> trainingOutputs = {{0}, {1}, {1}, {0}};
+
+    vector<unsigned> runs;
+
+    for (unsigned r = 0; r < 100; r++) {
+
+        Population population(trainingInputs, trainingOutputs);
+        population.createInitialConnections();
+
+        double avg = 0;
+        for (const auto &e : runs)
+            avg += e;
+
+        if (runs.size() > 0)
+            avg /= runs.size();
+        else
+            avg = 100;
+
+        for (unsigned i = 0; i < 100; i++) {
+            population.calcNextGeneration();
+
+            printf("\r[%02u/%02u]  =>  %.2F", i, r, avg);
+
+            shared_ptr<Organism> best = population.getBestOrganism();
+            Phenotype phenotype(best->getGenome());
+
+            if (phenotype.run({0,0})[0] < 0.5 &&
+                phenotype.run({0,1})[0] > 0.5 &&
+                phenotype.run({1,0})[0] > 0.5 &&
+                phenotype.run({1,1})[0] < 0.5) {
+                
+                phenotype.saveAsSVG("bestOrganism" + itoa(i) + "g" + itoa(r) + "r.svg");
+                runs.push_back(r);
+                break;
+            }
+        }
+        
+        if (runs.size() == r)
+            runs.push_back(100);
+
+        printf("\n");
+    }
 
     return args;
 }
