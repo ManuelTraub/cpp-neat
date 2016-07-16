@@ -7,7 +7,7 @@ using namespace NEAT;
 using std::make_shared;
 
 /* global random value */
-rand64_t *Species::rand = new_rand64_t(time(NULL));
+rand64_t *Species::rand = new_rand64_t();
 
 /* remove all dead Organisms */
 void Species::removeDeaths() {

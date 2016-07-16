@@ -4,7 +4,19 @@
 #include <string.h>
 #include <string>
 #include <stdlib.h>
+#include <sys/time.h>
 using std::string;
+
+/* returns the current milliseconds time */
+uint64_t gettime_usec() {
+
+  struct timeval time;
+  if (gettimeofday(&time, NULL) == -1)
+    return ((uint64_t) -1);
+
+    return ((uint64_t) time.tv_sec) * ((uint64_t) 1000000) + 
+           ((uint64_t) time.tv_usec);
+}
 
 uint32_t rand32(uint32_t *x) {
     *x ^= *x << 13;
@@ -13,9 +25,11 @@ uint32_t rand32(uint32_t *x) {
     return *x;
 }
 
-rand64_t *new_rand64_t(uint32_t seed) {
+rand64_t *new_rand64_t() {
+    static rand64_t baseRand = gettime_usec();
+
     rand64_t *rand = (rand64_t *) malloc(sizeof(rand64_t));
-    *rand = ((uint64_t) rand32(&seed)) | (((uint64_t) rand32(&seed)) << 32);
+    *rand = rand64(&baseRand);
     return rand;
 }
 

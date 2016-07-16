@@ -6,7 +6,7 @@
 using namespace NEAT;
 
 /* global random value to mutate this */
-rand64_t *Genotype::rand = new_rand64_t(time(NULL));
+rand64_t *Genotype::rand = new_rand64_t();
 
 /* the GeneHistory reference of this */
 GeneHistory &Genotype::history = GeneHistory::getInstance();

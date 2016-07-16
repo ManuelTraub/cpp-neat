@@ -17,7 +17,7 @@ using namespace NEAT;
 #include "TestSuite.h"
 
 BEVOR_ALL() {
-    return new_rand64_t(time(NULL));
+    return new_rand64_t();
 }
 
 AFTER_ALL() {
@@ -32,16 +32,6 @@ AFTER() {
     (void) args;
 }
 
-/* returns the current milliseconds time */
-uint64_t gettime_usec() {
-
-  struct timeval time;
-  if (gettimeofday(&time, NULL) == -1)
-    return ((uint64_t) -1);
-
-    return ((uint64_t) time.tv_sec) * ((uint64_t) 1000000) + 
-           ((uint64_t) time.tv_usec);
-}
 
 TEST(basicOrganismSpeedTest) {
     SKIP_TEST("esel");

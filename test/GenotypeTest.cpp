@@ -13,7 +13,7 @@ using namespace NEAT;
 
 
 BEVOR_ALL() {
-    return new_rand64_t(time(NULL));
+    return new_rand64_t();
 }
 
 AFTER_ALL() {

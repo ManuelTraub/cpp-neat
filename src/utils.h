@@ -8,12 +8,15 @@
 #include <stdlib.h>
 using std::string;
 
+/* returns the current milliseconds time */
+uint64_t gettime_usec();
+
 uint32_t rand32(uint32_t *x);
 
 /* random value */
 typedef uint64_t rand64_t; 
 
-rand64_t *new_rand64_t(uint32_t seed);
+rand64_t *new_rand64_t();
 
 uint64_t rand64(rand64_t *rand);
 

@@ -4,7 +4,7 @@
 using namespace NEAT;
 
 /* global random value */
-rand64_t *Organism::rand = new_rand64_t(time(NULL)); // TODO make random global
+rand64_t *Organism::rand = new_rand64_t(); 
 
 
 /* calculates the fitness of this */

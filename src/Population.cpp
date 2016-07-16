@@ -9,7 +9,7 @@ using std::make_shared;
 using namespace NEAT;
 
 /* global random value */
-rand64_t *Population::rand = new_rand64_t(time(NULL));
+rand64_t *Population::rand = new_rand64_t();
 
 /* create a new Population */
 Population::Population(vector<vector<double>> inputs, vector<vector<double>> outputs) {
