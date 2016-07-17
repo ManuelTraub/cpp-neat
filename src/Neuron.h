@@ -50,10 +50,9 @@ namespace NEAT {
                 for (unsigned i = 0; i < inputs.size(); i++)
                     weightedInputs += weights[i] * inputs[i]->getValue();
 
-                /* calculate output using simloid 
-                 * using tanh as below is a fast aproximation for 1/(1 + e^-2x)
+                /* calculate output using a modified simloid
                  */
-                tempOutputValue = 0.5 * tanh(weightedInputs) + 0.5;
+                tempOutputValue = 1.0/(1.0 + exp(-4.924273 * weightedInputs));
             }
 
             /* applays the output value */

@@ -163,6 +163,7 @@ namespace NEAT {
 
             /* set the weight */
             void setWeight(const double weight) {
+                assert(weight >= -8 && weight <= 8);
                 generation   = GenerationCounter::get();
                 this->weight = weight;
             }
@@ -185,6 +186,8 @@ namespace NEAT {
             /* uniformly perturbe the weight of this */
             void mutate(vector<double> weightRange) {
                 weight += rand_range_d64(rand, weightRange[0], weightRange[1]); 
+                if (weight < -8) weight = -8;
+                if (weight > 8)  weight = 8;
                 generation = GenerationCounter::get();
             }
 

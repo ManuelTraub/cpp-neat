@@ -111,6 +111,9 @@ namespace NEAT {
                 this->genome.createInitialConnections(connectBias);
             }
 
+            /* penalizes the fitnes of this Organism */
+            void penalize();
+
 #ifdef __DEBUG__
             void setOriginalFitness(double fitness) { originalFitness = fitness; }
             void setAdjustedFitness(double fitness) { adjustedFitness = fitness; }

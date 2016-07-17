@@ -20,4 +20,4 @@ bool NeuronGene::canBeInserted(const NeuronGene &gene1, const NeuronGene &gene2)
 rand64_t *ConnectionGene::rand = new_rand64_t();
 
 /* the weight range for initialization and random mutation */
-const double ConnectionGene::weightRange[2] = { -5, 5 };
+const double ConnectionGene::weightRange[2] = { -2.5, 2.5 };

@@ -42,7 +42,7 @@ void Species::calculateFittness(vector<vector<double>> inputs, vector<vector<dou
         o->calculateFittness(inputs, outputs, this->size(), this->age(), this->stagnantAge());
 
         /* actualitze the best fitness of this */
-        if (o->getOriginalFitness() < this->bestOriginalFitness) {
+        if (o->getOriginalFitness() > this->bestOriginalFitness) {
             this->bestOriginalFitness   = o->getOriginalFitness();
             this->lastImproveGeneration = GenerationCounter::get();
         }
@@ -145,4 +145,23 @@ shared_ptr<Organism> Species::createOffspring(Species &other) {
     const unsigned otherIndex = other.chooseOrganisms(1)[0];
 
     return make_shared<Organism>(*this->organisms[thisIndex], *other.organisms[otherIndex]);
+}
+
+/* kills the worst performing Organisms 
+ * (keeps at least one Organism) 
+ */
+void Species::killWorst() {
+    
+    unsigned killStart = this->organisms.size() * Opts::survivalRate() + 1;
+
+    for (unsigned i = killStart; i < this->organisms.size(); i++)
+        organisms[i]->kill();
+
+    organisms.erase(organisms.begin() + killStart, organisms.end());
+}
+
+/* penalize this species */
+void Species::penalize() {
+    for (auto &o : this->organisms)
+        o->penalize();
 }

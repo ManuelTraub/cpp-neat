@@ -55,6 +55,11 @@ namespace NEAT {
             /* threshold after which a stagnant species will get a fittnes penalty */
             addOption(unsigned, stagnantThreshold, 15)
 
+            /* threshold after which all species will get a fittnes penalty 
+             * if the generation is stagnant
+             */
+            addOption(unsigned, generationStagnantThreshold, 20)
+
             /* the penalty for a stagnant species (in percent / 100) */
             addOption(double, stagnantPenalty, 0.01)
 
@@ -65,7 +70,7 @@ namespace NEAT {
             addOption(unsigned, fittestSurvivalThreshold, 5)
 
             /* the similarity threshold for Organism to be in the same species */
-            addOption(double, speciesSimilarityThreshold, 0.2)
+            addOption(double, speciesSimilarityThreshold, 3)
 
             /* the property for disabeling a connection gene if 
              * eighter one parrent has the gene disabled
@@ -73,7 +78,7 @@ namespace NEAT {
             addOption(double, recombinationGeneDisablePropability, 0.75)
 
             /* the survival rate of the population during generation change */
-            addOption(double, survivalRate, 0.45)
+            addOption(double, survivalRate, 0.2)
 
             /* propability of interspecies mating */
             addOption(double, interSpeciesMatingPropability, 0.001)
@@ -97,11 +102,11 @@ namespace NEAT {
             addOption(double, geneMultiplier, 1.0)
 
             /* avg weight diference multiplier when calculating the similarity */
-            addOption(double, weightMultiplier, 0.1)
+            addOption(double, weightMultiplier, 0.4)
 
             /* the perturbe weight range start and end */
-            addOption(double, perturbeWeightRangeStart, -0.5)
-            addOption(double, perturbeWeightRangeEnd, 0.5)
+            addOption(double, perturbeWeightRangeStart, -2.5)
+            addOption(double, perturbeWeightRangeEnd, 2.5)
 
             /* the propability of setting a connection weight to 
              * a new random value during mutation 
@@ -109,10 +114,10 @@ namespace NEAT {
             addOption(double, hardMutationPropability, 0.1)
 
             /* threshold for boosting structural mutation in the first generations */
-            addOption(unsigned, structuralMutationThreshold, 5);
+            addOption(unsigned, structuralMutationThreshold, 0);
 
             /* the boost for structural mutation in the first generations */
-            addOption(double, structuralMutationBoost, 10);
+            addOption(double, structuralMutationBoost, 1);
 
             /* propability to do no mutation during recombination */
             addOption(double, mateOnlyPropability, 0.2);
@@ -128,6 +133,14 @@ namespace NEAT {
 
             /* inicates that recurent connections are enabled */
             addOption(bool, allowRecurentConnections, false);
+
+            /* every x generation penalize the worst performing Species */
+            addOption(unsigned, penealizeEveryXGeneration, 30);
+
+            /* the age after which a Species can be penalized at 
+             * an penealizeEveryXGeneration event 
+             */
+            addOption(unsigned, penalizeAge, 20);
 
 #ifdef __DEBUG__
             static Opts &getInstance() { return onlyInstance; }

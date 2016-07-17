@@ -29,6 +29,12 @@ namespace NEAT {
             /* rand function for shuffling the training data */
             static int shuffleRand(int i) { return rand64(rand) % i; }
 
+            /* the best overal (original) fittnes of this */
+            double bestFitness;
+
+            /* the generation of the last fittnes improvment of this */
+            uint64_t lastImproveGeneration;
+
 #ifdef __DEBUG__
         public:
 #endif

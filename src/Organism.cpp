@@ -34,6 +34,12 @@ void Organism::calculateFittness(vector<vector<double>> inputs,
         this->adjustedFitness *= Opts::stagnantPenalty();
 }
 
+/* penalizes the fitness of this Organism */
+void Organism::penalize() {
+    assert(!std::isnan(this->adjustedFitness));
+    this->adjustedFitness *= Opts::stagnantPenalty();
+}
+
 /* mutates this */
 void Organism::mutate() {
 

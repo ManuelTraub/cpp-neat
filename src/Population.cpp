@@ -15,6 +15,8 @@ rand64_t *Population::rand = new_rand64_t();
 Population::Population(vector<vector<double>> inputs, vector<vector<double>> outputs) {
     this->inputs  = inputs;
     this->outputs = outputs;
+    this->bestFitness = 0;
+    this->lastImproveGeneration = GenerationCounter::get();
 
     this->species.push_back(make_shared<Species>());
 
@@ -35,41 +37,51 @@ vector<shared_ptr<Organism>> Population::prepareGenerationChange() {
     *rand = randstate;
     std::random_shuffle(this->outputs.begin(), this->outputs.end(), shuffleRand);
 
-    vector<shared_ptr<Organism>> organisms;
-
     /* calculate the fitness of all Organisms */
-    for (auto &s : this->species) {
+    for (auto &s : this->species)
         s->calculateFittness(this->inputs, this->outputs);
+
+    /* kill the Organisms with the worst fitness */
+    for (auto &s : this->species)
+        s->killWorst();
+
+    /* sort species by their best fitness */
+    std::sort(this->species.begin(), this->species.end(), SpeciesComparator());
+
+    /* every x generations penalize the worst species over n jears 
+     * (best species will never be penalized) 
+     */
+    if (GenerationCounter::get() % Opts::penealizeEveryXGeneration()) {
+        for (unsigned i = this->species.size() - 1; i > 0; i--) {
+            if (this->species[i]->age() > Opts::penalizeAge()) {
+                this->species[i]->penalize();
+                break;
+            }
+        }
+    }
+    
+    /* check if we found a new best fitness */
+    if (this->species[0]->getBestFitness() > this->bestFitness) {
+        this->bestFitness = this->species[0]->getBestFitness();
+        this->lastImproveGeneration = GenerationCounter::get();
+    } 
+        
+    /* penalize all species but the best two if 
+     * we havent improved within the last n generations 
+     */
+    if (this->lastImproveGeneration > Opts::generationStagnantThreshold())
+        for (unsigned i = 2; i < this->species.size(); i++)
+            this->species[i]->penalize();
+
+    /* collect all survived Organisms for reproduction */
+    vector<shared_ptr<Organism>> organisms;
+    for (auto &s : this->species) {
         vector<shared_ptr<Organism>> currentOrganisms = s->getOrganisms();
         organisms.insert(organisms.end(), currentOrganisms.begin(), currentOrganisms.end());
     }
 
-    /* stort the organisms by theyr fitness */
+    /* sort the organisms by theyr fitness */
     std::sort(organisms.begin(), organisms.end(), OrganismComparator());
-
-    /* kill the Organisms with the worst fitness */
-    unsigned deaths    = organisms.size() * (1 - Opts::survivalRate());
-    unsigned killStart = organisms.size() - deaths;
-    for (unsigned i = killStart; i < organisms.size(); i++)
-        organisms[i]->kill();
-
-    organisms.erase(organisms.begin() + killStart, organisms.end());
-
-    /* remove all death Organisms from their Species */
-    for (auto &s : this->species)
-        s->removeDeaths();
-
-    /* remove ectinct species */
-    for (int i = 0; i < (int) this->species.size(); i++) {
-        if (this->species[i]->size() == 0) {
-            this->species.erase(this->species.begin() + i);
-            i--;
-        }
-    }
-
-    /* sort species by their best fitness */
-    std::sort(this->species.begin(), this->species.end(), SpeciesComparator());
-    
     return organisms;
 }
 
@@ -199,6 +211,14 @@ void Population::finishGenerationChange(vector<shared_ptr<Organism>> lastGenerat
         s->calculateOldesGenome();
     }
 
+    /* remove ectinct species */
+    for (int i = 0; i < (int) this->species.size(); i++) {
+        if (this->species[i]->size() == 0) {
+            this->species.erase(this->species.begin() + i);
+            i--;
+        }
+    }
+
     /* increase the generation counter */
     GenerationCounter::onlyInstance.generation++;
 }
@@ -243,12 +263,12 @@ shared_ptr<Organism> Population::getBestOrganism() {
         organisms.insert(organisms.end(), currentOrganisms.begin(), currentOrganisms.end());
     }
 
-    double bestFittnes = 0;
+    double bestFitness = 0;
     shared_ptr<Organism> bestOrganism;
 
     for (const auto &o : organisms) {
-        if (o->getOriginalFitness() > bestFittnes) {
-            bestFittnes  = o->getOriginalFitness();
+        if (o->getOriginalFitness() > bestFitness) {
+            bestFitness = o->getOriginalFitness();
             bestOrganism = o;
         }
     }

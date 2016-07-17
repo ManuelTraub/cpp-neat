@@ -267,6 +267,9 @@ double Genotype::similarity(const Genotype &other) const {
             nWeights++;
         }
     }
+
+    /* use NEAT value */
+    nGenes = 1.0;
                           
     double similarity = 0;    
     if (nGenes > 0)

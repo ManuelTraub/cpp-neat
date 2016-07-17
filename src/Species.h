@@ -110,6 +110,17 @@ namespace NEAT {
                 this->lastImproveGeneration  = GenerationCounter::get();
             }
 
+            /* kills the worst performing Organisms 
+             * (keeps at least one Organism) 
+             */
+            void killWorst();
+
+            /* penalize this species */
+            void penalize();
+
+            /* returns the best original fittness of this */
+            double getBestFitness() const { return bestOriginalFitness; }
+
 #ifdef __DEBUG__ 
             void setAverageAdjustedFitness(double fitness) { averageAdjustedFitness = fitness; }
 #endif
@@ -121,7 +132,7 @@ namespace NEAT {
             bool operator () (const shared_ptr<Species> &a,
                               const shared_ptr<Species> &b) const {
 
-                return a->getAverageAdjustedFitness() > b->getAverageAdjustedFitness();
+                return a->getBestFitness() > b->getBestFitness();
             }
     };
 }
