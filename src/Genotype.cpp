@@ -29,6 +29,10 @@ bool Genotype::mutateInsertNeuron() {
     if (!mutatingGene.isEnabled())
         return false;
 
+    /* stop if the connection is a bias connection */
+    if (mutatingGene.getInput().getType() == NeuronType::BIAS)
+        return false;
+
     /* stop if the connection is between two output neurons */
     if (mutatingGene.getInput().getType()  == NeuronType::OUTPUT &&
         mutatingGene.getOutput().getType() == NeuronType::OUTPUT)
@@ -105,7 +109,7 @@ bool Genotype::mutateInsertConnection() {
         return false;
 
     /* randomly mutate connection (incase of historical copy) */
-    connection.mutate();
+    //connection.mutate(); /* FIXME neat adabpt */
 
     /* store the new connection */
     connections.insert({connection.getID(), connection});
@@ -117,24 +121,18 @@ bool Genotype::mutateInsertConnection() {
 }
 
 // TODO experiment with lovering the propability of mutating older genes
-// TODO add Opts for mutation percent
 /* mutate a given percentage of connections */
-void Genotype::mutateConnections(double percent) {
+void Genotype::mutateConnections() {
     
-    const unsigned size = percent * connections.size();
-
-    for (unsigned i = 0; i < size; i++) {
-        auto random_it = std::next(std::begin(connections), rand64(rand) % connections.size());
-
-        if (rand_range_d64(rand, 0, 1.0) < Opts::hardMutationPropability())
-            random_it->second.mutate();
+    for (auto &e : this->connections) {
+        if (rand_range_d64(rand, 0, 1) < Opts::hardMutationPropability())
+            e.second.mutate();
         else
-            random_it->second.mutate({Opts::perturbeWeightRangeStart(), 
-                                      Opts::perturbeWeightRangeEnd()});
+            e.second.mutate({Opts::perturbeWeightRangeStart(), 
+                             Opts::perturbeWeightRangeEnd()});
     }
 
-    if (size > 0)
-        generation = GenerationCounter::get();
+    generation = GenerationCounter::get();
 }
 
 /* create a new Genotype for the given number of input and output neurons */

@@ -53,7 +53,7 @@ namespace NEAT {
 
             /* creat a new Organism mixing the genes of the two given Organisms */
             Organism(const Organism &parent1, const Organism &parent2) : 
-                genome((parent1.originalFitness < parent2.originalFitness) ? 
+                genome((parent1.originalFitness > parent2.originalFitness) ? 
                         Genotype(parent1.genome, parent2.genome)           :
                         Genotype(parent2.genome, parent1.genome)),
                 originalFitness(std::nan("Organism")), 
@@ -99,8 +99,8 @@ namespace NEAT {
             }
 
             /* returns the similarity with this and the given genome */
-            double similarity(const Genotype &genome) const {
-                return this->genome.similarity(genome);
+            double similarity(const Organism &o) const {
+                return this->genome.similarity(o.genome);
             }
 
             /* returns a copy of the Genome of this */

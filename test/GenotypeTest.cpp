@@ -307,7 +307,7 @@ TEST_N(basicMutationTest, 1000) {
 
     /* mutate all connections */
     for (unsigned i = 0; i < 1000; i++)
-        genotype.mutateConnections(0.5);
+        genotype.mutateConnections();
 
     ASSERT_TRUE(weight != genotype.getConnections().at(key).getWeight(),
                 "connection should be mutated");

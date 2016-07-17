@@ -153,7 +153,7 @@ TEST_N(advancedBinaryANDTest, 1000) {
 
     double minError = UINT64_MAX;
     while (minError > 0.01) {
-        genotype.mutateConnections(rand_range_d64(args, 0.34, 1.0));
+        genotype.mutateConnections();
         Phenotype phenotype(genotype);
         double curError = phenotype.calculateError(trainingInputs, trainingOutputs);
 

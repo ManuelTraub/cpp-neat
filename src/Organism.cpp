@@ -48,19 +48,21 @@ void Organism::mutate() {
 
     double boost = 1.0;
 
-    if (GenerationCounter::get() < Opts::structuralMutationThreshold())
-        boost = Opts::structuralMutationBoost();
+//    if (GenerationCounter::get() < Opts::structuralMutationThreshold())
+//        boost = Opts::structuralMutationBoost();
 
     if (rand_range_d64(rand, 0, 1) < Opts::addNeuronMutationPropability() * boost) {
-        if (this->genome.mutateInsertNeuron())
-            return;
+        for(unsigned i = 0; i < 20; i++)
+            if (this->genome.mutateInsertNeuron())
+                return;
     } 
     
     if (rand_range_d64(rand, 0, 1) < Opts::addConnectionMutationPropability() * boost) {
-        if (this->genome.mutateInsertConnection())
-            return;
+        for(unsigned i = 0; i < 20; i++)
+            if (this->genome.mutateInsertConnection())
+                return;
     }
     
     if (rand_range_d64(rand, 0, 1) < Opts::mutateWeightsPropability())
-        this->genome.mutateConnections(Opts::mutateWeightsPercent());
+        this->genome.mutateConnections();
 }

@@ -146,7 +146,7 @@ namespace NEAT {
             /* creats a new Gene with two given neuron ids */
             ConnectionGene(const NeuronGene inputNeuron, 
                            const NeuronGene outputNeuron,
-                           double weight = rand_range_d64(rand, weightRange[0], weightRange[1])) : 
+                           double weight = rand_range_d64(rand, -1, 1)) : 
                            inputNeuron(inputNeuron),
                            outputNeuron(outputNeuron),
                            weight(weight),

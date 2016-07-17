@@ -141,10 +141,8 @@ TEST(advancedSpeciesSpeedTest) {
 
     for (unsigned i = 0; i < 100; i++) {
 
-        for (auto &s : species) {
+        for (auto &s : species)
             s->removeDeaths();
-            s->calculateOldesGenome();
-        }
         
         for (auto &o :organisms)
             species[rand64(args) % 15]->add(o);
@@ -473,6 +471,13 @@ TEST_N(speciesOffspringDistributionTest, 10) {
 }
 
 TEST(binaryXORSpeedTest) {
+
+    //Opts::getInstance()._speciesSimilarityThreshold = 0.5;
+    //Opts::getInstance()._structuralMutationBoost = 1;
+    //Opts::getInstance()._perturbeWeightRangeStart = -3;
+    //Opts::getInstance()._perturbeWeightRangeEnd = 3;
+    //Opts::getInstance()._addNeuronMutationPropability = 0.003;
+    //Opts::getInstance()._addConnectionMutationPropability = 0.005;
 
     /* training data */
     vector<vector<double>> trainingInputs  = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};

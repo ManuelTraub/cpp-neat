@@ -20,10 +20,6 @@ namespace NEAT {
             /* global random value */
             static rand64_t *rand;
 
-            /* The oldest Genome of this species 
-             * which is used as base for similarity calculation */
-            shared_ptr<Genotype> oldestGenome;
-
             /* the Organisms of this */
             vector<shared_ptr<Organism>> organisms;
 
@@ -66,15 +62,11 @@ namespace NEAT {
             /* remove all dead Organisms */
             void removeDeaths();
 
-            /* calculates the new oldest genome */
-            void calculateOldesGenome();
-
             /* calculate the simmilarity of the given Genotype
-             * to the oldest genome of this species 
+             * to the fittest genome of this
              */
             double similarity(const shared_ptr<Organism> &o) const { 
-                assert(this->oldestGenome != nullptr);
-                return o->similarity(*this->oldestGenome);
+                return o->similarity(*this->organisms[0]);
             }
 
             /* clalculate the fittness of all Organism */
@@ -103,7 +95,6 @@ namespace NEAT {
             /* removes all individuals from this and resets a values */
             void reset() {
                 this->organisms.clear();
-                this->oldestGenome           = nullptr;
                 this->bestOriginalFitness    = std::nan("Species");
                 this->averageAdjustedFitness = std::nan("Species");
                 this->birthGeneration        = GenerationCounter::get();

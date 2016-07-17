@@ -22,8 +22,6 @@ Population::Population(vector<vector<double>> inputs, vector<vector<double>> out
 
     for (unsigned i = 0; i < Opts::populationSize(); i++)
         this->species.back()->add(make_shared<Organism>(inputs[0].size(), outputs[0].size()));
-
-    this->species.back()->calculateOldesGenome();
 }
 
 /* sorts the Organisms and species as removing the deaths 
@@ -48,7 +46,7 @@ vector<shared_ptr<Organism>> Population::prepareGenerationChange() {
     /* sort species by their best fitness */
     std::sort(this->species.begin(), this->species.end(), SpeciesComparator());
 
-    /* every x generations penalize the worst species over n jears 
+    /* every x generations penalize the worst species over n years 
      * (best species will never be penalized) 
      */
     if (GenerationCounter::get() % Opts::penealizeEveryXGeneration()) {
@@ -192,7 +190,6 @@ void Population::sortOffspringsIntoSpecies(vector<shared_ptr<Organism>> offsprin
         if (newSpecies) {
             this->species.push_back(make_shared<Species>());
             this->species.back()->add(o); 
-            this->species.back()->calculateOldesGenome();
         }
     }
 }
@@ -206,10 +203,8 @@ void Population::finishGenerationChange(vector<shared_ptr<Organism>> lastGenerat
     for (auto &o: lastGeneration)
         o->kill();
 
-    for (auto &s : this->species) {
+    for (auto &s : this->species)
         s->removeDeaths();
-        s->calculateOldesGenome();
-    }
 
     /* remove ectinct species */
     for (int i = 0; i < (int) this->species.size(); i++) {
@@ -282,7 +277,6 @@ void Population::createInitialConnections(bool connectBias) {
     vector<shared_ptr<Organism>> organisms;
 
     for (auto &s : this->species) {
-        s->calculateFittness(inputs, outputs);
         vector<shared_ptr<Organism>> currentOrganisms = s->getOrganisms();
         organisms.insert(organisms.end(), currentOrganisms.begin(), currentOrganisms.end());
     }
@@ -295,4 +289,5 @@ void Population::createInitialConnections(bool connectBias) {
 
     this->species.clear();
     this->sortOffspringsIntoSpecies(organisms);
+    assert(this->species.size() == 1);
 }

@@ -93,10 +93,7 @@ namespace NEAT {
             addOption(double, addConnectionMutationPropability, 0.05)
 
             /* the propability of mutating the weights of a Genome during mutation */
-            addOption(double, mutateWeightsPropability, 0.8)
-
-            /* the percentage of weights mutated during a weight mutation */
-            addOption(double, mutateWeightsPercent, 1.0)
+            addOption(double, mutateWeightsPropability, 0.9)
 
             /* the gene multiplayer for calculating similarity */
             addOption(double, geneMultiplier, 1.0)

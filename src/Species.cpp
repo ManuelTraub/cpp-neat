@@ -20,19 +20,6 @@ void Species::removeDeaths() {
     }
 }
 
-
-/* calculates the new oldest genome */
-void Species::calculateOldesGenome() {
-
-    oldestGenome = nullptr;
-
-    /* recalculate the oldest Organism */
-    for (const auto &o : organisms) 
-        if (oldestGenome == nullptr || oldestGenome->genomeAge() < o->getGenome().genomeAge()) 
-            oldestGenome = make_shared<Genotype>(o->getGenome());
-}
-
-
 /* clalculate the fittness of all Organism */
 void Species::calculateFittness(vector<vector<double>> inputs, vector<vector<double>> outputs) {
 
@@ -63,7 +50,12 @@ vector<unsigned> Species::chooseOrganisms(unsigned nOffsprings) {
     /* create vector for the choosen indices */
     vector<unsigned> choosen(nOffsprings);
 
-    /* create a propability vector for choosing the individum for reproduction */
+    /* FIXME NEAT adaption no propability based choosing FIXME */
+    for (unsigned i = 0; i < nOffsprings; i++)
+        choosen[i] = rand64(rand) % this->organisms.size();
+
+
+    /* create a propability vector for choosing the individum for reproduction 
     vector<double> propability(organisms.size());
 
     double maxPropability = 0.0;
@@ -84,7 +76,7 @@ vector<unsigned> Species::chooseOrganisms(unsigned nOffsprings) {
             }
         }
     }
-
+*/
     return choosen;
 }
 
