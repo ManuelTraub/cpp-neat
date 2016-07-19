@@ -105,6 +105,14 @@ namespace NEAT {
             addOption(double, perturbeWeightRangeStart, -2.5)
             addOption(double, perturbeWeightRangeEnd, 2.5)
 
+            /* the weight range for seting weights during mutation */
+            addOption(double, mutationWeightRangeStart, -2.5)
+            addOption(double, mutationWeightRangeEnd, 2.5)
+
+            /* the weight range for creating a ConnectionGene */
+            addOption(double, creationWeightRangeStart, -1) // TODO better with 2.5 (but NEAT = 1)
+            addOption(double, creationWeightRangeEnd, 1)
+
             /* the propability of setting a connection weight to 
              * a new random value during mutation 
              */

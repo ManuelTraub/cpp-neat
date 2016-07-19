@@ -470,6 +470,14 @@ TEST_N(speciesOffspringDistributionTest, 10) {
     return args;
 }
 
+double avgVector(vector<unsigned> v) {
+    double avg = 0;
+    for (const auto &e : v)
+        avg += e;
+
+    return avg / v.size();
+}
+
 TEST(binaryXORSpeedTest) {
 
     //Opts::getInstance()._speciesSimilarityThreshold = 0.5;
@@ -484,9 +492,12 @@ TEST(binaryXORSpeedTest) {
     vector<vector<double>> trainingInputs  = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
     vector<vector<double>> trainingOutputs = {{0}, {1}, {1}, {0}};
 
-    vector<unsigned> runs;
+    vector<unsigned> generations;
+    vector<unsigned> nodes;
+    vector<unsigned> connections;
+    vector<unsigned> species;
 
-    const unsigned nRuns = 250;
+    const unsigned nRuns = 10000;
     const unsigned nGenerations = 100;
 
     for (unsigned r = 0; r < nRuns; r++) {
@@ -494,19 +505,9 @@ TEST(binaryXORSpeedTest) {
         Population population(trainingInputs, trainingOutputs);
         population.createInitialConnections();
 
-        double avg = 0;
-        for (const auto &e : runs)
-            avg += e;
-
-        if (runs.size() > 0)
-            avg /= runs.size();
-        else
-            avg = nGenerations;
-
-        for (unsigned i = 0; i < nGenerations; i++) {
+        unsigned i;
+        for (i = 0; i < nGenerations; i++) {
             population.calcNextGeneration();
-
-            printf("\r[%02u/%02u]  =>  %.2F", i, r, avg);
 
             shared_ptr<Organism> best = population.getBestOrganism();
             Phenotype phenotype(best->getGenome());
@@ -517,15 +518,29 @@ TEST(binaryXORSpeedTest) {
                 phenotype.run({1,1})[0] < 0.5) {
                 
                 phenotype.saveAsSVG("bestOrganism" + itoa(i) + "g" + itoa(r) + "r.svg");
-                runs.push_back(i);
                 break;
             }
         }
-        
-        if (runs.size() == r)
-            runs.push_back(nGenerations);
 
-        printf("\n");
+        shared_ptr<Organism> best = population.getBestOrganism();
+        Phenotype phenotype(best->getGenome());
+
+        if (i == nGenerations)
+            printf("failed\n");
+        else {
+
+            generations.push_back(i);
+            nodes.push_back(best->getGenome().getNeurons().size());
+            connections.push_back(best->getGenome().getConnections().size());
+            species.push_back(population.getSpecies().size());
+
+            printf("[%u] Generation %3u / %3.1F, Nodes %3u / %3.1F, Connections: %3u / %3.1F, Species %3u / %3.1F\n", r,
+                   generations.back(), avgVector(generations),
+                   nodes.back(), avgVector(nodes),
+                   connections.back(), avgVector(connections),
+                   species.back(), avgVector(species));
+        }
+
     }
 
     return args;

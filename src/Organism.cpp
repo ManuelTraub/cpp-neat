@@ -21,7 +21,7 @@ void Organism::calculateFittness(vector<vector<double>> inputs,
     }
 
     /* adjust fitness according to the size of the Species */
-    this->adjustedFitness = this->originalFitness / speciesSize;
+    this->adjustedFitness = this->originalFitness;
 
     /* adjust fitness according to the age of the species 
      * younger species will get a fitness boost

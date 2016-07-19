@@ -109,7 +109,7 @@ bool Genotype::mutateInsertConnection() {
         return false;
 
     /* randomly mutate connection (incase of historical copy) */
-    //connection.mutate(); /* FIXME neat adabpt */
+    connection.mutateSet({Opts::creationWeightRangeStart(), Opts::creationWeightRangeEnd()}); 
 
     /* store the new connection */
     connections.insert({connection.getID(), connection});
@@ -125,11 +125,13 @@ bool Genotype::mutateInsertConnection() {
 void Genotype::mutateConnections() {
     
     for (auto &e : this->connections) {
-        if (rand_range_d64(rand, 0, 1) < Opts::hardMutationPropability())
-            e.second.mutate();
-        else
-            e.second.mutate({Opts::perturbeWeightRangeStart(), 
-                             Opts::perturbeWeightRangeEnd()});
+        if (rand_range_d64(rand, 0, 1) < Opts::hardMutationPropability()) {
+            e.second.mutateSet({Opts::mutationWeightRangeStart(), 
+                                Opts::mutationWeightRangeEnd()});
+        } else {
+            e.second.mutatePertube({Opts::perturbeWeightRangeStart(), 
+                                    Opts::perturbeWeightRangeEnd()});
+        }
     }
 
     generation = GenerationCounter::get();
@@ -303,7 +305,10 @@ void Genotype::createInitialConnections(bool connectBias) {
             if (generation < connections.at(connection.getID()).getGeneration())
                 generation = connections.at(connection.getID()).getGeneration();
 
-            connections.at(connection.getID()).mutate();
+            connections.at(connection.getID()).mutateSet({
+                Opts::creationWeightRangeStart(),
+                Opts::creationWeightRangeEnd()
+            });
         }
     }
 }

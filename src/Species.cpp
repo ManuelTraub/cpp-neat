@@ -25,7 +25,7 @@ void Species::calculateFittness(vector<vector<double>> inputs, vector<vector<dou
 
     this->averageAdjustedFitness = 0;
     
-    for (auto &o : organisms) {
+    for (auto &o : this->organisms) {
         o->calculateFittness(inputs, outputs, this->size(), this->age(), this->stagnantAge());
 
         /* actualitze the best fitness of this */
@@ -38,7 +38,7 @@ void Species::calculateFittness(vector<vector<double>> inputs, vector<vector<dou
         this->averageAdjustedFitness += o->getAdjustedFitness();
     }
 
-    this->averageAdjustedFitness /= this->size();
+    this->averageAdjustedFitness /= this->organisms.size();
 
     /* sort the organisms by theyr adjusted fitness */
     std::sort(organisms.begin(), organisms.end(), OrganismComparator());

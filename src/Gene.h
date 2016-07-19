@@ -138,9 +138,6 @@ namespace NEAT {
             /* bool indicates if this gene is expressed within the phenotype */
             bool enabled;
 
-            /* the weight range for initialization and random mutation */
-            static const double weightRange[2];
-
         public: 
 
             /* creats a new Gene with two given neuron ids */
@@ -178,13 +175,13 @@ namespace NEAT {
             bool isEnabled() const { return enabled; }
 
             /* resets the waight of this to a random value */
-            void mutate() { 
+            void mutateSet(const vector<double> weightRange) { 
                 weight = rand_range_d64(rand, weightRange[0], weightRange[1]); 
                 generation = GenerationCounter::get();
             }
 
             /* uniformly perturbe the weight of this */
-            void mutate(vector<double> weightRange) {
+            void mutatePertube(const vector<double> weightRange) {
                 weight += rand_range_d64(rand, weightRange[0], weightRange[1]); 
                 if (weight < -8) weight = -8;
                 if (weight > 8)  weight = 8;
