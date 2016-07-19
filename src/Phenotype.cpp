@@ -151,14 +151,12 @@ double Phenotype::calculateError(vector<vector<double>> inputs, vector<vector<do
         }
 
         /* calculate the round error */
-        double roundError = 0;
         for (unsigned i = 0; i < neuronLayers.back().size(); i++) {
-            roundError += (outputs[k][i] - neuronLayers.back()[i]->getValue()) *
-                          (outputs[k][i] - neuronLayers.back()[i]->getValue());
+            error += (outputs[k][i] - neuronLayers.back()[i]->getValue()) *
+                     (outputs[k][i] - neuronLayers.back()[i]->getValue());
         }
-        error += roundError / neuronLayers.back().size();
     }
-    return error / inputs.size();
+    return error;
 }
 
 /* export this as an svg image */

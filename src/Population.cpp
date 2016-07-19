@@ -216,6 +216,12 @@ void Population::finishGenerationChange(vector<shared_ptr<Organism>> lastGenerat
 
     /* increase the generation counter */
     GenerationCounter::onlyInstance.generation++;
+/*
+    printf("\t");
+    for (const auto &s : this->species)
+        printf("%u ", s->size());
+    printf("\n");
+*/
 }
 
 /* increase the genaration counter and sort all genomes by theyr fitness */

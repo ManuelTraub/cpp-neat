@@ -247,15 +247,10 @@ Genotype::Genotype(const Genotype &fitter, const Genotype &other) : generation(0
 double Genotype::similarity(const Genotype &other) const {
     
     uint64_t nWeights = 0;
-    uint64_t nGenes   = this->neurons.size() + this->connections.size() +
-                        other.neurons.size() + other.connections.size();
+    uint64_t nGenes   = this->connections.size() + other.connections.size();
 
     double geneSimilarity   = nGenes;
     double weightSimilarity = 0.0;
-
-    for (const auto &e : neurons)
-        if (other.neurons.count(e.first))
-            geneSimilarity -= 2; 
 
     for (const auto &e : connections) {
         if (other.connections.count(e.first)) {

@@ -50,7 +50,7 @@ namespace NEAT {
             addOption(unsigned, youthThreshold, 10)
 
             /* the fitness boost a young generation gets (in percent / 100) */
-            addOption(double, youthBoost, 1.01)
+            addOption(double, youthBoost, 1.00)
 
             /* threshold after which a stagnant species will get a fittnes penalty */
             addOption(unsigned, stagnantThreshold, 15)
