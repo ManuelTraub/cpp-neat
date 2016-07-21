@@ -84,11 +84,13 @@ Phenotype::Phenotype(const Genotype &genome) : genome(genome) {
     /* connect the neurons */
     for (const auto &e : connectionGenes) {
         
-        Neuron *const input  = neuronMap[e.second.getInput().getID()];
-        Neuron *const output = neuronMap[e.second.getOutput().getID()];
+        if (e.second.isEnabled()) {
+            Neuron *const input  = neuronMap[e.second.getInput().getID()];
+            Neuron *const output = neuronMap[e.second.getOutput().getID()];
 
-        assert(input != NULL && output != NULL);
-        output->addInput(input, e.second.getWeight());
+            assert(input != NULL && output != NULL);
+            output->addInput(input, e.second.getWeight());
+        }
     }
 }
 

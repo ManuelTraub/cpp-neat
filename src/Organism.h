@@ -11,6 +11,11 @@
 
 using std::shared_ptr;
 
+#define fitterGenome(o1, o2) ((o1.originalFitness > o2.originalFitness) ? o1.genome : o2.genome)
+#define weakerGenome(o1, o2) ((o1.originalFitness > o2.originalFitness) ? o2.genome : o1.genome)
+#define biggerGenome(o1, o2)  ((o1.genome.getConnections().size() > o2.genome.getConnections().size()) ? o1.genome : o2.genome)
+#define smallerGenome(o1, o2) ((o1.genome.getConnections().size() > o2.genome.getConnections().size()) ? o2.genome : o1.genome)
+
 namespace NEAT {
 
     class Organism {
@@ -53,9 +58,9 @@ namespace NEAT {
 
             /* creat a new Organism mixing the genes of the two given Organisms */
             Organism(const Organism &parent1, const Organism &parent2) : 
-                genome((parent1.originalFitness > parent2.originalFitness) ? 
-                        Genotype(parent1.genome, parent2.genome)           :
-                        Genotype(parent2.genome, parent1.genome)),
+                genome((parent1.originalFitness == parent2.originalFitness) ? 
+                        Genotype(smallerGenome(parent1, parent2), biggerGenome(parent1, parent2)) :
+                        Genotype(fitterGenome(parent1, parent2), weakerGenome(parent1, parent2)),
                 originalFitness(std::nan("Organism")), 
                 adjustedFitness(std::nan("Organism")), 
                 alive(true) { 
