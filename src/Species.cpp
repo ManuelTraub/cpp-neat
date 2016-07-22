@@ -23,22 +23,22 @@ void Species::removeDeaths() {
 /* clalculate the fittness of all Organism */
 void Species::calculateFittness(vector<vector<double>> inputs, vector<vector<double>> outputs) {
 
-    this->averageAdjustedFitness = 0;
+    this->averageFitness = 0;
     
     for (auto &o : this->organisms) {
-        o->calculateFittness(inputs, outputs, this->size(), this->age(), this->stagnantAge());
+        o->calculateFittness(inputs, outputs);
 
         /* actualitze the best fitness of this */
-        if (o->getOriginalFitness() > this->bestOriginalFitness) {
-            this->bestOriginalFitness   = o->getOriginalFitness();
+        if (o->getFitness() > this->bestFitness) {
+            this->bestFitness           = o->getFitness();
             this->lastImproveGeneration = GenerationCounter::get();
         }
 
-        /* actualitze the average adjusted fitness of this */
-        this->averageAdjustedFitness += o->getAdjustedFitness();
+        /* actualitze the average fitness of this */
+        this->averageFitness += o->getFitness();
     }
 
-    this->averageAdjustedFitness /= this->organisms.size();
+    this->averageFitness /= this->organisms.size();
 
     /* sort the organisms by theyr adjusted fitness */
     std::sort(organisms.begin(), organisms.end(), orderOrganisms);
@@ -152,19 +152,12 @@ void Species::killWorst() {
     organisms.erase(organisms.begin() + killStart, organisms.end());
 
     /* recalculate the average fitness */
-    this->averageAdjustedFitness = 0;
+    this->averageFitness = 0;
     
-    /* FIXME NEAT bug caused to not penalize species FIXME */
     for (auto &o : this->organisms)
-        this->averageAdjustedFitness += o->getOriginalFitness();
+        this->averageFitness += o->getFitness();
 
-    this->averageAdjustedFitness /= this->organisms.size();
-}
-
-/* penalize this species */
-void Species::penalize() {
-    for (auto &o : this->organisms)
-        o->penalize();
+    this->averageFitness /= this->organisms.size();
 }
 
 namespace NEAT {

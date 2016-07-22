@@ -48,7 +48,7 @@ TEST(basicOrganismSpeedTest) {
     for (unsigned i = 0; i < 100; i++) {
         
         for (auto &o :organisms)
-            o->calculateFittness(trainingInputs, trainingOutputs, 10, 15, 3);
+            o->calculateFittness(trainingInputs, trainingOutputs);
 
         sort(organisms.begin(), organisms.end(), orderOrganisms);
 
@@ -59,7 +59,7 @@ TEST(basicOrganismSpeedTest) {
     }
 
     for (auto &o :organisms)
-        o->calculateFittness(trainingInputs, trainingOutputs, 10, 15, 3);
+        o->calculateFittness(trainingInputs, trainingOutputs);
 
     sort(organisms.begin(), organisms.end(), orderOrganisms);
     Phenotype phenotype(organisms[0]->getGenome());
@@ -293,13 +293,6 @@ TEST(basicGenerationChangeSpeedTest) {
 TEST(basicBinaryXORTest) {
     SKIP_TEST("esel");
 
-    Opts::getInstance()._speciesSimilarityThreshold = 0.5;
-    Opts::getInstance()._structuralMutationBoost = 1;
-    Opts::getInstance()._perturbeWeightRangeStart = -3;
-    Opts::getInstance()._perturbeWeightRangeEnd = 3;
-    Opts::getInstance()._addNeuronMutationPropability = 0.003;
-    Opts::getInstance()._addConnectionMutationPropability = 0.005;
-
     /* training data */
     vector<vector<double>> trainingInputs;
     vector<vector<double>> trainingOutputs;
@@ -443,9 +436,9 @@ TEST_N(speciesOffspringDistributionTest, 10) {
     species.push_back(make_shared<Species>());
     species.push_back(make_shared<Species>());
     
-    species[0]->setAverageAdjustedFitness(0.1);
-    species[1]->setAverageAdjustedFitness(0.6);
-    species[2]->setAverageAdjustedFitness(0.3);
+    species[0]->setAverageFitness(0.1);
+    species[1]->setAverageFitness(0.6);
+    species[2]->setAverageFitness(0.3);
 
     double choosen[3] = { 0, 0, 0 };
     vector<unsigned> offspringsPerSpecies = population.calculateOffspringsPerSpecies(1000000);
@@ -498,7 +491,7 @@ TEST(binaryXORSpeedTest) {
     vector<unsigned> species;
 
     const unsigned nRuns = 10000;
-    const unsigned nGenerations = 100;
+    const unsigned nGenerations = 300;
 
     for (unsigned r = 0; r < nRuns; r++) {
 

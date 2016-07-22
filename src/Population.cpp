@@ -46,31 +46,12 @@ vector<shared_ptr<Organism>> Population::prepareGenerationChange() {
     /* sort species by their best fitness */
     std::sort(this->species.begin(), this->species.end(), orderSpecies);
 
-    /* every x generations penalize the worst species over n years 
-     * (best species will never be penalized) 
-     */
-    if (GenerationCounter::get() % Opts::penealizeEveryXGeneration()) {
-        for (unsigned i = this->species.size() - 1; i > 0; i--) {
-            if (this->species[i]->age() > Opts::penalizeAge()) {
-                this->species[i]->penalize();
-                break;
-            }
-        }
-    }
-    
     /* check if we found a new best fitness */
     if (this->species[0]->getBestFitness() > this->bestFitness) {
         this->bestFitness = this->species[0]->getBestFitness();
         this->lastImproveGeneration = GenerationCounter::get();
     } 
         
-    /* penalize all species but the best two if 
-     * we havent improved within the last n generations 
-     */
-    if (this->lastImproveGeneration > Opts::generationStagnantThreshold())
-        for (unsigned i = 2; i < this->species.size(); i++)
-            this->species[i]->penalize();
-
     /* collect all survived Organisms for reproduction */
     vector<shared_ptr<Organism>> organisms;
     for (auto &s : this->species) {
@@ -288,8 +269,8 @@ shared_ptr<Organism> Population::getBestOrganism() {
     shared_ptr<Organism> bestOrganism;
 
     for (const auto &o : organisms) {
-        if (o->getOriginalFitness() > bestFitness) {
-            bestFitness = o->getOriginalFitness();
+        if (o->getFitness() > bestFitness) {
+            bestFitness = o->getFitness();
             bestOrganism = o;
         }
     }

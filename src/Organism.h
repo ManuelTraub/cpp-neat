@@ -11,8 +11,8 @@
 
 using std::shared_ptr;
 
-#define fitterGenome(o1, o2) ((o1.originalFitness > o2.originalFitness) ? o1.genome : o2.genome)
-#define weakerGenome(o1, o2) ((o1.originalFitness > o2.originalFitness) ? o2.genome : o1.genome)
+#define fitterGenome(o1, o2) ((o1.fitness > o2.fitness) ? o1.genome : o2.genome)
+#define weakerGenome(o1, o2) ((o1.fitness > o2.fitness) ? o2.genome : o1.genome)
 #define biggerGenome(o1, o2)  ((o1.genome.getConnections().size() > o2.genome.getConnections().size()) ? o1.genome : o2.genome)
 #define smallerGenome(o1, o2) ((o1.genome.getConnections().size() > o2.genome.getConnections().size()) ? o2.genome : o1.genome)
 
@@ -29,10 +29,7 @@ namespace NEAT {
             Genotype genome;
 
             /* the original fitness of this Organism */
-            double originalFitness;
-
-            /* the adjusted fitness of this Organism */
-            double adjustedFitness;
+            double fitness;
 
             /* indicates that this Organism is alive */
             bool alive;
@@ -42,15 +39,13 @@ namespace NEAT {
             /* create a new Organism for the given number of input and output neurons */
             Organism(const unsigned inputs, const unsigned outputs) :
                 genome(Genotype(inputs, outputs)), 
-                originalFitness(std::nan("Organism")), 
-                adjustedFitness(std::nan("Organism")), 
+                fitness(std::nan("Organism")), 
                 alive(true) { }
 
             /* creating a new Organism by cloning this */
             Organism clone() {
                 Organism newClone = *this;
-                newClone.originalFitness = std::nan("Organism"); 
-                newClone.adjustedFitness = std::nan("Organism"); 
+                newClone.fitness = std::nan("Organism"); 
                 newClone.alive = true;
 
                 return newClone;
@@ -58,37 +53,26 @@ namespace NEAT {
 
             /* creat a new Organism mixing the genes of the two given Organisms */
             Organism(const Organism &parent1, const Organism &parent2) : 
-                genome((parent1.originalFitness == parent2.originalFitness) ? 
-                        Genotype(smallerGenome(parent1, parent2), biggerGenome(parent1, parent2)) :
-                        Genotype(fitterGenome(parent1, parent2), weakerGenome(parent1, parent2))),
-                originalFitness(std::nan("Organism")), 
-                adjustedFitness(std::nan("Organism")), 
+                genome((parent1.fitness == parent2.fitness) ? 
+                        Genotype(smallerGenome(parent1, parent2), 
+                                 biggerGenome(parent1, parent2)) :
+                        Genotype(fitterGenome(parent1, parent2), 
+                                 weakerGenome(parent1, parent2))),
+                fitness(std::nan("Organism")), 
                 alive(true) { 
                 
-                assert(!std::isnan(parent1.originalFitness) &&
-                       !std::isnan(parent2.originalFitness) &&
-                       !std::isnan(parent1.adjustedFitness) &&
-                       !std::isnan(parent2.adjustedFitness));
+                assert(!std::isnan(parent1.fitness) && !std::isnan(parent2.fitness));
             }
 
             /* calculates the fitness of this */
             void calculateFittness(vector<vector<double>> inputs, 
-                                   vector<vector<double>> outputs,
-                                   unsigned speciesSize,
-                                   unsigned speciesAge,
-                                   unsigned speciesStagnantAge);
+                                   vector<vector<double>> outputs);
 
 
             /* returns the original fitness of this */
-            double getOriginalFitness() const { 
-                assert(!std::isnan(originalFitness));
-                return originalFitness; 
-            }
-
-            /* returns the adjusted fitness of this */
-            double getAdjustedFitness() const { 
-                assert(!std::isnan(adjustedFitness));
-                return adjustedFitness; 
+            double getFitness() const { 
+                assert(!std::isnan(fitness));
+                return fitness; 
             }
 
             /* mutates this */
@@ -116,12 +100,8 @@ namespace NEAT {
                 this->genome.createInitialConnections(connectBias);
             }
 
-            /* penalizes the fitnes of this Organism */
-            void penalize();
-
 #ifdef __DEBUG__
-            void setOriginalFitness(double fitness) { originalFitness = fitness; }
-            void setAdjustedFitness(double fitness) { adjustedFitness = fitness; }
+            void setFitness(double fitness) { this->fitness = fitness; }
 #endif
 
     };
@@ -130,5 +110,10 @@ namespace NEAT {
     bool orderOrganisms(const shared_ptr<Organism> &a, const shared_ptr<Organism> &b);
 
 }
+
+#undef weakerGenome
+#undef fitterGenome
+#undef smallerGenome
+#undef biggerGenome
 
 #endif /* __INDIVIDUUM_H__ */

@@ -46,22 +46,10 @@ namespace NEAT {
             /* delete copy constructor to disalow copies of this */
             Opts(const Opts &) = delete;
 
-            /* threshold for young species to get a fitness boost */
-            addOption(unsigned, youthThreshold, 10)
-
-            /* the fitness boost a young generation gets (in percent / 100) */
-            addOption(double, youthBoost, 1.00)
-
-            /* threshold after which a stagnant species will get a fittnes penalty */
-            addOption(unsigned, stagnantThreshold, 15)
-
             /* threshold after which all species will get a fittnes penalty 
              * if the generation is stagnant
              */
             addOption(unsigned, generationStagnantThreshold, 20)
-
-            /* the penalty for a stagnant species (in percent / 100) */
-            addOption(double, stagnantPenalty, 0.01)
 
             /* propability for a mutation only offspring */
             addOption(double, mutationOnlyPropability, 0.25)
@@ -118,12 +106,6 @@ namespace NEAT {
              */
             addOption(double, hardMutationPropability, 0.1)
 
-            /* threshold for boosting structural mutation in the first generations */
-            addOption(unsigned, structuralMutationThreshold, 0);
-
-            /* the boost for structural mutation in the first generations */
-            addOption(double, structuralMutationBoost, 1);
-
             /* propability to do no mutation during recombination */
             addOption(double, mateOnlyPropability, 0.2);
 
@@ -138,14 +120,6 @@ namespace NEAT {
 
             /* inicates that recurent connections are enabled */
             addOption(bool, allowRecurentConnections, false);
-
-            /* every x generation penalize the worst performing Species */
-            addOption(unsigned, penealizeEveryXGeneration, 30);
-
-            /* the age after which a Species can be penalized at 
-             * an penealizeEveryXGeneration event 
-             */
-            addOption(unsigned, penalizeAge, 20);
 
 #ifdef __DEBUG__
             static Opts &getInstance() { return onlyInstance; }

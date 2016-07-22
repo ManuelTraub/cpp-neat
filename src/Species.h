@@ -24,10 +24,10 @@ namespace NEAT {
             vector<shared_ptr<Organism>> organisms;
 
             /* the best fittnes of this */
-            double bestOriginalFitness;
+            double bestFitness;
 
             /* the average adjusted fitness of this species */
-            double averageAdjustedFitness;
+            double averageFitness;
 
             /* the generation this was born */
             uint64_t birthGeneration;
@@ -48,8 +48,8 @@ namespace NEAT {
         public:
             
             /* creats a new species */
-            Species() : bestOriginalFitness(std::nan("Species")), 
-                        averageAdjustedFitness(std::nan("Species")),
+            Species() : bestFitness(std::nan("Species")), 
+                        averageFitness(std::nan("Species")),
                         birthGeneration(GenerationCounter::get()),
                         lastImproveGeneration(GenerationCounter::get()) { }
 
@@ -89,14 +89,14 @@ namespace NEAT {
             /* returns the Organisms of this */
             vector<shared_ptr<Organism>> getOrganisms() const { return organisms; }
 
-            /* returns the averageAdjustedFitness of this */
-            double getAverageAdjustedFitness() const { return averageAdjustedFitness; }
+            /* returns the averageFitness of this */
+            double getAverageAdjustedFitness() const { return averageFitness; }
 
             /* removes all individuals from this and resets a values */
             void reset() {
                 this->organisms.clear();
-                this->bestOriginalFitness    = std::nan("Species");
-                this->averageAdjustedFitness = std::nan("Species");
+                this->bestFitness            = std::nan("Species");
+                this->averageFitness = std::nan("Species");
                 this->birthGeneration        = GenerationCounter::get();
                 this->lastImproveGeneration  = GenerationCounter::get();
             }
@@ -106,14 +106,11 @@ namespace NEAT {
              */
             void killWorst();
 
-            /* penalize this species */
-            void penalize();
-
             /* returns the best original fittness of this */
-            double getBestFitness() const { return bestOriginalFitness; }
+            double getBestFitness() const { return bestFitness; }
 
 #ifdef __DEBUG__ 
-            void setAverageAdjustedFitness(double fitness) { averageAdjustedFitness = fitness; }
+            void setAverageFitness(double fitness) { averageFitness = fitness; }
 #endif
 
     };
