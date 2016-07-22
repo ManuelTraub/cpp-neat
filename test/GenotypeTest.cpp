@@ -148,7 +148,7 @@ TEST(basic2DTest) {
     ASSERT_EQUAL(neurons1.size(), 5, "more than 5 neurons");
     ASSERT_EQUAL(neurons2.size(), 5, "more than 5 neurons");
 
-    const NeuronGene *hidden1, *hidden2;
+    const NeuronGene *hidden1 = NULL, *hidden2 = NULL;
 
     for (const auto &e : neurons1)
         if (e.second.getType() == NeuronType::HIDDEN)
@@ -266,6 +266,7 @@ TEST(basicInLayerTestTest) {
 
 TEST_N(basicMutationTest, 1000) {
     
+    Opts::getInstance()._allowRecurentConnections = true;
     Genotype genotype(2, 1);
 
     /* create all posible connections */
@@ -463,25 +464,25 @@ TEST_N(basicSimilarityTest, 100) {
 
     genotype1.addConnection(inputs1[0], outputs1[1]);
 
-    ASSERT_EQUAL(genotype1.similarity(genotype2), 1.0/(5*2 + 1));
-    ASSERT_EQUAL(genotype2.similarity(genotype1), 1.0/(5*2 + 1));
+    ASSERT_EQUAL(genotype1.similarity(genotype2), 1.0);
+    ASSERT_EQUAL(genotype2.similarity(genotype1), 1.0);
 
     genotype2.addConnection(inputs2[1], outputs2[0]);
 
-    ASSERT_EQUAL(genotype1.similarity(genotype2), 2.0/(5*2 + 2));
-    ASSERT_EQUAL(genotype2.similarity(genotype1), 2.0/(5*2 + 2));
+    ASSERT_EQUAL(genotype1.similarity(genotype2), 2.0);
+    ASSERT_EQUAL(genotype2.similarity(genotype1), 2.0);
 
     genotype1.addConnection(inputs2[1], outputs2[0]);
 
-    ASSERT_EQUAL(genotype1.similarity(genotype2), 1.0/(5*2 + 3));
-    ASSERT_EQUAL(genotype2.similarity(genotype1), 1.0/(5*2 + 3));
+    ASSERT_EQUAL(genotype1.similarity(genotype2), 1.0);
+    ASSERT_EQUAL(genotype2.similarity(genotype1), 1.0);
 
     ConnectionGene &connection = genotype2.addConnection(inputs1[0], outputs1[1]);
 
     ASSERT_EQUAL(genotype1.similarity(genotype2), 0, "genotyps should be equal");
     ASSERT_EQUAL(genotype2.similarity(genotype1), 0, "genotyps should be equal");
 
-    connection.mutate();
+    connection.mutateSet({-1,1});
 
     ASSERT_TRUE(genotype1.similarity(genotype2) > 0 && genotype1.similarity(genotype2) < 10, 
                 "genotyps shouldn't be equal: %F", genotype1.similarity(genotype2));

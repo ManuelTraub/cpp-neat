@@ -31,31 +31,8 @@ AFTER() {
     (void) args;
 }
 
+
 TEST(basicSortingTest) {
-    
-    vector<shared_ptr<Species>> species;
-
-    for (unsigned i = 0; i < 1000; i++) {
-        species.push_back(make_shared<Species>());
-        species.back()->setAverageAdjustedFitness(rand_range_d64(args, 0, 100));
-    }
-
-    std::sort(species.begin(), species.end(), SpeciesComparator());
-
-    for (unsigned i = 1; i < species.size(); i++) {
-        ASSERT_TRUE(species[i - 1]->getAverageAdjustedFitness() >=
-                    species[i]->getAverageAdjustedFitness(),
-                    "species not sorted: %d:%F > %d:%F",
-                    i - 1,
-                    species[i - 1]->getAverageAdjustedFitness(),
-                    i,
-                    species[i]->getAverageAdjustedFitness());
-    }
-
-    return args;
-}
-
-TEST(advancedSortingTest) {
 
 
     /* speedup mutation for testing */
@@ -70,7 +47,7 @@ TEST(advancedSortingTest) {
 
     vector<shared_ptr<Organism>> organisms;
     organisms.push_back(make_shared<Organism>(2, 1));
-    organisms.back()->calculateFittness(trainingInputs, trainingOutputs, 10, 15, 2);
+    organisms.back()->calculateFittness(trainingInputs, trainingOutputs);
 
     for (unsigned i = 0; i < 100; i++) {
         species.push_back(make_shared<Species>());
@@ -83,28 +60,28 @@ TEST(advancedSortingTest) {
         species.back()->calculateFittness(trainingInputs, trainingOutputs);
     }
 
-    std::sort(organisms.begin(), organisms.end(), OrganismComparator());
+    std::sort(organisms.begin(), organisms.end(), orderOrganisms);
 
     for (unsigned i = 1; i < organisms.size(); i++) {
-        ASSERT_TRUE(organisms[i - 1]->getAdjustedFitness() >= organisms[i]->getAdjustedFitness(),
+        ASSERT_TRUE(organisms[i - 1]->getFitness() >= organisms[i]->getFitness(),
                     "organisms not sorted: %d:%F < %d:%F",
                     i - 1,
-                    organisms[i - 1]->getAdjustedFitness(),
+                    organisms[i - 1]->getFitness(),
                     i,
-                    organisms[i]->getAdjustedFitness());
+                    organisms[i]->getFitness());
     }
 
 
-    std::sort(species.begin(), species.end(), SpeciesComparator());
+    std::sort(species.begin(), species.end(), orderSpecies);
 
     for (unsigned i = 1; i < species.size(); i++) {
-        ASSERT_TRUE(species[i - 1]->getAverageAdjustedFitness() >=
-                    species[i]->getAverageAdjustedFitness(),
+        ASSERT_TRUE(species[i - 1]->getBestFitness() >=
+                    species[i]->getBestFitness(),
                     "species not sorted: %d:%F > %d:%F",
                     i - 1,
-                    species[i - 1]->getAverageAdjustedFitness(),
+                    species[i - 1]->getBestFitness(),
                     i,
-                    species[i]->getAverageAdjustedFitness());
+                    species[i]->getBestFitness());
     }
 
     return args;
@@ -124,7 +101,7 @@ TEST(offspringTest) {
 
     vector<shared_ptr<Organism>> organisms;
     organisms.push_back(make_shared<Organism>(2, 1));
-    organisms.back()->calculateFittness(trainingInputs, trainingOutputs, 10, 15, 2);
+    organisms.back()->calculateFittness(trainingInputs, trainingOutputs);
 
     for (unsigned i = 0; i < 100; i++) {
         species.push_back(make_shared<Species>());
@@ -137,67 +114,32 @@ TEST(offspringTest) {
         species.back()->calculateFittness(trainingInputs, trainingOutputs);
     }
 
-    std::sort(organisms.begin(), organisms.end(), OrganismComparator());
+    std::sort(organisms.begin(), organisms.end(), orderOrganisms);
 
     for (unsigned i = 1; i < organisms.size(); i++) {
-        ASSERT_TRUE(organisms[i - 1]->getAdjustedFitness() >= organisms[i]->getAdjustedFitness(),
+        ASSERT_TRUE(organisms[i - 1]->getFitness() >= organisms[i]->getFitness(),
                     "organisms not sorted: %d:%F < %d:%F",
                     i - 1,
-                    organisms[i - 1]->getAdjustedFitness(),
+                    organisms[i - 1]->getFitness(),
                     i,
-                    organisms[i]->getAdjustedFitness());
+                    organisms[i]->getFitness());
     }
 
 
-    std::sort(species.begin(), species.end(), SpeciesComparator());
+    std::sort(species.begin(), species.end(), orderSpecies);
 
     for (unsigned i = 1; i < species.size(); i++) {
-        ASSERT_TRUE(species[i - 1]->getAverageAdjustedFitness() >=
-                    species[i]->getAverageAdjustedFitness(),
+        ASSERT_TRUE(species[i - 1]->getBestFitness() >=
+                    species[i]->getBestFitness(),
                     "species not sorted: %d:%F > %d:%F",
                     i - 1,
-                    species[i - 1]->getAverageAdjustedFitness(),
+                    species[i - 1]->getBestFitness(),
                     i,
-                    species[i]->getAverageAdjustedFitness());
+                    species[i]->getBestFitness());
     }
 
     for (auto &s : species)
         ASSERT_EQUAL(s->createOffsprings(10).size(), 10);
-
-    return args;
-}
-
-TEST(offspringChoosingTest) {
-
-    /* speedup mutation for testing */
-    Species species;
-
-    species.add(make_shared<Organism>(2, 1));
-    species.add(make_shared<Organism>(2, 1));
-    species.add(make_shared<Organism>(2, 1));
-    
-    species.getOrganisms()[0]->setAdjustedFitness(0.1);
-    species.getOrganisms()[1]->setAdjustedFitness(0.6);
-    species.getOrganisms()[2]->setAdjustedFitness(0.3);
-
-    double choosen[3] = { 0, 0, 0 };
-    vector<unsigned> speciesChooses = species.chooseOrganisms(10000);
-
-    for (const auto &c : speciesChooses)
-        choosen[c] += 1;
-
-    choosen[0] /= speciesChooses.size();
-    choosen[2] /= speciesChooses.size();
-    choosen[1] /= speciesChooses.size();
-
-    ASSERT_TRUE(absDiff(choosen[0], 0.1) < 0.01);
-    ASSERT_TRUE(absDiff(choosen[1], 0.6) < 0.01);
-    ASSERT_TRUE(absDiff(choosen[2], 0.3) < 0.01);
-
-    TEST_MSGD("0.1 ~= %F", choosen[0]);
-    TEST_MSGD("0.6 ~= %F", choosen[1]);
-    TEST_MSGD("0.3 ~= %F", choosen[2]);
-
 
     return args;
 }

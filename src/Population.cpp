@@ -72,7 +72,7 @@ vector<unsigned> Population::calculateOffspringsPerSpecies(unsigned nOffsprings)
     double overallAverageFitness = 0;
 
     for (const auto &s : this->species) {
-        propabilityDistribution.push_back(s->getAverageAdjustedFitness());
+        propabilityDistribution.push_back(s->getAverageFitness());
         overallAverageFitness += propabilityDistribution.back();
     }
 

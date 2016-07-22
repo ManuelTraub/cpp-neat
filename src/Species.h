@@ -87,7 +87,7 @@ namespace NEAT {
             vector<shared_ptr<Organism>> getOrganisms() const { return organisms; }
 
             /* returns the averageFitness of this */
-            double getAverageAdjustedFitness() const { return averageFitness; }
+            double getAverageFitness() const { return averageFitness; }
 
             /* removes all individuals from this and resets a values */
             void reset() {

@@ -29,7 +29,9 @@ void Species::calculateFittness(vector<vector<double>> inputs, vector<vector<dou
         o->calculateFittness(inputs, outputs);
 
         /* actualitze the best fitness of this */
-        if (o->getFitness() > this->bestFitness) {
+        if (std::isnan(this->bestFitness) ||
+            o->getFitness() > this->bestFitness) {
+
             this->bestFitness           = o->getFitness();
             this->lastImproveGeneration = GenerationCounter::get();
         }
