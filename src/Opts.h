@@ -46,11 +46,6 @@ namespace NEAT {
             /* delete copy constructor to disalow copies of this */
             Opts(const Opts &) = delete;
 
-            /* threshold after which all species will get a fittnes penalty 
-             * if the generation is stagnant
-             */
-            addOption(unsigned, generationStagnantThreshold, 20)
-
             /* propability for a mutation only offspring */
             addOption(double, mutationOnlyPropability, 0.25)
 
@@ -59,11 +54,6 @@ namespace NEAT {
 
             /* the similarity threshold for Organism to be in the same species */
             addOption(double, speciesSimilarityThreshold, 3)
-
-            /* the property for disabeling a connection gene if 
-             * eighter one parrent has the gene disabled
-             */
-            addOption(double, recombinationGeneDisablePropability, 0.75)
 
             /* the survival rate of the population during generation change */
             addOption(double, survivalRate, 0.2)
@@ -98,7 +88,7 @@ namespace NEAT {
             addOption(double, mutationWeightRangeEnd, 2.5)
 
             /* the weight range for creating a ConnectionGene */
-            addOption(double, creationWeightRangeStart, -1) // TODO better with 2.5 (but NEAT = 1)
+            addOption(double, creationWeightRangeStart, -1) 
             addOption(double, creationWeightRangeEnd, 1)
 
             /* the propability of setting a connection weight to 
