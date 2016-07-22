@@ -23,17 +23,15 @@ void Organism::mutate() {
 
     this->fitness = std::nan("Organism");
 
-    if (rand_range_d64(rand, 0, 1) < Opts::addNeuronMutationPropability()) {
-        for(unsigned i = 0; i < 20; i++)
-            if (this->genome.mutateInsertNeuron())
+    if (rand_range_d64(rand, 0, 1) < Opts::addNeuronMutationPropability()) 
+        for(unsigned i = 0; i < 30; i++) 
+            if (this->genome.mutateInsertNeuron()) 
                 return;
-    } 
     
-    if (rand_range_d64(rand, 0, 1) < Opts::addConnectionMutationPropability()) {
-        for(unsigned i = 0; i < 80; i++)
+    if (rand_range_d64(rand, 0, 1) < Opts::addConnectionMutationPropability()) 
+        for(unsigned i = 0; i < 100; i++) 
             if (this->genome.mutateInsertConnection())
                 return;
-    }
     
     if (rand_range_d64(rand, 0, 1) < Opts::mutateWeightsPropability())
         this->genome.mutateConnections();

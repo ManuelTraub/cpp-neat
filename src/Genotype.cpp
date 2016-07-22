@@ -100,11 +100,6 @@ bool Genotype::mutateInsertConnection() {
         outputNeuron.getLayerID() <= inputNeuron.getLayerID())
         return false;
 
-    /* FIXME NEAT bug wich prevents connectons form and to outputs FIXME */
-    if (inputNeuron.getType() == NeuronType::OUTPUT ||
-        outputNeuron.getType() == NeuronType::OUTPUT)
-        return false;
-
     /* create the new conncetion */
     ConnectionGene connection = history.insertConnection(inputNeuron, outputNeuron);
 
