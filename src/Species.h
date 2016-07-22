@@ -39,9 +39,6 @@ namespace NEAT {
         public:
 #endif
 
-            /* chose a Organisms for reproduction, propability based on the organisms fittnes */
-            vector<unsigned> chooseOrganisms(unsigned nOffsprings);
-
             /* creates a new offspring from the Organism with the given index */
             shared_ptr<Organism> createOffspring(unsigned index);
 

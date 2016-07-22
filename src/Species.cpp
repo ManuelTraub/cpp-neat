@@ -44,42 +44,6 @@ void Species::calculateFittness(vector<vector<double>> inputs, vector<vector<dou
     std::sort(organisms.begin(), organisms.end(), orderOrganisms);
 }
 
-/* chose a Organisms for reproduction, propability based on the organisms fittnes */
-vector<unsigned> Species::chooseOrganisms(unsigned nOffsprings) {
-    
-    /* create vector for the choosen indices */
-    vector<unsigned> choosen(nOffsprings);
-
-    /* FIXME NEAT adaption no propability based choosing FIXME */
-    for (unsigned i = 0; i < nOffsprings; i++)
-        choosen[i] = rand64(rand) % this->organisms.size();
-
-
-    /* create a propability vector for choosing the individum for reproduction 
-    vector<double> propability(organisms.size());
-
-    double maxPropability = 0.0;
-    for (unsigned i = 0; i < organisms.size(); i++) {
-        propability[i] = organisms[i]->getAdjustedFitness() / organisms[0]->getAdjustedFitness();
-        maxPropability += propability[i]; 
-    }
-
-    for (unsigned i = 1; i < propability.size(); i++)
-        propability[i] += propability[i - 1];
-
-    for (unsigned i = 0; i < nOffsprings; i++) {
-        const double randValue = rand_range_d64(rand, 0.0, maxPropability);
-        for (unsigned o = 0; o < organisms.size(); o++) {
-            if (propability[o] > randValue) {
-                choosen[i] = o;           
-                break;
-            }
-        }
-    }
-*/
-    return choosen;
-}
-
 /* creates a new offspring from the Organism with the given index */
 shared_ptr<Organism> Species::createOffspring(unsigned index) {
     
@@ -119,12 +83,11 @@ vector<shared_ptr<Organism>> Species::createOffsprings(unsigned nOffsprings) {
         nOffsprings--;
     }
 
-    /* choose Organisms for reproduction */
-    vector<unsigned> choosen = this->chooseOrganisms(nOffsprings);
-
     /* create the new generation */
-    for (const auto &i : choosen)
-        newGeneration.push_back(this->createOffspring(i));
+    for (unsigned i = 0; i < nOffsprings; i++) {
+        const unsigned index = rand64(rand) % this->organisms.size();
+        newGeneration.push_back(this->createOffspring(index));
+    }
 
     return newGeneration;
 }
@@ -133,8 +96,8 @@ vector<shared_ptr<Organism>> Species::createOffsprings(unsigned nOffsprings) {
 shared_ptr<Organism> Species::createOffspring(Species &other) {
 
     /* choose Organisms for reproduction */
-    const unsigned thisIndex  = this->chooseOrganisms(1)[0];
-    const unsigned otherIndex = other.chooseOrganisms(1)[0];
+    const unsigned thisIndex  = rand64(rand) % this->organisms.size();
+    const unsigned otherIndex = rand64(rand) % other.organisms.size();
 
     return make_shared<Organism>(*this->organisms[thisIndex], *other.organisms[otherIndex]);
 }
