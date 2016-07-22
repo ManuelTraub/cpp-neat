@@ -60,7 +60,7 @@ namespace NEAT {
             Organism(const Organism &parent1, const Organism &parent2) : 
                 genome((parent1.originalFitness == parent2.originalFitness) ? 
                         Genotype(smallerGenome(parent1, parent2), biggerGenome(parent1, parent2)) :
-                        Genotype(fitterGenome(parent1, parent2), weakerGenome(parent1, parent2)),
+                        Genotype(fitterGenome(parent1, parent2), weakerGenome(parent1, parent2))),
                 originalFitness(std::nan("Organism")), 
                 adjustedFitness(std::nan("Organism")), 
                 alive(true) { 
@@ -127,13 +127,7 @@ namespace NEAT {
     };
 
     /* compares two Organism based on theyr adjustedFitness fittness */
-    struct OrganismComparator {
-            bool operator () (const shared_ptr<Organism> &a,
-                              const shared_ptr<Organism> &b) const {
-
-                return a->getAdjustedFitness() > b->getAdjustedFitness();
-            }
-    };
+    bool orderOrganisms(const shared_ptr<Organism> &a, const shared_ptr<Organism> &b);
 
 }
 

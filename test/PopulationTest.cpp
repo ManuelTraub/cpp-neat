@@ -50,7 +50,7 @@ TEST(basicOrganismSpeedTest) {
         for (auto &o :organisms)
             o->calculateFittness(trainingInputs, trainingOutputs, 10, 15, 3);
 
-        sort(organisms.begin(), organisms.end(), OrganismComparator());
+        sort(organisms.begin(), organisms.end(), orderOrganisms);
 
         for (unsigned i = 0; i < Opts::populationSize(); i++) {
             organisms[i] = make_shared<Organism>(organisms[i]->clone());
@@ -61,7 +61,7 @@ TEST(basicOrganismSpeedTest) {
     for (auto &o :organisms)
         o->calculateFittness(trainingInputs, trainingOutputs, 10, 15, 3);
 
-    sort(organisms.begin(), organisms.end(), OrganismComparator());
+    sort(organisms.begin(), organisms.end(), orderOrganisms);
     Phenotype phenotype(organisms[0]->getGenome());
 
     phenotype.saveAsSVG("bestOrganism.svg");
@@ -96,8 +96,8 @@ TEST(basicSpeciesSpeedTest) {
         for (auto &s : species)
             s->calculateFittness(trainingInputs, trainingOutputs);
 
-        sort(organisms.begin(), organisms.end(), OrganismComparator());
-        sort(species.begin(), species.end(), SpeciesComparator());
+        sort(organisms.begin(), organisms.end(), orderOrganisms);
+        sort(species.begin(), species.end(), orderSpecies);
 
         for (unsigned i = 0; i < Opts::populationSize(); i++) {
             organisms[i]->kill();
@@ -115,7 +115,7 @@ TEST(basicSpeciesSpeedTest) {
     for (auto &s : species)
         s->calculateFittness(trainingInputs, trainingOutputs);
 
-    sort(organisms.begin(), organisms.end(), OrganismComparator());
+    sort(organisms.begin(), organisms.end(), orderOrganisms);
     Phenotype phenotype(organisms[0]->getGenome());
 
     phenotype.saveAsSVG("bestOrganism.svg");
@@ -150,8 +150,8 @@ TEST(advancedSpeciesSpeedTest) {
         for (auto &s : species)
             s->calculateFittness(trainingInputs, trainingOutputs);
 
-        sort(organisms.begin(), organisms.end(), OrganismComparator());
-        sort(species.begin(), species.end(), SpeciesComparator());
+        sort(organisms.begin(), organisms.end(), orderOrganisms);
+        sort(species.begin(), species.end(), orderSpecies);
 
         vector<shared_ptr<Organism>> nexGeneration;
 
@@ -178,7 +178,7 @@ TEST(advancedSpeciesSpeedTest) {
     for (auto &s : species)
         s->calculateFittness(trainingInputs, trainingOutputs);
 
-    sort(organisms.begin(), organisms.end(), OrganismComparator());
+    sort(organisms.begin(), organisms.end(), orderOrganisms);
     Phenotype phenotype(organisms[0]->getGenome());
 
     phenotype.saveAsSVG("bestOrganism.svg");
@@ -516,8 +516,6 @@ TEST(binaryXORSpeedTest) {
                 phenotype.run({0,1})[0] > 0.5 &&
                 phenotype.run({1,0})[0] > 0.5 &&
                 phenotype.run({1,1})[0] < 0.5) {
-                
-                phenotype.saveAsSVG("bestOrganism" + itoa(i) + "g" + itoa(r) + "r.svg");
                 break;
             }
         }
@@ -529,10 +527,20 @@ TEST(binaryXORSpeedTest) {
             printf("failed\n");
         else {
 
+            unsigned enabledGenes = 0;
+            for (const auto &c : best->getGenome().getConnections())
+                if (c.second.isEnabled())
+                    enabledGenes++;
+
             generations.push_back(i);
             nodes.push_back(best->getGenome().getNeurons().size());
-            connections.push_back(best->getGenome().getConnections().size());
+            connections.push_back(enabledGenes);
             species.push_back(population.getSpecies().size());
+
+            shared_ptr<Organism> best = population.getBestOrganism();
+            Phenotype phenotype(best->getGenome());
+            phenotype.saveAsSVG("bestOrganism" + itoa(connections.back()) + "c" + 
+                                itoa(nodes.back()) + "n" + itoa(generations.back()) + "g.svg");
 
             printf("[%u] Generation %3u / %3.1F, Nodes %3u / %3.1F, Connections: %3u / %3.1F, Species %3u / %3.1F\n", r,
                    generations.back(), avgVector(generations),

@@ -171,6 +171,12 @@ namespace NEAT {
                 generation = GenerationCounter::get();
             }
 
+            /* enable this gene */
+            void enable() { 
+                enabled    = true; 
+                generation = GenerationCounter::get();
+            }
+
             /* returns if this is enabled */
             bool isEnabled() const { return enabled; }
 

@@ -119,13 +119,7 @@ namespace NEAT {
     };
 
     /* compares two Species based on theyr best fittness */
-    struct SpeciesComparator {
-            bool operator () (const shared_ptr<Species> &a,
-                              const shared_ptr<Species> &b) const {
-
-                return a->getBestFitness() > b->getBestFitness();
-            }
-    };
+    bool orderSpecies(const shared_ptr<Species> &a, const shared_ptr<Species> &b);
 }
 
 #endif /* __SPECIES_H__ */

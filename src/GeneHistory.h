@@ -82,7 +82,12 @@ namespace NEAT {
             /* the output neurons of this */
             vector<NeuronGene> outputs;
 
+            vector<NeuronGene> curNeurons;
+            vector<ConnectionGene> curConnections;
+
         public:
+
+            void clearCur() { curNeurons.clear(); curConnections.clear(); }
 
             /* access the only instance of this */
             static GeneHistory &getInstance();

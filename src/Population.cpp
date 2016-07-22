@@ -44,7 +44,7 @@ vector<shared_ptr<Organism>> Population::prepareGenerationChange() {
         s->killWorst();
 
     /* sort species by their best fitness */
-    std::sort(this->species.begin(), this->species.end(), SpeciesComparator());
+    std::sort(this->species.begin(), this->species.end(), orderSpecies);
 
     /* every x generations penalize the worst species over n years 
      * (best species will never be penalized) 
@@ -79,7 +79,7 @@ vector<shared_ptr<Organism>> Population::prepareGenerationChange() {
     }
 
     /* sort the organisms by theyr fitness */
-    std::sort(organisms.begin(), organisms.end(), OrganismComparator());
+    std::sort(organisms.begin(), organisms.end(), orderOrganisms); 
     return organisms;
 }
 
@@ -235,6 +235,7 @@ void Population::finishGenerationChange(vector<shared_ptr<Organism>> lastGenerat
 
     /* increase the generation counter */
     GenerationCounter::onlyInstance.generation++;
+    GeneHistory::getInstance().clearCur();
 /*
     printf("\tSpecies(%u): ", this->species.size());
     for (const auto &s : this->species)

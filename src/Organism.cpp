@@ -66,3 +66,11 @@ void Organism::mutate() {
     if (rand_range_d64(rand, 0, 1) < Opts::mutateWeightsPropability())
         this->genome.mutateConnections();
 }
+
+namespace NEAT {
+
+    /* compares two Organism based on theyr adjustedFitness fittness */
+    bool orderOrganisms(const shared_ptr<Organism> &a, const shared_ptr<Organism> &b) {
+        return a->getAdjustedFitness() > b->getAdjustedFitness();
+    }
+}

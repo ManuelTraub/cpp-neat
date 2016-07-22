@@ -96,9 +96,22 @@ bool Genotype::mutateInsertConnection() {
         outputNeuron.getType() == NeuronType::BIAS)
         return false;
 
+    /* FIXME this seams very important when not done qualitiy dramaticlaly decreases FIXME */
+    /* FIXME seams that it must prevented that a connection is inserted into the     FIXME */
+    /* FIXME Gene History and then not used                                          FIXME */
+    for (const auto &c : connections)
+      if (c.second.getInput().getID() == inputNeuron.getID() &&
+          c.second.getOutput().getID() == outputNeuron.getID())
+          return false;
+
     /* stop if its a recurent connection and we arent allowet to create one */
     if (!Opts::allowRecurentConnections() && 
         outputNeuron.getLayerID() <= inputNeuron.getLayerID())
+        return false;
+
+    /* FIXME NEAT bug wich prevents connectons form and to outputs FIXME */
+    if (inputNeuron.getType() == NeuronType::OUTPUT ||
+        outputNeuron.getType() == NeuronType::OUTPUT)
         return false;
 
     /* create the new conncetion */
@@ -216,18 +229,21 @@ void Genotype::recombinateAverage(const Genotype &fitter, const Genotype &other)
          * average the weith of both
          */
         if (other.connections.count(e.first) != 0) {
-            this->connections.at(e.first).setWeight(middle(
-                fitter.connections.at(e.first).getWeight(),
+            this->connections.at(e.first).setWeight((
+                fitter.connections.at(e.first).getWeight() +
                 other.connections.at(e.first).getWeight()
-            ));
+            ) / 2.0);
             
             /* if only one connection is enabled disable a enable connection by the
              * connectionDisablePropability property 
              */
-            if (!other.connections.at(e.first).isEnabled()  &&
-                this->connections.at(e.first).isEnabled()   &&
-                rand_range_d64(rand, 0, 1) > Opts::connectionDisablePropability())
-                this->connections.at(e.first).disable();
+            if (other.connections.at(e.first).isEnabled() == false ||
+                this->connections.at(e.first).isEnabled() == false) {
+                if (rand_range_d64(rand, 0, 1) > 0.75) 
+                    this->connections.at(e.first).enable();
+                else
+                    this->connections.at(e.first).disable();
+            }
         } 
 
         /* actualize the generation number */

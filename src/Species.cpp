@@ -41,7 +41,7 @@ void Species::calculateFittness(vector<vector<double>> inputs, vector<vector<dou
     this->averageAdjustedFitness /= this->organisms.size();
 
     /* sort the organisms by theyr adjusted fitness */
-    std::sort(organisms.begin(), organisms.end(), OrganismComparator());
+    std::sort(organisms.begin(), organisms.end(), orderOrganisms);
 }
 
 /* chose a Organisms for reproduction, propability based on the organisms fittnes */
@@ -150,10 +150,27 @@ void Species::killWorst() {
         organisms[i]->kill();
 
     organisms.erase(organisms.begin() + killStart, organisms.end());
+
+    /* recalculate the average fitness */
+    this->averageAdjustedFitness = 0;
+    
+    /* FIXME NEAT bug caused to not penalize species FIXME */
+    for (auto &o : this->organisms)
+        this->averageAdjustedFitness += o->getOriginalFitness();
+
+    this->averageAdjustedFitness /= this->organisms.size();
 }
 
 /* penalize this species */
 void Species::penalize() {
     for (auto &o : this->organisms)
         o->penalize();
+}
+
+namespace NEAT {
+
+    /* compares two Species based on theyr best fittness */
+    bool orderSpecies(const shared_ptr<Species> &a, const shared_ptr<Species> &b) {
+        return a->getBestFitness() > b->getBestFitness();
+    }
 }
