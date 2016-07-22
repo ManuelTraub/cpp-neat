@@ -47,22 +47,6 @@ NeuronGene GeneHistory::insertNeuron(NeuronType const type, uint64_t number) {
  */
 NeuronGene GeneHistory::insertNeuron(const ConnectionGene &gene) {
 
-    for (const auto &in : curConnections) {
-        if (in.getInput() == gene.getInput()) {
-            for (const auto &out : curConnections) {
-                if (out.getOutput() == gene.getOutput()) {
-                    if (in.getOutput() == out.getInput()) {
-                        return in.getOutput();             
-                    }
-                }
-            }
-        }
-    }
-    NeuronGene newNeuron = gene.split();
-    curNeurons.push_back(newNeuron);
-    return newNeuron;
-
-
     assert(gene.canBeSplitted());
     
     /* check if an Neuron already exists */
@@ -87,7 +71,7 @@ NeuronGene GeneHistory::insertNeuron(const ConnectionGene &gene) {
     }
 
     /* if no connection was found insert a new one */
-//    NeuronGene newNeuron = gene.split();
+    NeuronGene newNeuron = gene.split();
 
     inputConnections.addOutput(newNeuron.getID());
     outputConnections.addInput(newNeuron.getID());
@@ -102,15 +86,6 @@ NeuronGene GeneHistory::insertNeuron(const ConnectionGene &gene) {
 
 /* insert a new input, bias or output Neuron */
 ConnectionGene GeneHistory::insertConnection(NeuronGene const &input, NeuronGene const &output) {
-
-    for (const auto &c : curConnections)
-        if (c.getInput() == input && c.getOutput() == output)
-            return c;
-
-    ConnectionGene newGene(input, output);
-    curConnections.push_back(newGene);
-    return newGene;
-
     
     /* all NeuronGenes have to be in the gene History */
     assert(neuronMap.count(input.getID())  == 1);

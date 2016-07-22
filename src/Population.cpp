@@ -75,13 +75,7 @@ vector<unsigned> Population::calculateOffspringsPerSpecies(unsigned nOffsprings)
         propabilityDistribution.push_back(s->getAverageAdjustedFitness());
         overallAverageFitness += propabilityDistribution.back();
     }
-/*
-    overallAverageFitness /= this->species.size();
-    printf("propabilityPerSpecies:   ");
-    for (const auto &e : propabilityDistribution)
-        printf("%3.3F ", e);
-    printf("\n");
-*/
+
     double propabilitySum = 0;
     for (auto &p : propabilityDistribution) {
         p /= overallAverageFitness;
@@ -105,22 +99,7 @@ vector<unsigned> Population::calculateOffspringsPerSpecies(unsigned nOffsprings)
             }
         }
     }
-/*
-    printf("propabilityDistribution: ");
-    for (const auto &e : propabilityDistribution)
-        printf("%3.3F ", e);
-    printf("\n");
 
-    printf("offspringsPerSpecies:    ");
-    for (const auto &e : offspringsPerSpecies)
-        printf("%5u ", e);
-    printf("\n");
-    
-    printf("organisms per species:   ");
-    for (const auto &s : species)
-        printf("%5u ", s->size());
-    printf("\n\n");
- */       
     return offspringsPerSpecies;
 }
 
@@ -216,13 +195,6 @@ void Population::finishGenerationChange(vector<shared_ptr<Organism>> lastGenerat
 
     /* increase the generation counter */
     GenerationCounter::onlyInstance.generation++;
-    GeneHistory::getInstance().clearCur();
-/*
-    printf("\tSpecies(%u): ", this->species.size());
-    for (const auto &s : this->species)
-        printf("%u ", s->size());
-    printf("\n");
-*/
 }
 
 /* increase the genaration counter and sort all genomes by theyr fitness */

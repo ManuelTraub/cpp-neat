@@ -109,17 +109,14 @@ namespace NEAT {
             /* propability to do no mutation during recombination */
             addOption(double, mateOnlyPropability, 0.2);
 
-            /* propability of disabeling an inerhited enabled connection 
-             * (the propability of disableing a connection if eighter one parrent 
-             *  is disabled is 1 - 0.5 * connectionDisablePropability)
-             */
-            addOption(double, connectionDisablePropability, 0.5);
-
             /* propability of using average mating */
             addOption(double, avgMatingPropability, 0.4);
 
             /* inicates that recurent connections are enabled */
             addOption(bool, allowRecurentConnections, false);
+
+            /* propability to reenable a gene during mating */
+            addOption(double, geneReenablePropability, 0.25);
 
 #ifdef __DEBUG__
             static Opts &getInstance() { return onlyInstance; }

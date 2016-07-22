@@ -30,7 +30,7 @@ void Organism::mutate() {
     } 
     
     if (rand_range_d64(rand, 0, 1) < Opts::addConnectionMutationPropability()) {
-        for(unsigned i = 0; i < 20; i++)
+        for(unsigned i = 0; i < 80; i++)
             if (this->genome.mutateInsertConnection())
                 return;
     }

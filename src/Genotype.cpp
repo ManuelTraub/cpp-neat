@@ -95,15 +95,6 @@ bool Genotype::mutateInsertConnection() {
     if (outputNeuron.getType() == NeuronType::INPUT ||
         outputNeuron.getType() == NeuronType::BIAS)
         return false;
-
-    /* FIXME this seams very important when not done qualitiy dramaticlaly decreases FIXME */
-    /* FIXME seams that it must prevented that a connection is inserted into the     FIXME */
-    /* FIXME Gene History and then not used                                          FIXME */
-    for (const auto &c : connections)
-      if (c.second.getInput().getID() == inputNeuron.getID() &&
-          c.second.getOutput().getID() == outputNeuron.getID())
-          return false;
-
     /* stop if its a recurent connection and we arent allowet to create one */
     if (!Opts::allowRecurentConnections() && 
         outputNeuron.getLayerID() <= inputNeuron.getLayerID())
@@ -193,14 +184,14 @@ void Genotype::recombinateRandomChoose(const Genotype &fitter, const Genotype &o
             else
                 this->connections.insert({e.first, fitter.connections.at(e.first)});
             
-            /* if only one connection is enabled disable a enable connection by the
-             * connectionDisablePropability property 
-             */
-            if ((fitter.connections.at(e.first).isEnabled() ^ 
-                 other.connections.at(e.first).isEnabled()) &&
-                this->connections.at(e.first).isEnabled()   &&
-                rand_range_d64(rand, 0, 1) > Opts::connectionDisablePropability())
-                this->connections.at(e.first).disable();
+            /* during mating a gene can be renabled */ 
+            if (other.connections.at(e.first).isEnabled() == false ||
+                this->connections.at(e.first).isEnabled() == false) {
+                if (rand_range_d64(rand, 0, 1) < Opts::geneReenablePropability()) 
+                    this->connections.at(e.first).enable();
+                else
+                    this->connections.at(e.first).disable();
+            }
 
         /* use only missing genes from the fitter individual */
         } else 
@@ -234,12 +225,10 @@ void Genotype::recombinateAverage(const Genotype &fitter, const Genotype &other)
                 other.connections.at(e.first).getWeight()
             ) / 2.0);
             
-            /* if only one connection is enabled disable a enable connection by the
-             * connectionDisablePropability property 
-             */
+            /* during mating a gene can be renabled */ 
             if (other.connections.at(e.first).isEnabled() == false ||
                 this->connections.at(e.first).isEnabled() == false) {
-                if (rand_range_d64(rand, 0, 1) > 0.75) 
+                if (rand_range_d64(rand, 0, 1) < Opts::geneReenablePropability()) 
                     this->connections.at(e.first).enable();
                 else
                     this->connections.at(e.first).disable();
