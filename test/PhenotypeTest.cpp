@@ -81,7 +81,7 @@ TEST(basicBinaryANDTest) {
     unordered_map<uint64_t, NeuronGene> neuronsMap = genotype.getNeurons();
     vector<NeuronGene> inputs;
     vector<NeuronGene> outputs;
-    const NeuronGene *bias;
+    const NeuronGene *bias = NULL;
     
     for (const auto &e : neuronsMap) {
         if (e.second.getType() == NeuronType::INPUT)

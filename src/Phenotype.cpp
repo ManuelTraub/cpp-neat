@@ -156,6 +156,10 @@ double Phenotype::calculateError(vector<vector<double>> inputs, vector<vector<do
         for (unsigned i = 0; i < neuronLayers.back().size(); i++) {
             error += (outputs[k][i] - neuronLayers.back()[i]->getValue()) *
                      (outputs[k][i] - neuronLayers.back()[i]->getValue());
+            
+            /* penalize unconnected outputs */
+            if (neuronLayers.back()[i]->getInputs().size() == 0)
+                error += 1;
         }
     }
     return error;

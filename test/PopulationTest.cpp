@@ -435,9 +435,10 @@ TEST(binaryXORQualityTest) {
         shared_ptr<Organism> best = population.getBestOrganism();
         Phenotype phenotype(best->getGenome());
 
-        if (i == nGenerations)
+        if (i == nGenerations) {
             printf("failed\n");
-        else {
+            phenotype.saveAsSVG("failedOrganism" + itoa(r) + ".svg");
+        } else {
 
             unsigned enabledGenes = 0;
             for (const auto &c : best->getGenome().getConnections())
@@ -449,8 +450,6 @@ TEST(binaryXORQualityTest) {
             connections.push_back(enabledGenes);
             species.push_back(population.getSpecies().size());
 
-            shared_ptr<Organism> best = population.getBestOrganism();
-            Phenotype phenotype(best->getGenome());
             phenotype.saveAsSVG("bestOrganism" + itoa(connections.back()) + "c" + 
                                 itoa(nodes.back()) + "n" + itoa(generations.back()) + "g.svg");
 
@@ -462,6 +461,79 @@ TEST(binaryXORQualityTest) {
 
             if (r > nRuns / 1.5) {
                 ASSERT_TRUE(avgVector(generations) < 32);
+                ASSERT_TRUE(avgVector(nodes) < 7);
+                ASSERT_TRUE(avgVector(connections) < 11);
+                ASSERT_TRUE(avgVector(species) < 18);
+            }
+        }
+
+    }
+
+    return args;
+}
+
+TEST(binaryXORZeroStartConectionsQualityTest) {
+
+    /* training data */
+    vector<vector<double>> trainingInputs  = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
+    vector<vector<double>> trainingOutputs = {{0}, {1}, {1}, {0}};
+
+    vector<unsigned> generations;
+    vector<unsigned> nodes;
+    vector<unsigned> connections;
+    vector<unsigned> species;
+
+    const unsigned nRuns = 1000;
+    const unsigned nGenerations = 300;
+
+    for (unsigned r = 0; r < nRuns; r++) {
+
+        Population population(trainingInputs, trainingOutputs);
+
+        unsigned i;
+        for (i = 0; i < nGenerations; i++) {
+            population.calcNextGeneration();
+
+            shared_ptr<Organism> best = population.getBestOrganism();
+            Phenotype phenotype(best->getGenome());
+
+            if (phenotype.run({0,0})[0] < 0.5 &&
+                phenotype.run({0,1})[0] > 0.5 &&
+                phenotype.run({1,0})[0] > 0.5 &&
+                phenotype.run({1,1})[0] < 0.5) {
+                break;
+            }
+        }
+
+        shared_ptr<Organism> best = population.getBestOrganism();
+        Phenotype phenotype(best->getGenome());
+
+        if (i == nGenerations) {
+            printf("failed\n");
+            phenotype.saveAsSVG("failedOrganism" + itoa(r) + ".svg");
+        } else {
+
+            unsigned enabledGenes = 0;
+            for (const auto &c : best->getGenome().getConnections())
+                if (c.second.isEnabled())
+                    enabledGenes++;
+
+            generations.push_back(i);
+            nodes.push_back(best->getGenome().getNeurons().size());
+            connections.push_back(enabledGenes);
+            species.push_back(population.getSpecies().size());
+
+            phenotype.saveAsSVG("bestOrganism" + itoa(connections.back()) + "c" + 
+                                itoa(nodes.back()) + "n" + itoa(generations.back()) + "g.svg");
+
+            TEST_MSGD("[%u] Generation %3u / %3.1F, Nodes %3u / %3.1F, Connections: %3u / %3.1F, Species %3u / %3.1F", r,
+                      generations.back(), avgVector(generations),
+                      nodes.back(), avgVector(nodes),
+                      connections.back(), avgVector(connections),
+                      species.back(), avgVector(species));
+
+            if (r > nRuns / 1.5) {
+                ASSERT_TRUE(avgVector(generations) < 35);
                 ASSERT_TRUE(avgVector(nodes) < 7);
                 ASSERT_TRUE(avgVector(connections) < 11);
                 ASSERT_TRUE(avgVector(species) < 18);
