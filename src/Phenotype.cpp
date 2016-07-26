@@ -165,6 +165,49 @@ double Phenotype::calculateError(vector<vector<double>> inputs, vector<vector<do
     return error;
 }
 
+/* calculaes the maximum derivation for a single output from the training data */
+double Phenotype::maxDerivation(vector<vector<double>> inputs, vector<vector<double>> outputs) {
+
+    assert(inputs.size() == outputs.size());
+    double max = 0;
+
+    for (unsigned k = 0; k < inputs.size(); k++) {
+
+        assert(inputs[k].size() == neuronLayers[0].size());
+        assert(outputs[k].size() == neuronLayers.back().size());
+        
+        /* set the input neurons */
+        for (unsigned i = 0; i < neuronLayers[0].size(); i++)
+            this->neuronLayers[0][i]->setValue(inputs[k][i]);
+        
+        /* calculate the output for each layer (except the input layers)
+         * (calculate and applay in several steps to preserv recurent
+         * connections within the same layer)
+         */
+        for (unsigned l = 1; l < neuronLayers.size(); l++) {
+
+            for (unsigned n = 0; n < neuronLayers[l].size(); n++) 
+                neuronLayers[l][n]->calculateUpdate();
+
+            for (unsigned n = 0; n < neuronLayers[l].size(); n++) 
+                neuronLayers[l][n]->applayUpdate();
+        }
+
+        /* calculate the round error */
+        for (unsigned i = 0; i < neuronLayers.back().size(); i++) {
+            double derivation = absDiff(outputs[k][i], neuronLayers.back()[i]->getValue());
+
+            /* penalize unconnected outputs */
+            if (neuronLayers.back()[i]->getInputs().size() == 0)
+                derivation += 1;
+            
+            if (derivation > max)
+                max = derivation;
+        }
+    }
+    return max;
+}
+
 /* export this as an svg image */
 void Phenotype::saveAsSVG(string fname) {
 

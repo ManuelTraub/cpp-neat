@@ -45,6 +45,9 @@ namespace NEAT {
             /* calculaes the quadratic error for the given data set */
             double calculateError(vector<vector<double>> inputs, vector<vector<double>> outputs);
 
+            /* calculaes the maximum derivation for a single output from the training data */
+            double maxDerivation(vector<vector<double>> inputs, vector<vector<double>> outputs);
+
             /* export this as an svg image */
             void saveAsSVG(string fname);
 

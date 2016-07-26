@@ -261,10 +261,7 @@ TEST(basicGenerationChangeSpeedTest) {
         /* check if we have a wining candidate */
         shared_ptr<Organism> best = population.getBestOrganism();
         Phenotype phenotype(best->getGenome());
-        if (phenotype.run({0,0})[0] < 0.5 &&
-            phenotype.run({0,1})[0] < 0.5 &&
-            phenotype.run({1,0})[0] < 0.5 &&
-            phenotype.run({1,1})[0] > 0.5)
+        if (phenotype.maxDerivation(trainingInputs, trainingOutputs) < 0.5)
             break;
     }
 
@@ -365,10 +362,7 @@ TEST(basicBinaryXORTest) {
         /* check if we have a wining candidate */
         shared_ptr<Organism> best = population.getBestOrganism();
         Phenotype phenotype(best->getGenome());
-        if (phenotype.run({0,0})[0] < 0.5 &&
-            phenotype.run({0,1})[0] > 0.5 &&
-            phenotype.run({1,0})[0] > 0.5 &&
-            phenotype.run({1,1})[0] < 0.5)
+        if (phenotype.maxDerivation(trainingInputs, trainingOutputs) < 0.5)
             break;
     }
 
@@ -424,12 +418,8 @@ TEST(binaryXORQualityTest) {
             shared_ptr<Organism> best = population.getBestOrganism();
             Phenotype phenotype(best->getGenome());
 
-            if (phenotype.run({0,0})[0] < 0.5 &&
-                phenotype.run({0,1})[0] > 0.5 &&
-                phenotype.run({1,0})[0] > 0.5 &&
-                phenotype.run({1,1})[0] < 0.5) {
+            if (phenotype.maxDerivation(trainingInputs, trainingOutputs) < 0.5)
                 break;
-            }
         }
 
         shared_ptr<Organism> best = population.getBestOrganism();
@@ -497,12 +487,8 @@ TEST(binaryXORZeroStartConectionsQualityTest) {
             shared_ptr<Organism> best = population.getBestOrganism();
             Phenotype phenotype(best->getGenome());
 
-            if (phenotype.run({0,0})[0] < 0.5 &&
-                phenotype.run({0,1})[0] > 0.5 &&
-                phenotype.run({1,0})[0] > 0.5 &&
-                phenotype.run({1,1})[0] < 0.5) {
+            if (phenotype.maxDerivation(trainingInputs, trainingOutputs) < 0.5)
                 break;
-            }
         }
 
         shared_ptr<Organism> best = population.getBestOrganism();
