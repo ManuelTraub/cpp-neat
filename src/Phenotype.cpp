@@ -256,8 +256,8 @@ void Phenotype::saveAsSVG(string fname) {
 
              for (unsigned i = 0; i < inputs.size(); i++) {
 
-                const unsigned green = (weights[i] < 0) ? 255.0 * (1 + weights[i]) : 255;
-                const unsigned red   = (weights[i] > 0) ? 255.0 * (1 - weights[i]) : 255;
+                const unsigned green = (weights[i] < 0) ? (255.0 * (8 + weights[i])) / 8 : 255;
+                const unsigned red   = (weights[i] > 0) ? (255.0 * (8 - weights[i])) / 8 : 255;
                 
                  /* color node fill color if bias connection */
                  if (inputs[i] == bias) {
