@@ -255,6 +255,13 @@ void Phenotype::saveAsSVG(string fname) {
 
                      colorsRecurent[neuron] = Color(red, green, 0);
 
+                 /* dash recurent connections */
+                 } else if (points[inputs[i]].x > points[neuron].x) {
+
+                    doc << (Polyline(Stroke(connectionSize*2, Color(red, green, 0), Dashed(100,100))) << 
+                            points[inputs[i]] << points[neuron]);
+
+                 /* draw normal line for normal connections */
                  } else {
                 
                     doc << (Polyline(Stroke(connectionSize, Color(red, green, 0))) << 

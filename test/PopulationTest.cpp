@@ -394,6 +394,8 @@ double avgVector(vector<unsigned> v) {
 
 TEST(binaryXORQualityTest) {
 
+    Opts::getInstance()._allowRecurentConnections = true;
+
     /* training data */
     vector<vector<double>> trainingInputs  = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
     vector<vector<double>> trainingOutputs = {{0}, {1}, {1}, {0}};

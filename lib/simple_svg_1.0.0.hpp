@@ -89,6 +89,20 @@ namespace svg
         T type;
     };
 
+    struct Dashed
+    {   
+        Dashed(double lineWidth, double spaceWidth) : 
+            lineWidth(lineWidth), spaceWidth(spaceWidth) { }
+        double lineWidth;
+        double spaceWidth;
+        std::string toString() const {
+            std::stringstream ss;
+            ss << lineWidth << "," << spaceWidth;
+            return ss.str();
+        }
+        bool isDashed() const { return spaceWidth > 0; }
+    };
+
     struct Dimensions
     {
         Dimensions(double width, double height) : width(width), height(height) { }
@@ -248,8 +262,8 @@ namespace svg
     class Stroke : public Serializeable
     {
     public:
-        Stroke(double width = -1, Color color = Color::Transparent)
-            : width(width), color(color) { }
+        Stroke(double width = -1, Color color = Color::Transparent, Dashed dashed = Dashed(0, 0))
+            : width(width), color(color), dashed(dashed) { }
         std::string toString(Layout const & layout) const
         {
             // If stroke width is invalid.
@@ -258,11 +272,13 @@ namespace svg
 
             std::stringstream ss;
             ss << attribute("stroke-width", translateScale(width, layout)) << attribute("stroke", color.toString(layout));
+            ss << attribute("stroke-dasharray", dashed.toString());
             return ss.str();
         }
     private:
         double width;
         Color color;
+        Dashed dashed;
     };
 
     class Font : public Serializeable
