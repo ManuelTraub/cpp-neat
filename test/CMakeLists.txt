@@ -78,6 +78,11 @@ add_executable(PopulationTest
                ../src/GeneHistory 
                ../src/GenerationCounter)
 
+add_executable(FourWinns
+               FourWinns
+               ../src/utils
+               ../src/Phenotype)
+
 add_test(NAME Genotype            COMMAND GenotypeTest)
 add_test(NAME Phenotype           COMMAND PhenotypeTest)
 add_test(NAME GeneHistory         COMMAND GeneHistoryTest)

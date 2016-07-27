@@ -124,6 +124,23 @@ vector<double> Phenotype::run(vector<double> inputs) {
     return outputs;
 }
 
+/* returns the index of the output with tha higest value */
+unsigned Phenotype::maxOutput(vector<double> inputs) {
+
+    double maxOutput  = 0;
+    unsigned maxIndex = (unsigned) -1;
+    const vector<double> outputs = this->run(inputs);
+
+    for (unsigned i = 0; i < outputs.size(); i++) {
+        if (outputs[i] > maxOutput) {
+            maxOutput = outputs[i];
+            maxIndex  = i;
+        }
+    }
+
+    return maxIndex;
+}
+
 /* calculaes the quadratic error for the given data set */
 double Phenotype::calculateError(vector<vector<double>> inputs, vector<vector<double>> outputs) {
 
@@ -134,28 +151,12 @@ double Phenotype::calculateError(vector<vector<double>> inputs, vector<vector<do
 
         assert(inputs[k].size() == neuronLayers[0].size());
         assert(outputs[k].size() == neuronLayers.back().size());
+
+        const vector<double> curOutputs = this->run(inputs[k]);
         
-        /* set the input neurons */
-        for (unsigned i = 0; i < neuronLayers[0].size(); i++)
-            this->neuronLayers[0][i]->setValue(inputs[k][i]);
-        
-        /* calculate the output for each layer (except the input layers)
-         * (calculate and applay in several steps to preserv recurent
-         * connections within the same layer)
-         */
-        for (unsigned l = 1; l < neuronLayers.size(); l++) {
-
-            for (unsigned n = 0; n < neuronLayers[l].size(); n++) 
-                neuronLayers[l][n]->calculateUpdate();
-
-            for (unsigned n = 0; n < neuronLayers[l].size(); n++) 
-                neuronLayers[l][n]->applayUpdate();
-        }
-
         /* calculate the round error */
-        for (unsigned i = 0; i < neuronLayers.back().size(); i++) {
-            error += (outputs[k][i] - neuronLayers.back()[i]->getValue()) *
-                     (outputs[k][i] - neuronLayers.back()[i]->getValue());
+        for (unsigned i = 0; i < curOutputs.size(); i++) {
+            error += (outputs[k][i] - curOutputs[i]) * (outputs[k][i] - curOutputs[i]);
             
             /* penalize unconnected outputs */
             if (neuronLayers.back()[i]->getInputs().size() == 0)
@@ -175,27 +176,12 @@ double Phenotype::maxDerivation(vector<vector<double>> inputs, vector<vector<dou
 
         assert(inputs[k].size() == neuronLayers[0].size());
         assert(outputs[k].size() == neuronLayers.back().size());
+
+        const vector<double> curOutputs = this->run(inputs[k]);
         
-        /* set the input neurons */
-        for (unsigned i = 0; i < neuronLayers[0].size(); i++)
-            this->neuronLayers[0][i]->setValue(inputs[k][i]);
-        
-        /* calculate the output for each layer (except the input layers)
-         * (calculate and applay in several steps to preserv recurent
-         * connections within the same layer)
-         */
-        for (unsigned l = 1; l < neuronLayers.size(); l++) {
-
-            for (unsigned n = 0; n < neuronLayers[l].size(); n++) 
-                neuronLayers[l][n]->calculateUpdate();
-
-            for (unsigned n = 0; n < neuronLayers[l].size(); n++) 
-                neuronLayers[l][n]->applayUpdate();
-        }
-
         /* calculate the round error */
-        for (unsigned i = 0; i < neuronLayers.back().size(); i++) {
-            double derivation = absDiff(outputs[k][i], neuronLayers.back()[i]->getValue());
+        for (unsigned i = 0; i < curOutputs.size(); i++) {
+            double derivation = absDiff(outputs[k][i], curOutputs[i]);
 
             /* penalize unconnected outputs */
             if (neuronLayers.back()[i]->getInputs().size() == 0)

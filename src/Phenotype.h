@@ -42,6 +42,9 @@ namespace NEAT {
             /* calculate the output for a given input */
             vector<double> run(vector<double> inputs);
 
+            /* returns the index of the output with tha higest value */
+            unsigned maxOutput(vector<double> inputs);
+
             /* calculaes the quadratic error for the given data set */
             double calculateError(vector<vector<double>> inputs, vector<vector<double>> outputs);
 
