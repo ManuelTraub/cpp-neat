@@ -166,3 +166,25 @@ int get_arg_i(int argc,
 
   return -1;
 }
+                    
+/* returns the next bigger prime number */
+uint64_t nextPrime(uint64_t n) {
+    
+    for (bool prime = false; !prime ;n++) {
+
+        if (n % 2 == 0)
+            continue;
+        
+        prime = true;
+        const uint64_t max = sqrt(n) + 1;
+
+        for (uint64_t i = 3; i < max; i += 2) {
+            if (n % i == 0) {
+                prime = false;
+                break;
+            }
+        }
+    }
+
+    return n;
+}

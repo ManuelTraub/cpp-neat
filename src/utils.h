@@ -126,4 +126,7 @@ int get_arg_i(int argc,
 #define assertf(...)
 #endif /* __DEBUG__ */
 
+/* returns the next bigger prime number */
+uint64_t nextPrime(uint64_t n);
+
 #endif /* __UTILS_H__ */
