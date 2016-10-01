@@ -129,4 +129,9 @@ int get_arg_i(int argc,
 /* returns the next bigger prime number */
 uint64_t nextPrime(uint64_t n);
 
+/* signum function */
+template <typename T> int sgn(T val) {
+    return (T(0) < val) - (val < T(0));
+}
+
 #endif /* __UTILS_H__ */
