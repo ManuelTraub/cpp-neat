@@ -108,6 +108,9 @@ namespace NEAT {
             /* propability to reenable a gene during mating */
             addOption(double, geneReenablePropability, 0.25);
 
+            /* indicates that the training data should be shuffled after each generation */
+            addOption(bool, shuffleTrainingData, true);
+
 #ifdef __DEBUG__
             static Opts &getInstance() { return onlyInstance; }
 #endif 

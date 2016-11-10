@@ -394,12 +394,9 @@ double avgVector(vector<unsigned> v) {
 
 TEST(binaryXORQualityTest) {
 
-    Opts::getInstance()._allowRecurentConnections = true;
-
     /* training data */
     vector<vector<double>> trainingInputs  = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
     vector<vector<double>> trainingOutputs = {{0}, {1}, {1}, {0}};
-
     vector<unsigned> generations;
     vector<unsigned> nodes;
     vector<unsigned> connections;
@@ -532,3 +529,84 @@ TEST(binaryXORZeroStartConectionsQualityTest) {
 
     return args;
 }
+
+TEST(basicRecurencyTest) {
+
+    Opts::getInstance()._allowRecurentConnections = true;
+    Opts::getInstance()._shuffleTrainingData      = false;
+
+    /* training data */
+    vector<vector<double>> trainingInputs  = {{1}, {1}, {1}, {1}, {1}, {1}, {1}, {1}, {1}, {1}};
+    vector<vector<double>> trainingOutputs = {{0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {1}};
+
+    vector<unsigned> generations;
+    vector<unsigned> nodes;
+    vector<unsigned> connections;
+    vector<unsigned> species;
+
+    const unsigned nRuns = 1000;
+    const unsigned nGenerations = 500;
+
+    for (unsigned r = 0; r < nRuns; r++) {
+
+        Population population(trainingInputs, trainingOutputs);
+        population.createInitialConnections();
+
+        unsigned i;
+        for (i = 0; i < nGenerations; i++) {
+            population.calcNextGeneration();
+
+            shared_ptr<Organism> best = population.getBestOrganism();
+            Phenotype phenotype(best->getGenome());
+            //Phenotype phenotype2(best->getGenome());
+            //Phenotype phenotype3(best->getGenome());
+            //for (unsigned t = 0; t < trainingOutputs.size(); t++)
+            //    printf("%f  =>  %f\n", trainingOutputs[t][0], phenotype2.run(trainingInputs[t])[0]);
+            //
+            //printf("maxDerivation: %f\n", phenotype3.maxDerivation(trainingInputs, trainingOutputs));
+            if (phenotype.maxDerivation(trainingInputs, trainingOutputs) < 0.5)
+                break;
+        }
+
+        shared_ptr<Organism> best = population.getBestOrganism();
+        Phenotype phenotype(best->getGenome());
+
+        if (i == nGenerations) {
+            printf("failed\n");
+            phenotype.saveAsSVG("failedOrganism" + itoa(r) + ".svg");
+        } else {
+
+            unsigned enabledGenes = 0;
+            for (const auto &c : best->getGenome().getConnections())
+                if (c.second.isEnabled())
+                    enabledGenes++;
+
+            generations.push_back(i);
+            nodes.push_back(best->getGenome().getNeurons().size());
+            connections.push_back(enabledGenes);
+            species.push_back(population.getSpecies().size());
+
+            phenotype.saveAsSVG("bestOrganism" + itoa(connections.back()) + "c" + 
+                                itoa(nodes.back()) + "n" + itoa(generations.back()) + "g.svg");
+
+            TEST_MSGD("[%u] Generation %3u / %3.1F, Nodes %3u / %3.1F, Connections: %3u / %3.1F, Species %3u / %3.1F", r,
+                      generations.back(), avgVector(generations),
+                      nodes.back(), avgVector(nodes),
+                      connections.back(), avgVector(connections),
+                      species.back(), avgVector(species));
+
+            if (r > nRuns / 1.5) {
+                ASSERT_TRUE(avgVector(generations) < 32);
+                ASSERT_TRUE(avgVector(nodes) < 7);
+                ASSERT_TRUE(avgVector(connections) < 11);
+                ASSERT_TRUE(avgVector(species) < 18);
+            }
+        }
+
+    }
+
+    Opts::getInstance()._allowRecurentConnections = false;
+    Opts::getInstance()._shuffleTrainingData      = true;
+    return args;
+}
+

@@ -30,10 +30,12 @@ Population::Population(vector<vector<double>> inputs, vector<vector<double>> out
 vector<shared_ptr<Organism>> Population::prepareGenerationChange() {
 
     /* randomly shuffle the training data */
-    rand64_t randstate = *rand;
-    std::random_shuffle(this->inputs.begin(), this->inputs.end(), shuffleRand);
-    *rand = randstate;
-    std::random_shuffle(this->outputs.begin(), this->outputs.end(), shuffleRand);
+    if (Opts::shuffleTrainingData()) {
+        rand64_t randstate = *rand;
+        std::random_shuffle(this->inputs.begin(), this->inputs.end(), shuffleRand);
+        *rand = randstate;
+        std::random_shuffle(this->outputs.begin(), this->outputs.end(), shuffleRand);
+    }
 
     /* calculate the fitness of all Organisms */
     for (auto &s : this->species)

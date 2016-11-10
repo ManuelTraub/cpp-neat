@@ -204,7 +204,7 @@ void Phenotype::saveAsSVG(string fname) {
             maxNeurons = layer.size();
 
     const unsigned height         = 1000;
-    const unsigned neuronDiameter = height / ((maxNeurons - 1) * 4);
+    const unsigned neuronDiameter = (maxNeurons > 1) ? (height / ((maxNeurons - 1) * 4)) : height / 4;
     const unsigned connectionSize = (neuronDiameter / 7 > 1) ? neuronDiameter / 7 : 1;
     const double   circleStroke   = connectionSize / 2.0;
     const unsigned nLayers        = neuronLayers.size();
