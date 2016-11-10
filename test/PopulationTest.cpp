@@ -596,10 +596,10 @@ TEST(basicRecurencyTest) {
                       species.back(), avgVector(species));
 
             if (r > nRuns / 1.5) {
-                ASSERT_TRUE(avgVector(generations) < 32);
+                ASSERT_TRUE(avgVector(generations) < 42);
                 ASSERT_TRUE(avgVector(nodes) < 7);
-                ASSERT_TRUE(avgVector(connections) < 11);
-                ASSERT_TRUE(avgVector(species) < 18);
+                ASSERT_TRUE(avgVector(connections) < 12);
+                ASSERT_TRUE(avgVector(species) < 20);
             }
         }
 
