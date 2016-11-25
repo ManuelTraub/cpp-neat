@@ -80,6 +80,7 @@ add_executable(PopulationTest
 
 add_executable(FourWinns
                FourWinns
+               ../src/Opts
                ../src/utils
                ../src/Phenotype)
 
