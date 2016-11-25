@@ -4,6 +4,7 @@
 #ifndef __NEURON_H__
 #define __NEURON_H__
 
+#include "Opts.h"
 #include <vector>
 
 using std::vector;
@@ -23,11 +24,13 @@ namespace NEAT {
             /* the output value of this */
             double outputValue;
 
-            /* temporary output value to store update result till all 
-             * neurons of the same layer have calculated the new output value
+            /* temporary value to store weighted inputs bevor updating the output value
              * (to handle recurent connections within the same layer)
              */
-            double tempOutputValue;
+            double weightedInputs;
+
+            /* the gradient of how fast this neuron switches from min to max */
+            const double gradient;
 
         public:
 
@@ -43,21 +46,22 @@ namespace NEAT {
             /* set the value for input neurons */
             void setValue(double value) { outputValue = value; }
 
-            /* calculates the output value from the input values */
-            void calculateUpdate() {
+            /* calculates the weighted input sum */
+            void calculateWeightedInputs() {
                 
-                double weightedInputs = 0.0;
+                weightedInputs = 0.0;
                 for (unsigned i = 0; i < inputs.size(); i++)
                     weightedInputs += weights[i] * inputs[i]->getValue();
-
-                /* calculate output using a modified simloid
-                 */
-                tempOutputValue = 1.0/(1.0 + exp(-4.924273 * weightedInputs));
             }
 
-            /* applays the output value */
-            void applayUpdate() {
-                outputValue = tempOutputValue;
+            /* calculate the output value using a sigmoid activation */
+            void calculateSigmoidOutput() {
+                outputValue = 1.0/(1.0 + exp(-gradient * weightedInputs));
+            }
+
+            /* calculate the output value using a tanh activation */
+            void calculateTanhOutput() {
+                outputValue = tanh(gradient * weightedInputs);
             }
 
             /* adds an input */
@@ -65,6 +69,12 @@ namespace NEAT {
                 this->inputs.push_back(input);
                 this->weights.push_back(weight);
             }
+
+            /* creats a new Neuron */
+            Neuron(double gradient) : 
+                outputValue(0.0), 
+                weightedInputs(0.0), 
+                gradient(gradient) { }
 
     };
 

@@ -124,7 +124,7 @@ bool Genotype::mutateInsertConnection() {
 void Genotype::mutateConnections() {
     
     for (auto &e : this->connections) {
-        if (rand_range_d64(rand, 0, 1) < Opts::hardMutationPropability()) {
+        if (rand_range_d64(rand, 0, 1) < Opts::hardMutationPropabilityWeights()) {
             e.second.mutateSet({Opts::mutationWeightRangeStart(), 
                                 Opts::mutationWeightRangeEnd()});
         } else {
@@ -132,6 +132,15 @@ void Genotype::mutateConnections() {
                                     Opts::perturbeWeightRangeEnd()});
         }
     }
+
+    generation = GenerationCounter::get();
+}
+
+/* mutate a given percentage of the neurons of this */
+void Genotype::mutateNeurons() {
+    
+    for (auto &e : this->neurons)
+        e.second.mutate();
 
     generation = GenerationCounter::get();
 }

@@ -35,6 +35,9 @@ void Organism::mutate() {
     
     if (rand_range_d64(rand, 0, 1) < Opts::mutateWeightsPropability())
         this->genome.mutateConnections();
+
+    if (rand_range_d64(rand, 0, 1) < Opts::mutateWGradientPropability())
+        this->genome.mutateNeurons();
 }
 
 namespace NEAT {

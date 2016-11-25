@@ -16,5 +16,5 @@ bool NeuronGene::canBeInserted(const NeuronGene &gene1, const NeuronGene &gene2)
     return absDiff(gene1.layerID, gene2.layerID) > 1 || gene1.layerID == gene2.layerID;
 }
 
-/* global random value to mutate this */
-rand64_t *ConnectionGene::rand = new_rand64_t();
+/* global random value to mutate Genes */
+rand64_t *Gene::rand = new_rand64_t();

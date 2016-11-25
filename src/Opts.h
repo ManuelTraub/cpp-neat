@@ -32,6 +32,10 @@ namespace NEAT {
     
     class Opts {
 
+        public:
+
+            enum class ActivationFunction { SIGMOID, TANH };
+
         private:
 
             /* the only instance of the Opts */
@@ -73,6 +77,9 @@ namespace NEAT {
             /* the propability of mutating the weights of a Genome during mutation */
             addOption(double, mutateWeightsPropability, 0.9)
 
+            /* the propability of mutating the gradient of a Genome during mutation */
+            addOption(double, mutateWGradientPropability, 0.5)
+
             /* the gene multiplayer for calculating similarity */
             addOption(double, geneMultiplier, 1.0)
 
@@ -94,7 +101,7 @@ namespace NEAT {
             /* the propability of setting a connection weight to 
              * a new random value during mutation 
              */
-            addOption(double, hardMutationPropability, 0.1)
+            addOption(double, hardMutationPropabilityWeights, 0.1)
 
             /* propability to do no mutation during recombination */
             addOption(double, mateOnlyPropability, 0.2);
@@ -110,6 +117,9 @@ namespace NEAT {
 
             /* indicates that the training data should be shuffled after each generation */
             addOption(bool, shuffleTrainingData, true);
+
+            /* the net activation function used in the neurons */
+            addOption(ActivationFunction, netActivationFunction, ActivationFunction::SIGMOID);
 
 #ifdef __DEBUG__
             static Opts &getInstance() { return onlyInstance; }

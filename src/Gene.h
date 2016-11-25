@@ -38,6 +38,9 @@ namespace NEAT {
 
         protected:
 
+            /* global random value to mutate this */
+            static rand64_t *rand;
+
             /* the generation this was invented or mutated */
             uint64_t generation;
 
@@ -80,6 +83,9 @@ namespace NEAT {
             /* the layer id of this (greater means nearer to the output layer) */
             uint64_t layerID;
 
+            /* the gradient of this */
+            double gradient;
+
         public:
 
             /* returns the type of this */
@@ -90,7 +96,7 @@ namespace NEAT {
 
             /* creats a new NeuronGeneID */
             NeuronGene(const NeuronType type, const uint64_t layerID) : 
-                       type(type), layerID(layerID) { 
+                       type(type), layerID(layerID), gradient(4.924273) { 
 
                 assert(type == NeuronType::INPUT  || 
                        type == NeuronType::OUTPUT ||
@@ -105,7 +111,7 @@ namespace NEAT {
                 const NeuronGene &gene1, 
                 const NeuronGene &gene2
             ) : type(NeuronType::HIDDEN),
-                layerID(middle(gene1.layerID, gene2.layerID)) {
+                layerID(middle(gene1.layerID, gene2.layerID)), gradient(4.924273) {
 
                 assert(canBeInserted(gene1, gene2));
             }
@@ -117,6 +123,15 @@ namespace NEAT {
 
                 return getID() == other.getID();
             }
+            
+            /* mutates the gradient of this */
+            void mutate() {
+                assert(gradient >= 0);
+                gradient *= rand_range_d64(rand, 0.0, 2.0);
+            }
+
+            /* returns the gradient of this */
+            double getGradient() const { return gradient; }
     };
 
     /**
@@ -125,9 +140,6 @@ namespace NEAT {
     class ConnectionGene : public Gene {
         
         private:
-
-            /* global random value to mutate this */
-            static rand64_t *rand;
 
             /* the input and output neuronal gene */
             NeuronGene inputNeuron, outputNeuron;
@@ -160,7 +172,6 @@ namespace NEAT {
 
             /* set the weight */
             void setWeight(const double weight) {
-                assert(weight >= -8 && weight <= 8);
                 generation   = GenerationCounter::get();
                 this->weight = weight;
             }
@@ -189,8 +200,6 @@ namespace NEAT {
             /* uniformly perturbe the weight of this */
             void mutatePertube(const vector<double> weightRange) {
                 weight += rand_range_d64(rand, weightRange[0], weightRange[1]); 
-                if (weight < -8) weight = -8;
-                if (weight > 8)  weight = 8;
                 generation = GenerationCounter::get();
             }
 

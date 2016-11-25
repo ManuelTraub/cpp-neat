@@ -42,7 +42,7 @@ Phenotype::Phenotype(const Genotype &genome) : genome(genome) {
     for (const auto &e : neuronGenes) {
 
         /* store neuron for efficient access */
-        Neuron *const newNeuron = new Neuron();
+        Neuron *const newNeuron = new Neuron(e.second.getGradient());
         neuronMap.insert({e.second.getID(), newNeuron});
 
         /* store the neuron in its desired layer */
@@ -111,10 +111,17 @@ vector<double> Phenotype::run(vector<double> inputs) {
     for (unsigned l = 1; l < neuronLayers.size(); l++) {
 
         for (unsigned n = 0; n < neuronLayers[l].size(); n++) 
-            neuronLayers[l][n]->calculateUpdate();
+            neuronLayers[l][n]->calculateWeightedInputs();
 
-        for (unsigned n = 0; n < neuronLayers[l].size(); n++) 
-            neuronLayers[l][n]->applayUpdate();
+        if (Opts::netActivationFunction() == Opts::ActivationFunction::SIGMOID) {
+            for (unsigned n = 0; n < neuronLayers[l].size(); n++) 
+                neuronLayers[l][n]->calculateSigmoidOutput();
+
+        } else if (Opts::netActivationFunction() == Opts::ActivationFunction::TANH) {
+            for (unsigned n = 0; n < neuronLayers[l].size(); n++) 
+                neuronLayers[l][n]->calculateTanhOutput();
+
+        } else assert(false);
     }
 
     /* collect the output values */
@@ -163,6 +170,8 @@ double Phenotype::calculateError(vector<vector<double>> inputs, vector<vector<do
                 error += 1;
         }
     }
+
+    assert(!std::isnan(error));
     return error;
 }
 
