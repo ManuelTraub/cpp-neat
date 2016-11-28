@@ -9,6 +9,7 @@
 #include "utils.h"
 #include "Gene.h"
 #include "GeneHistory.h"
+#include "Opts.h"
 
 using std::unordered_map;
 
@@ -17,6 +18,9 @@ namespace NEAT {
     class Genotype {
         
         private:
+
+            /* reference to the options of the whole population */
+            Opts &opts;
 
             /* global random value to mutate this */
             static rand64_t *rand;
@@ -60,10 +64,10 @@ namespace NEAT {
             void mutateNeurons();
 
             /* create a new Genotype for the given number of input and output neurons */
-            Genotype(const unsigned inputs, const unsigned outputs);
+            Genotype(const unsigned inputs, const unsigned outputs, Opts &opts);
 
             /* creat a new Genotype mixing the genes of better with other */
-            Genotype(const Genotype &fitter, const Genotype &other);
+            Genotype(const Genotype &fitter, const Genotype &other, Opts &opts);
 
             /* calculates the similarity with this and other */
             double similarity(const Genotype &other) const;

@@ -22,6 +22,9 @@ namespace NEAT {
 
         private:
 
+            /* reference to the options of the whole population */
+            Opts &opts;
+
             /* global random value */
             static rand64_t *rand;
 
@@ -37,8 +40,9 @@ namespace NEAT {
         public:
 
             /* create a new Organism for the given number of input and output neurons */
-            Organism(const unsigned inputs, const unsigned outputs) :
-                genome(Genotype(inputs, outputs)), 
+            Organism(const unsigned inputs, const unsigned outputs, Opts &opts) :
+                opts(opts.freeze()),
+                genome(Genotype(inputs, outputs, opts)), 
                 fitness(std::nan("Organism")), 
                 alive(true) { }
 
@@ -52,12 +56,15 @@ namespace NEAT {
             }
 
             /* creat a new Organism mixing the genes of the two given Organisms */
-            Organism(const Organism &parent1, const Organism &parent2) : 
+            Organism(const Organism &parent1, const Organism &parent2, Opts &opts) : 
+                opts(opts.freeze()),
                 genome((parent1.fitness == parent2.fitness) ? 
                         Genotype(smallerGenome(parent1, parent2), 
-                                 biggerGenome(parent1, parent2)) :
+                                 biggerGenome(parent1, parent2),
+                                 opts) :
                         Genotype(fitterGenome(parent1, parent2), 
-                                 weakerGenome(parent1, parent2))),
+                                 weakerGenome(parent1, parent2),
+                                 opts)),
                 fitness(std::nan("Organism")), 
                 alive(true) { 
                 

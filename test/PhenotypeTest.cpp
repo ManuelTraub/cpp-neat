@@ -29,13 +29,14 @@ AFTER() {
 
 TEST(basicTest) {
     
-    Genotype genotype(2, 1);
+    Opts opts;
+    Genotype genotype(2, 1, opts);
 
     /* create all posible connections */
     for (unsigned i = 0; i < 1000; i++)
         genotype.mutateInsertConnection();
 
-    Phenotype phenotype(genotype);
+    Phenotype phenotype(genotype, opts);
 
     ASSERT_EQUAL(phenotype.getLayers().size(), 2,
                  "expected 2 layers within phenotype: %lu",
@@ -56,7 +57,8 @@ TEST(basicTest) {
 
 TEST_N(advancedTest, 100) {
     
-    Genotype genotype(5, 5);
+    Opts opts;
+    Genotype genotype(5, 5, opts);
 
     for (unsigned n = 0; n < 20; n++) {
 
@@ -68,7 +70,7 @@ TEST_N(advancedTest, 100) {
         while (!genotype.mutateInsertNeuron());
     }
 
-    Phenotype phenotype(genotype);
+    Phenotype phenotype(genotype, opts);
     phenotype.saveAsSVG("Phenotype2.svg");
 
     return args;
@@ -76,7 +78,8 @@ TEST_N(advancedTest, 100) {
 
 TEST(basicBinaryANDTest) {
 
-    Genotype genotype(2, 1);
+    Opts opts;
+    Genotype genotype(2, 1, opts);
 
     unordered_map<uint64_t, NeuronGene> neuronsMap = genotype.getNeurons();
     vector<NeuronGene> inputs;
@@ -105,7 +108,7 @@ TEST(basicBinaryANDTest) {
     inCon2.setWeight(0.5);
     biasCon.setWeight(-0.8);
 
-    Phenotype phenotype(genotype);
+    Phenotype phenotype(genotype, opts);
     phenotype.saveAsSVG("Phenotype-binary-AND.svg");
 
     ASSERT_TRUE(phenotype.run({0,0})[0] < 0.5, "AND(0,0) = 0: %F", phenotype.run({0,0})[0]);
@@ -118,7 +121,8 @@ TEST(basicBinaryANDTest) {
 
 TEST_N(advancedBinaryANDTest, 1000) {
 
-    Genotype genotype(2, 1);
+    Opts opts;
+    Genotype genotype(2, 1, opts);
 
     unordered_map<uint64_t, NeuronGene> neuronsMap = genotype.getNeurons();
     vector<NeuronGene> inputs;
@@ -154,7 +158,7 @@ TEST_N(advancedBinaryANDTest, 1000) {
     double minError = UINT64_MAX;
     while (minError > 0.01) {
         genotype.mutateConnections();
-        Phenotype phenotype(genotype);
+        Phenotype phenotype(genotype, opts);
         double curError = phenotype.calculateError(trainingInputs, trainingOutputs);
 
         if (curError < minError) {
@@ -171,7 +175,7 @@ TEST_N(advancedBinaryANDTest, 1000) {
     }
 
 
-    Phenotype phenotype(genotype);
+    Phenotype phenotype(genotype, opts);
     phenotype.saveAsSVG("Phenotype-binary-AND2.svg");
 
     ASSERT_TRUE(phenotype.run({0,0})[0] < 0.5, "AND(0,0) = 0: %F", phenotype.run({0,0})[0]);
@@ -193,7 +197,8 @@ TEST_N(advancedBinaryANDTest, 1000) {
 
 TEST(phenotypeGenerationSpeedTest) {
 
-    Genotype genotype(10, 10);
+    Opts opts;
+    Genotype genotype(10, 10, opts);
 
     for (unsigned i = 0; i < 100; i++)
         genotype.mutateInsertNeuron();
@@ -203,7 +208,7 @@ TEST(phenotypeGenerationSpeedTest) {
     
     uint64_t time = gettime_usec();
     for (unsigned i = 0; i < 1000; i++)
-        Phenotype phenotype(genotype);
+        Phenotype phenotype(genotype, opts);
 
     TEST_MSGD("Phenotype generation time: %.10F", ((double) (gettime_usec() - time)) / 1000000.0);
 

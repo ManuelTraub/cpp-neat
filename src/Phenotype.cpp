@@ -11,7 +11,8 @@ using std::unordered_map;
 using std::make_pair;
 
 /* create a new Phenotype out of the given Genotype */
-Phenotype::Phenotype(const Genotype &genome) : genome(genome) {
+Phenotype::Phenotype(const Genotype &genome, Opts &opts) : 
+                     opts(opts.freeze()), genome(genome) {
 
     unordered_map<uint64_t, NeuronGene> neuronGenes         = genome.getNeurons();
     unordered_map<uint64_t, ConnectionGene> connectionGenes = genome.getConnections();
@@ -113,11 +114,11 @@ vector<double> Phenotype::run(vector<double> inputs) {
         for (unsigned n = 0; n < neuronLayers[l].size(); n++) 
             neuronLayers[l][n]->calculateWeightedInputs();
 
-        if (Opts::netActivationFunction() == Opts::ActivationFunction::SIGMOID) {
+        if (opts.netActivationFunction() == Opts::ActivationFunction::SIGMOID) {
             for (unsigned n = 0; n < neuronLayers[l].size(); n++) 
                 neuronLayers[l][n]->calculateSigmoidOutput();
 
-        } else if (Opts::netActivationFunction() == Opts::ActivationFunction::TANH) {
+        } else if (opts.netActivationFunction() == Opts::ActivationFunction::TANH) {
             for (unsigned n = 0; n < neuronLayers[l].size(); n++) 
                 neuronLayers[l][n]->calculateTanhOutput();
 
@@ -297,4 +298,6 @@ Phenotype::~Phenotype() {
     for (auto &layer : neuronLayers) 
         for (auto &neuron : layer) 
             delete neuron;
+
+    delete this->bias;
 }

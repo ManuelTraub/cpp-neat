@@ -21,6 +21,9 @@ namespace NEAT {
         
         private:
 
+            /* reference to the options of the whole population */
+            Opts &opts;
+
             /* The Neurons of this sorted into layers 
              * to sequentaly calculate the output of this neural network */
             vector<vector<Neuron *>> neuronLayers;
@@ -37,7 +40,7 @@ namespace NEAT {
             vector<vector<Neuron *>> getLayers() const { return neuronLayers; }
 
             /* create a new Phenotype out of the given Genotype */
-            Phenotype(const Genotype &genome); 
+            Phenotype(const Genotype &genome, Opts &opts); 
 
             /* calculate the output for a given input */
             vector<double> run(vector<double> inputs);

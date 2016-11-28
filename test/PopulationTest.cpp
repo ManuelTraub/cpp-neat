@@ -36,13 +36,14 @@ AFTER() {
 TEST(basicOrganismSpeedTest) {
 
     /* training data */
+    Opts opts;
     vector<vector<double>> trainingInputs  = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
     vector<vector<double>> trainingOutputs = {{0}, {0}, {0}, {1}};
 
     vector<shared_ptr<Organism>> organisms;
 
-    for (unsigned i = 0; i < Opts::populationSize(); i++)
-        organisms.push_back(make_shared<Organism>(2, 1));
+    for (unsigned i = 0; i < opts.populationSize(); i++)
+        organisms.push_back(make_shared<Organism>(2, 1, opts));
 
     for (unsigned i = 0; i < 100; i++) {
         
@@ -51,7 +52,7 @@ TEST(basicOrganismSpeedTest) {
 
         sort(organisms.begin(), organisms.end(), orderOrganisms);
 
-        for (unsigned i = 0; i < Opts::populationSize(); i++) {
+        for (unsigned i = 0; i < opts.populationSize(); i++) {
             organisms[i] = make_shared<Organism>(organisms[i]->clone());
             organisms[i]->mutate();
         }
@@ -61,7 +62,7 @@ TEST(basicOrganismSpeedTest) {
         o->calculateFittness(trainingInputs, trainingOutputs);
 
     sort(organisms.begin(), organisms.end(), orderOrganisms);
-    Phenotype phenotype(organisms[0]->getGenome());
+    Phenotype phenotype(organisms[0]->getGenome(), opts);
 
     phenotype.saveAsSVG("basicOrganismSpeedTest.svg");
 
@@ -71,17 +72,18 @@ TEST(basicOrganismSpeedTest) {
 TEST(basicSpeciesSpeedTest) {
 
     /* training data */
+    Opts opts;
     vector<vector<double>> trainingInputs  = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
     vector<vector<double>> trainingOutputs = {{0}, {0}, {0}, {1}};
 
     vector<shared_ptr<Organism>> organisms;
     vector<shared_ptr<Species>> species;
 
-    for (unsigned i = 0; i < Opts::populationSize(); i++)
-        organisms.push_back(make_shared<Organism>(2, 1));
+    for (unsigned i = 0; i < opts.populationSize(); i++)
+        organisms.push_back(make_shared<Organism>(2, 1, opts));
 
     for (unsigned i = 0; i < 15; i++)
-        species.push_back(make_shared<Species>());
+        species.push_back(make_shared<Species>(opts));
 
     for (unsigned i = 0; i < 100; i++) {
 
@@ -97,7 +99,7 @@ TEST(basicSpeciesSpeedTest) {
         sort(organisms.begin(), organisms.end(), orderOrganisms);
         sort(species.begin(), species.end(), orderSpecies);
 
-        for (unsigned i = 0; i < Opts::populationSize(); i++) {
+        for (unsigned i = 0; i < opts.populationSize(); i++) {
             organisms[i]->kill();
             organisms[i] = make_shared<Organism>(organisms[i]->clone());
             organisms[i]->mutate();
@@ -114,7 +116,7 @@ TEST(basicSpeciesSpeedTest) {
         s->calculateFittness(trainingInputs, trainingOutputs);
 
     sort(organisms.begin(), organisms.end(), orderOrganisms);
-    Phenotype phenotype(organisms[0]->getGenome());
+    Phenotype phenotype(organisms[0]->getGenome(), opts);
 
     phenotype.saveAsSVG("basicSpeciesSpeedTest.svg");
 
@@ -124,17 +126,18 @@ TEST(basicSpeciesSpeedTest) {
 TEST(advancedSpeciesSpeedTest) {
 
     /* training data */
+    Opts opts;
     vector<vector<double>> trainingInputs  = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
     vector<vector<double>> trainingOutputs = {{0}, {0}, {0}, {1}};
 
     vector<shared_ptr<Organism>> organisms;
     vector<shared_ptr<Species>> species;
 
-    for (unsigned i = 0; i < Opts::populationSize(); i++)
-        organisms.push_back(make_shared<Organism>(2, 1));
+    for (unsigned i = 0; i < opts.populationSize(); i++)
+        organisms.push_back(make_shared<Organism>(2, 1, opts));
 
     for (unsigned i = 0; i < 15; i++)
-        species.push_back(make_shared<Species>());
+        species.push_back(make_shared<Species>(opts));
 
     for (unsigned i = 0; i < 100; i++) {
 
@@ -152,7 +155,7 @@ TEST(advancedSpeciesSpeedTest) {
 
         vector<shared_ptr<Organism>> nexGeneration;
 
-        for (unsigned i = 0; i < Opts::populationSize(); i++) {
+        for (unsigned i = 0; i < opts.populationSize(); i++) {
             unsigned index = rand64(args) % 15;
             while (species[index]->size() == 0)
                 index = rand64(args) % 15;
@@ -160,7 +163,7 @@ TEST(advancedSpeciesSpeedTest) {
             nexGeneration.push_back(species[index]->createOffsprings(1)[0]);
         }
 
-        for (unsigned i = 0; i < Opts::populationSize(); i++) {
+        for (unsigned i = 0; i < opts.populationSize(); i++) {
             organisms[i]->kill();
             organisms[i] = nexGeneration[i];
         }
@@ -176,7 +179,7 @@ TEST(advancedSpeciesSpeedTest) {
         s->calculateFittness(trainingInputs, trainingOutputs);
 
     sort(organisms.begin(), organisms.end(), orderOrganisms);
-    Phenotype phenotype(organisms[0]->getGenome());
+    Phenotype phenotype(organisms[0]->getGenome(), opts);
 
     phenotype.saveAsSVG("advancedSpeciesSpeedTest.svg");
 
@@ -186,10 +189,11 @@ TEST(advancedSpeciesSpeedTest) {
 TEST(basicGenerationChangeSpeedTest) {
 
     /* training data */
+    Opts opts;
     vector<vector<double>> trainingInputs  = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
     vector<vector<double>> trainingOutputs = {{0}, {0}, {0}, {1}};
 
-    Population population(trainingInputs, trainingOutputs);
+    Population population(trainingInputs, trainingOutputs, opts);
 
     for (unsigned i = 0; i < 500; i++) {
         uint64_t time = gettime_usec();
@@ -205,14 +209,14 @@ TEST(basicGenerationChangeSpeedTest) {
         
         /* check that there are not to much inter species offsprings */
         ASSERT_TRUE(interSpeciesOffsprings.size() <
-                    Opts::populationSize() * Opts::interSpeciesMatingPropability() + 1,
+                    opts.populationSize() * opts.interSpeciesMatingPropability() + 1,
                     "to much inter species offsprings: %lu < %F",
                     interSpeciesOffsprings.size(),
-                    Opts::populationSize() * Opts::interSpeciesMatingPropability() + 1);
+                    opts.populationSize() * opts.interSpeciesMatingPropability() + 1);
 
         /* calculate the number of offsprings per species */
         vector<unsigned> offspringsPerSpecies = population.calculateOffspringsPerSpecies(
-            Opts::populationSize() - interSpeciesOffsprings.size()
+            opts.populationSize() - interSpeciesOffsprings.size()
         );
 
         /* check that the overall ofssprings are equal to the population size */
@@ -220,9 +224,9 @@ TEST(basicGenerationChangeSpeedTest) {
         for (const auto &n : offspringsPerSpecies)
             overallOffsprings += n;
 
-        ASSERT_EQUAL(overallOffsprings, Opts::populationSize(), 
+        ASSERT_EQUAL(overallOffsprings, opts.populationSize(), 
                      "to much or to less offsprings: %lu != %u",
-                     overallOffsprings, Opts::populationSize());
+                     overallOffsprings, opts.populationSize());
 
         /* calculate the inspecies offsprings */
         vector<shared_ptr<Organism>> inSpeciesOffsprings = population.createInSpeciesOffsprings(
@@ -231,10 +235,10 @@ TEST(basicGenerationChangeSpeedTest) {
         
         /* check that there arent to much in species offsprings */
         ASSERT_TRUE(inSpeciesOffsprings.size() <= 
-                    Opts::populationSize() - interSpeciesOffsprings.size(),
+                    opts.populationSize() - interSpeciesOffsprings.size(),
                     "to much in species offsprings: %lu <= %lu",
                     inSpeciesOffsprings.size(),
-                    Opts::populationSize() - interSpeciesOffsprings.size());
+                    opts.populationSize() - interSpeciesOffsprings.size());
 
         /* sort the offsprings into species */
         population.sortOffspringsIntoSpecies(interSpeciesOffsprings);
@@ -250,23 +254,23 @@ TEST(basicGenerationChangeSpeedTest) {
             organisms.insert(organisms.end(), speciesOrganisms.begin(), speciesOrganisms.end());
         }
 
-        ASSERT_EQUAL(organisms.size(), Opts::populationSize(),
+        ASSERT_EQUAL(organisms.size(), opts.populationSize(),
                      "to much or to less organisms: %lu != %u",
                      organisms.size(),
-                     Opts::populationSize());
+                     opts.populationSize());
 
         if (gettime_usec() - time > 3000000)
             ASSERT_FAIL("to much time needed");
 
         /* check if we have a wining candidate */
         shared_ptr<Organism> best = population.getBestOrganism();
-        Phenotype phenotype(best->getGenome());
+        Phenotype phenotype(best->getGenome(), opts);
         if (phenotype.maxDerivation(trainingInputs, trainingOutputs) < 0.5)
             break;
     }
 
     shared_ptr<Organism> best = population.getBestOrganism();
-    Phenotype phenotype(best->getGenome());
+    Phenotype phenotype(best->getGenome(), opts);
 
     phenotype.saveAsSVG("basicGenerationChangeSpeedTest.svg");
 
@@ -286,10 +290,11 @@ TEST(basicGenerationChangeSpeedTest) {
 TEST(basicBinaryXORTest) {
 
     /* training data */
+    Opts opts;
     vector<vector<double>> trainingInputs  = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
     vector<vector<double>> trainingOutputs = {{0}, {1}, {1}, {0}};
 
-    Population population(trainingInputs, trainingOutputs);
+    Population population(trainingInputs, trainingOutputs, opts);
     population.createInitialConnections();
 
     for (unsigned i = 0; i < 1500; i++) {
@@ -306,14 +311,14 @@ TEST(basicBinaryXORTest) {
         
         /* check that there are not to much inter species offsprings */
         ASSERT_TRUE(interSpeciesOffsprings.size() <
-                    Opts::populationSize() * Opts::interSpeciesMatingPropability() + 1,
+                    opts.populationSize() * opts.interSpeciesMatingPropability() + 1,
                     "to much inter species offsprings: %lu < %F",
                     interSpeciesOffsprings.size(),
-                    Opts::populationSize() * Opts::interSpeciesMatingPropability() + 1);
+                    opts.populationSize() * opts.interSpeciesMatingPropability() + 1);
 
         /* calculate the number of offsprings per species */
         vector<unsigned> offspringsPerSpecies = population.calculateOffspringsPerSpecies(
-            Opts::populationSize() - interSpeciesOffsprings.size()
+            opts.populationSize() - interSpeciesOffsprings.size()
         );
 
         /* check that the overall ofssprings are equal to the population size */
@@ -321,9 +326,9 @@ TEST(basicBinaryXORTest) {
         for (const auto &n : offspringsPerSpecies)
             overallOffsprings += n;
 
-        ASSERT_EQUAL(overallOffsprings, Opts::populationSize(), 
+        ASSERT_EQUAL(overallOffsprings, opts.populationSize(), 
                      "to much or to less offsprings: %lu != %u",
-                     overallOffsprings, Opts::populationSize());
+                     overallOffsprings, opts.populationSize());
 
         /* calculate the inspecies offsprings */
         vector<shared_ptr<Organism>> inSpeciesOffsprings = population.createInSpeciesOffsprings(
@@ -332,10 +337,10 @@ TEST(basicBinaryXORTest) {
         
         /* check that there arent to much in species offsprings */
         ASSERT_TRUE(inSpeciesOffsprings.size() <= 
-                    Opts::populationSize() - interSpeciesOffsprings.size(),
+                    opts.populationSize() - interSpeciesOffsprings.size(),
                     "to much in species offsprings: %lu <= %lu",
                     inSpeciesOffsprings.size(),
-                    Opts::populationSize() - interSpeciesOffsprings.size());
+                    opts.populationSize() - interSpeciesOffsprings.size());
 
         /* sort the offsprings into species */
         population.sortOffspringsIntoSpecies(interSpeciesOffsprings);
@@ -351,23 +356,23 @@ TEST(basicBinaryXORTest) {
             organisms.insert(organisms.end(), speciesOrganisms.begin(), speciesOrganisms.end());
         }
 
-        ASSERT_EQUAL(organisms.size(), Opts::populationSize(),
+        ASSERT_EQUAL(organisms.size(), opts.populationSize(),
                      "to much or to less organisms: %lu != %u",
                      organisms.size(),
-                     Opts::populationSize());
+                     opts.populationSize());
 
         if (gettime_usec() - time > 3000000)
             ASSERT_FAIL("to much time needed");
 
         /* check if we have a wining candidate */
         shared_ptr<Organism> best = population.getBestOrganism();
-        Phenotype phenotype(best->getGenome());
+        Phenotype phenotype(best->getGenome(), opts);
         if (phenotype.maxDerivation(trainingInputs, trainingOutputs) < 0.5)
             break;
     }
 
     shared_ptr<Organism> best = population.getBestOrganism();
-    Phenotype phenotype(best->getGenome());
+    Phenotype phenotype(best->getGenome(), opts);
 
     phenotype.saveAsSVG("basicBinaryXORTest.svg");
 
@@ -395,6 +400,7 @@ double avgVector(vector<unsigned> v) {
 TEST(binaryXORQualityTest) {
 
     // training data
+    Opts opts;
     vector<vector<double>> trainingInputs  = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
     vector<vector<double>> trainingOutputs = {{0}, {1}, {1}, {0}};
     vector<unsigned> generations;
@@ -407,7 +413,7 @@ TEST(binaryXORQualityTest) {
 
     for (unsigned r = 0; r < nRuns; r++) {
 
-        Population population(trainingInputs, trainingOutputs);
+        Population population(trainingInputs, trainingOutputs, opts);
         population.createInitialConnections();
 
         unsigned i;
@@ -415,14 +421,14 @@ TEST(binaryXORQualityTest) {
             population.calcNextGeneration();
 
             shared_ptr<Organism> best = population.getBestOrganism();
-            Phenotype phenotype(best->getGenome());
+            Phenotype phenotype(best->getGenome(), opts);
 
             if (phenotype.maxDerivation(trainingInputs, trainingOutputs) < 0.5)
                 break;
         }
 
         shared_ptr<Organism> best = population.getBestOrganism();
-        Phenotype phenotype(best->getGenome());
+        Phenotype phenotype(best->getGenome(), opts);
 
         if (i == nGenerations) {
             printf("failed\n");
@@ -462,6 +468,11 @@ TEST(binaryXORQualityTest) {
 }
 
 TEST(binaryXORZeroStartConectionsQualityTest) {
+    
+    Opts opts;
+    opts.mutateGradientPropability(0.0);
+    opts.mutationMaxPertubeWeightRangeStart(-8);
+    opts.mutationMaxPertubeWeightRangeEnd(8);
 
     // training data
     vector<vector<double>> trainingInputs  = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
@@ -477,21 +488,21 @@ TEST(binaryXORZeroStartConectionsQualityTest) {
 
     for (unsigned r = 0; r < nRuns; r++) {
 
-        Population population(trainingInputs, trainingOutputs);
+        Population population(trainingInputs, trainingOutputs, opts);
 
         unsigned i;
         for (i = 0; i < nGenerations; i++) {
             population.calcNextGeneration();
 
             shared_ptr<Organism> best = population.getBestOrganism();
-            Phenotype phenotype(best->getGenome());
+            Phenotype phenotype(best->getGenome(), opts);
 
             if (phenotype.maxDerivation(trainingInputs, trainingOutputs) < 0.5)
                 break;
         }
 
         shared_ptr<Organism> best = population.getBestOrganism();
-        Phenotype phenotype(best->getGenome());
+        Phenotype phenotype(best->getGenome(), opts);
 
         if (i == nGenerations) {
             printf("failed\n");
@@ -531,9 +542,10 @@ TEST(binaryXORZeroStartConectionsQualityTest) {
 }
 
 TEST(basicRecurencyTest) {
-
-    Opts::getInstance()._allowRecurentConnections = true;
-    Opts::getInstance()._shuffleTrainingData      = false;
+    
+    Opts opts;
+    opts.allowRecurentConnections(true);
+    opts.shuffleTrainingData(false);
 
     // training data
     vector<vector<double>> trainingInputs  = {{1}, {1}, {1}, {1}, {1}, {1}, {1}, {1}, {1}, {1}};
@@ -549,7 +561,7 @@ TEST(basicRecurencyTest) {
 
     for (unsigned r = 0; r < nRuns; r++) {
 
-        Population population(trainingInputs, trainingOutputs);
+        Population population(trainingInputs, trainingOutputs, opts);
         population.createInitialConnections();
 
         unsigned i;
@@ -557,14 +569,14 @@ TEST(basicRecurencyTest) {
             population.calcNextGeneration();
 
             shared_ptr<Organism> best = population.getBestOrganism();
-            Phenotype phenotype(best->getGenome());
+            Phenotype phenotype(best->getGenome(), opts);
 
             if (phenotype.maxDerivation(trainingInputs, trainingOutputs) < 0.5)
                 break;
         }
 
         shared_ptr<Organism> best = population.getBestOrganism();
-        Phenotype phenotype(best->getGenome());
+        Phenotype phenotype(best->getGenome(), opts);
 
         if (i == nGenerations) {
             printf("failed\n");
@@ -591,8 +603,8 @@ TEST(basicRecurencyTest) {
                       species.back(), avgVector(species));
 
             /*
-            Phenotype phenotype2(best->getGenome());
-            Phenotype phenotype3(best->getGenome());
+            Phenotype phenotype2(best->getGenome(), opts);
+            Phenotype phenotype3(best->getGenome(), opts);
             for (unsigned t = 0; t < trainingOutputs.size(); t++)
                 printf("%f  =>  %f\n", trainingOutputs[t][0], phenotype2.run(trainingInputs[t])[0]);
             
@@ -609,14 +621,13 @@ TEST(basicRecurencyTest) {
 
     }
 
-    Opts::getInstance()._allowRecurentConnections = false;
-    Opts::getInstance()._shuffleTrainingData      = true;
     return args;
 }
 
 TEST(binaryXORQualityTanhTest) {
 
-    Opts::getInstance()._netActivationFunction = Opts::ActivationFunction::TANH;
+    Opts opts;
+    opts.netActivationFunction(Opts::ActivationFunction::TANH);
 
     /* training data */
     vector<vector<double>> trainingInputs  = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
@@ -631,7 +642,7 @@ TEST(binaryXORQualityTanhTest) {
 
     for (unsigned r = 0; r < nRuns; r++) {
 
-        Population population(trainingInputs, trainingOutputs);
+        Population population(trainingInputs, trainingOutputs, opts);
         population.createInitialConnections();
 
         unsigned i;
@@ -639,14 +650,14 @@ TEST(binaryXORQualityTanhTest) {
             population.calcNextGeneration();
 
             shared_ptr<Organism> best = population.getBestOrganism();
-            Phenotype phenotype(best->getGenome());
+            Phenotype phenotype(best->getGenome(), opts);
 
             if (phenotype.maxDerivation(trainingInputs, trainingOutputs) < 0.5)
                 break;
         }
 
         shared_ptr<Organism> best = population.getBestOrganism();
-        Phenotype phenotype(best->getGenome());
+        Phenotype phenotype(best->getGenome(), opts);
 
         if (i == nGenerations) {
             printf("failed\n");
@@ -682,13 +693,13 @@ TEST(binaryXORQualityTanhTest) {
 
     }
 
-    Opts::getInstance()._netActivationFunction = Opts::ActivationFunction::SIGMOID;
     return args;
 }
 
 TEST(binaryXORZeroStartConectionsQualityTanhTest) {
 
-    Opts::getInstance()._netActivationFunction = Opts::ActivationFunction::TANH;
+    Opts opts;
+    opts.netActivationFunction(Opts::ActivationFunction::TANH);
 
     /* training data */
     vector<vector<double>> trainingInputs  = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
@@ -704,21 +715,21 @@ TEST(binaryXORZeroStartConectionsQualityTanhTest) {
 
     for (unsigned r = 0; r < nRuns; r++) {
 
-        Population population(trainingInputs, trainingOutputs);
+        Population population(trainingInputs, trainingOutputs, opts);
 
         unsigned i;
         for (i = 0; i < nGenerations; i++) {
             population.calcNextGeneration();
 
             shared_ptr<Organism> best = population.getBestOrganism();
-            Phenotype phenotype(best->getGenome());
+            Phenotype phenotype(best->getGenome(), opts);
 
             if (phenotype.maxDerivation(trainingInputs, trainingOutputs) < 0.5)
                 break;
         }
 
         shared_ptr<Organism> best = population.getBestOrganism();
-        Phenotype phenotype(best->getGenome());
+        Phenotype phenotype(best->getGenome(), opts);
 
         if (i == nGenerations) {
             printf("failed\n");
@@ -754,6 +765,5 @@ TEST(binaryXORZeroStartConectionsQualityTanhTest) {
 
     }
 
-    Opts::getInstance()._netActivationFunction = Opts::ActivationFunction::SIGMOID;
     return args;
 }

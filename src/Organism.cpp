@@ -13,7 +13,7 @@ void Organism::calculateFittness(vector<vector<double>> inputs,
 
     /* calculate the original fitness of this */
     if (std::isnan(fitness)) {
-        Phenotype phenotype(genome);
+        Phenotype phenotype(genome, opts);
         this->fitness = 1.0 / phenotype.calculateError(inputs, outputs);
     }
 }
@@ -23,20 +23,20 @@ void Organism::mutate() {
 
     this->fitness = std::nan("Organism");
 
-    if (rand_range_d64(rand, 0, 1) < Opts::addNeuronMutationPropability()) 
+    if (rand_range_d64(rand, 0, 1) < opts.addNeuronMutationPropability()) 
         for(unsigned i = 0; i < 30; i++) 
             if (this->genome.mutateInsertNeuron()) 
                 return;
     
-    if (rand_range_d64(rand, 0, 1) < Opts::addConnectionMutationPropability()) 
+    if (rand_range_d64(rand, 0, 1) < opts.addConnectionMutationPropability()) 
         for(unsigned i = 0; i < 100; i++) 
             if (this->genome.mutateInsertConnection())
                 return;
     
-    if (rand_range_d64(rand, 0, 1) < Opts::mutateWeightsPropability())
+    if (rand_range_d64(rand, 0, 1) < opts.mutateWeightsPropability())
         this->genome.mutateConnections();
 
-    if (rand_range_d64(rand, 0, 1) < Opts::mutateWGradientPropability())
+    if (rand_range_d64(rand, 0, 1) < opts.mutateGradientPropability())
         this->genome.mutateNeurons();
 }
 

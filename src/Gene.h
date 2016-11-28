@@ -198,8 +198,14 @@ namespace NEAT {
             }
 
             /* uniformly perturbe the weight of this */
-            void mutatePertube(const vector<double> weightRange) {
+            void mutatePertube(const vector<double> weightRange,
+                               const vector<double> maxWeightRange) {
+
                 weight += rand_range_d64(rand, weightRange[0], weightRange[1]); 
+
+                if (weight < maxWeightRange[0]) weight = maxWeightRange[0];
+                if (weight > maxWeightRange[1]) weight = maxWeightRange[1];
+
                 generation = GenerationCounter::get();
             }
 

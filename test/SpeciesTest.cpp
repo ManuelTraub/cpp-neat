@@ -36,8 +36,9 @@ TEST(basicSortingTest) {
 
 
     /* speedup mutation for testing */
-    Opts::getInstance()._addNeuronMutationPropability = 0.3;
-    Opts::getInstance()._addConnectionMutationPropability = 0.5;
+    Opts opts;
+    opts.addNeuronMutationPropability(0.3);
+    opts.addConnectionMutationPropability(0.5);
 
     /* training data */
     vector<vector<double>> trainingInputs  = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
@@ -46,11 +47,11 @@ TEST(basicSortingTest) {
     vector<shared_ptr<Species>> species;
 
     vector<shared_ptr<Organism>> organisms;
-    organisms.push_back(make_shared<Organism>(2, 1));
+    organisms.push_back(make_shared<Organism>(2, 1, opts));
     organisms.back()->calculateFittness(trainingInputs, trainingOutputs);
 
     for (unsigned i = 0; i < 100; i++) {
-        species.push_back(make_shared<Species>());
+        species.push_back(make_shared<Species>(opts));
         unsigned nOrganisms = rand_range64(args, 1, 15);
         for (unsigned n = 0; n < nOrganisms; n++) {
             organisms.push_back(make_shared<Organism>(organisms.back()->clone()));
@@ -90,8 +91,9 @@ TEST(basicSortingTest) {
 TEST(offspringTest) {
 
     /* speedup mutation for testing */
-    Opts::getInstance()._addNeuronMutationPropability = 0.3;
-    Opts::getInstance()._addConnectionMutationPropability = 0.5;
+    Opts opts;
+    opts.addNeuronMutationPropability(0.3);
+    opts.addConnectionMutationPropability(0.5);
 
     /* training data */
     vector<vector<double>> trainingInputs  = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
@@ -100,11 +102,11 @@ TEST(offspringTest) {
     vector<shared_ptr<Species>> species;
 
     vector<shared_ptr<Organism>> organisms;
-    organisms.push_back(make_shared<Organism>(2, 1));
+    organisms.push_back(make_shared<Organism>(2, 1, opts));
     organisms.back()->calculateFittness(trainingInputs, trainingOutputs);
 
     for (unsigned i = 0; i < 100; i++) {
-        species.push_back(make_shared<Species>());
+        species.push_back(make_shared<Species>(opts));
         unsigned nOrganisms = rand_range64(args, 1, 15);
         for (unsigned n = 0; n < nOrganisms; n++) {
             organisms.push_back(make_shared<Organism>(organisms.back()->clone()));

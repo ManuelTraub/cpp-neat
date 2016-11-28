@@ -96,7 +96,7 @@ bool Genotype::mutateInsertConnection() {
         outputNeuron.getType() == NeuronType::BIAS)
         return false;
     /* stop if its a recurent connection and we arent allowet to create one */
-    if (!Opts::allowRecurentConnections() && 
+    if (!opts.allowRecurentConnections() && 
         outputNeuron.getLayerID() <= inputNeuron.getLayerID())
         return false;
 
@@ -108,7 +108,7 @@ bool Genotype::mutateInsertConnection() {
         return false;
 
     /* randomly mutate connection (incase of historical copy) */
-    connection.mutateSet({Opts::creationWeightRangeStart(), Opts::creationWeightRangeEnd()}); 
+    connection.mutateSet({opts.creationWeightRangeStart(), opts.creationWeightRangeEnd()}); 
 
     /* store the new connection */
     connections.insert({connection.getID(), connection});
@@ -124,12 +124,20 @@ bool Genotype::mutateInsertConnection() {
 void Genotype::mutateConnections() {
     
     for (auto &e : this->connections) {
-        if (rand_range_d64(rand, 0, 1) < Opts::hardMutationPropabilityWeights()) {
-            e.second.mutateSet({Opts::mutationWeightRangeStart(), 
-                                Opts::mutationWeightRangeEnd()});
+        if (rand_range_d64(rand, 0, 1) < opts.hardMutationPropabilityWeights()) {
+            e.second.mutateSet({opts.mutationSetWeightRangeStart(), 
+                                opts.mutationSetWeightRangeEnd()});
         } else {
-            e.second.mutatePertube({Opts::perturbeWeightRangeStart(), 
-                                    Opts::perturbeWeightRangeEnd()});
+            e.second.mutatePertube(
+                {
+                    opts.perturbeWeightRangeStart(), 
+                    opts.perturbeWeightRangeEnd()
+                },
+                {
+                    opts.mutationMaxPertubeWeightRangeStart(), 
+                    opts.mutationMaxPertubeWeightRangeEnd()
+                }
+            );
         }
     }
 
@@ -146,7 +154,8 @@ void Genotype::mutateNeurons() {
 }
 
 /* create a new Genotype for the given number of input and output neurons */
-Genotype::Genotype(const unsigned inputs, const unsigned outputs) : 
+Genotype::Genotype(const unsigned inputs, const unsigned outputs, Opts &opts) : 
+                   opts(opts.freeze()),
                    generation(GenerationCounter::get()) {
     
     /* create the input neurons */
@@ -191,7 +200,7 @@ void Genotype::recombinateRandomChoose(const Genotype &fitter, const Genotype &o
             /* during mating a gene can be renabled */ 
             if (other.connections.at(e.first).isEnabled() == false ||
                 this->connections.at(e.first).isEnabled() == false) {
-                if (rand_range_d64(rand, 0, 1) < Opts::geneReenablePropability()) 
+                if (rand_range_d64(rand, 0, 1) < opts.geneReenablePropability()) 
                     this->connections.at(e.first).enable();
                 else
                     this->connections.at(e.first).disable();
@@ -232,7 +241,7 @@ void Genotype::recombinateAverage(const Genotype &fitter, const Genotype &other)
             /* during mating a gene can be renabled */ 
             if (other.connections.at(e.first).isEnabled() == false ||
                 this->connections.at(e.first).isEnabled() == false) {
-                if (rand_range_d64(rand, 0, 1) < Opts::geneReenablePropability()) 
+                if (rand_range_d64(rand, 0, 1) < opts.geneReenablePropability()) 
                     this->connections.at(e.first).enable();
                 else
                     this->connections.at(e.first).disable();
@@ -246,9 +255,10 @@ void Genotype::recombinateAverage(const Genotype &fitter, const Genotype &other)
 }
 
 /* creat a new Genotype mixing the genes of this with other */
-Genotype::Genotype(const Genotype &fitter, const Genotype &other) : generation(0) {
+Genotype::Genotype(const Genotype &fitter, const Genotype &other, Opts &opts) : 
+                   opts(opts.freeze()), generation(0) {
 
-    if (rand_range_d64(rand, 0, 1) < Opts::avgMatingPropability())
+    if (rand_range_d64(rand, 0, 1) < opts.avgMatingPropability())
         this->recombinateAverage(fitter, other);
     else
         this->recombinateRandomChoose(fitter, other);
@@ -277,10 +287,10 @@ double Genotype::similarity(const Genotype &other) const {
                           
     double similarity = 0;    
     if (nGenes > 0)
-        similarity += Opts::geneMultiplier()   * (geneSimilarity   / nGenes);
+        similarity += opts.geneMultiplier()   * (geneSimilarity   / nGenes);
 
     if (nWeights > 0)
-        similarity += Opts::weightMultiplier() * (weightSimilarity / nWeights);
+        similarity += opts.weightMultiplier() * (weightSimilarity / nWeights);
 
     assert(!std::isnan(similarity));
     return similarity;
@@ -315,8 +325,8 @@ void Genotype::createInitialConnections(bool connectBias) {
                 generation = connections.at(connection.getID()).getGeneration();
 
             connections.at(connection.getID()).mutateSet({
-                Opts::creationWeightRangeStart(),
-                Opts::creationWeightRangeEnd()
+                opts.creationWeightRangeStart(),
+                opts.creationWeightRangeEnd()
             });
         }
     }

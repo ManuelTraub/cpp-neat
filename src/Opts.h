@@ -12,118 +12,129 @@ using std::vector;
 using std::unordered_map;
 using std::make_pair;
 
-#ifdef __DEBUG__ 
-
-/* adds an option to the Opts class */
-#define addOption(type, name, value) \
-    public  : type _##name = value;  \
-    public  : static type name() { return onlyInstance._##name; }
-
-#else
-
-/* adds an option to the Opts class */
-#define addOption(type, name, value) \
-    private : type _##name = value;  \
-    public  : static type name() { return onlyInstance._##name; }
-
-#endif /* __DEBUG__ */
+/**
+ * Adds an option to the Opts class.
+ * It implements getter setter, and resetter methods
+ * */
+#define addOption(type, name, value)                    \
+    private :                                           \
+                                                        \
+        /* the actual value */                          \
+        type _##name = value;                           \
+                                                        \
+    public  :                                           \
+                                                        \
+        /* getter method */                             \
+        type name() const { return _##name; }           \
+                                                        \
+        /* setter method when opts aren't frozen */     \
+        void name(type arg) {                           \
+            assert(!this->frozen);                      \
+            if (!this->frozen)                          \
+                _##name = arg;                          \
+        }                                              
+                                                      
 
 namespace NEAT {
     
     class Opts {
 
-        public:
-
-            enum class ActivationFunction { SIGMOID, TANH };
-
         private:
 
-            /* the only instance of the Opts */
-            static Opts onlyInstance;
-
-            /* private constructor and destructor to make this a singleton */
-            Opts() { }
-
-            /* private destructor to avoid deletion of the singleton */
-            ~Opts() { }
+            /* indicates if this can be edited */
+            bool frozen = false;
 
             /* delete copy constructor to disalow copies of this */
             Opts(const Opts &) = delete;
 
-            /* propability for a mutation only offspring */
-            addOption(double, mutationOnlyPropability, 0.25)
+        public:
 
-            /* threshold for species size to have the fittest Organism survive an epoch */
-            addOption(unsigned, fittestSurvivalThreshold, 5)
+            /* the different Netactivation functions possible */
+            enum class ActivationFunction { SIGMOID, TANH };
 
-            /* the similarity threshold for Organism to be in the same species */
-            addOption(double, speciesSimilarityThreshold, 3)
+            /* standart constructor */
+            Opts() { }
+            
+            /* returns whether this is frozen */
+            bool isFrozen() const { return frozen; }
 
-            /* the survival rate of the population during generation change */
-            addOption(double, survivalRate, 0.2)
+            /* freezes this so its values can not longer be changed */
+            Opts &freeze() { frozen = true; return *this; }
+            
+        /* propability for a mutation only offspring */
+        addOption(double, mutationOnlyPropability, 0.25)
 
-            /* propability of interspecies mating */
-            addOption(double, interSpeciesMatingPropability, 0.001)
+        /* threshold for species size to have the fittest Organism survive an epoch */
+        addOption(unsigned, fittestSurvivalThreshold, 5)
 
-            /* desired number of Organism per generation */
-            addOption(unsigned, populationSize, 150)
+        /* the similarity threshold for Organism to be in the same species */
+        addOption(double, speciesSimilarityThreshold, 3)
 
-            /* propability of adding a new Neuron during mutation */
-            addOption(double, addNeuronMutationPropability, 0.03)
+        /* the survival rate of the population during generation change */
+        addOption(double, survivalRate, 0.2)
 
-            /* propability of adding a new Connection between two Neurons during mutation */
-            addOption(double, addConnectionMutationPropability, 0.05)
+        /* propability of interspecies mating */
+        addOption(double, interSpeciesMatingPropability, 0.001)
 
-            /* the propability of mutating the weights of a Genome during mutation */
-            addOption(double, mutateWeightsPropability, 0.9)
+        /* desired number of Organism per generation */
+        addOption(unsigned, populationSize, 150)
 
-            /* the propability of mutating the gradient of a Genome during mutation */
-            addOption(double, mutateWGradientPropability, 0.5)
+        /* propability of adding a new Neuron during mutation */
+        addOption(double, addNeuronMutationPropability, 0.03)
 
-            /* the gene multiplayer for calculating similarity */
-            addOption(double, geneMultiplier, 1.0)
+        /* propability of adding a new Connection between two Neurons during mutation */
+        addOption(double, addConnectionMutationPropability, 0.05)
 
-            /* avg weight diference multiplier when calculating the similarity */
-            addOption(double, weightMultiplier, 0.4)
+        /* the propability of mutating the weights of a Genome during mutation */
+        addOption(double, mutateWeightsPropability, 0.9)
 
-            /* the perturbe weight range start and end */
-            addOption(double, perturbeWeightRangeStart, -2.5)
-            addOption(double, perturbeWeightRangeEnd, 2.5)
+        /* the propability of mutating the gradient of a Genome during mutation */
+        addOption(double, mutateGradientPropability, 0.5)
 
-            /* the weight range for seting weights during mutation */
-            addOption(double, mutationWeightRangeStart, -2.5)
-            addOption(double, mutationWeightRangeEnd, 2.5)
+        /* the gene multiplayer for calculating similarity */
+        addOption(double, geneMultiplier, 1.0)
 
-            /* the weight range for creating a ConnectionGene */
-            addOption(double, creationWeightRangeStart, -1) 
-            addOption(double, creationWeightRangeEnd, 1)
+        /* avg weight diference multiplier when calculating the similarity */
+        addOption(double, weightMultiplier, 0.4)
 
-            /* the propability of setting a connection weight to 
-             * a new random value during mutation 
-             */
-            addOption(double, hardMutationPropabilityWeights, 0.1)
+        /* the perturbe weight range start and end */
+        addOption(double, perturbeWeightRangeStart, -2.5)
+        addOption(double, perturbeWeightRangeEnd, 2.5)
 
-            /* propability to do no mutation during recombination */
-            addOption(double, mateOnlyPropability, 0.2);
+        /* the weight range for seting weights during mutation */
+        addOption(double, mutationSetWeightRangeStart, -2.5)
+        addOption(double, mutationSetWeightRangeEnd, 2.5)
 
-            /* propability of using average mating */
-            addOption(double, avgMatingPropability, 0.4);
+        /* the weight range for creating a ConnectionGene */
+        addOption(double, creationWeightRangeStart, -1) 
+        addOption(double, creationWeightRangeEnd, 1)
 
-            /* inicates that recurent connections are enabled */
-            addOption(bool, allowRecurentConnections, false);
+        /* the max weight range for pertubing weight during mutation */
+        addOption(double, mutationMaxPertubeWeightRangeStart, -4096) 
+        addOption(double, mutationMaxPertubeWeightRangeEnd, 4096)
 
-            /* propability to reenable a gene during mating */
-            addOption(double, geneReenablePropability, 0.25);
+        /* the propability of setting a connection weight to 
+         * a new random value during mutation 
+         */
+        addOption(double, hardMutationPropabilityWeights, 0.1)
 
-            /* indicates that the training data should be shuffled after each generation */
-            addOption(bool, shuffleTrainingData, true);
+        /* propability to do no mutation during recombination */
+        addOption(double, mateOnlyPropability, 0.2);
 
-            /* the net activation function used in the neurons */
-            addOption(ActivationFunction, netActivationFunction, ActivationFunction::SIGMOID);
+        /* propability of using average mating */
+        addOption(double, avgMatingPropability, 0.4);
 
-#ifdef __DEBUG__
-            static Opts &getInstance() { return onlyInstance; }
-#endif 
+        /* inicates that recurent connections are enabled */
+        addOption(bool, allowRecurentConnections, false);
+
+        /* propability to reenable a gene during mating */
+        addOption(double, geneReenablePropability, 0.25);
+
+        /* indicates that the training data should be shuffled after each generation */
+        addOption(bool, shuffleTrainingData, true);
+
+        /* the net activation function used in the neurons */
+        addOption(ActivationFunction, netActivationFunction, ActivationFunction::SIGMOID);
 
     };
 

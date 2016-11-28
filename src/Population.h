@@ -5,6 +5,7 @@
 #define __POPULATION_H__
 
 #include "Species.h"
+#include "Opts.h"
 #include <memory>
 
 using std::shared_ptr;
@@ -15,6 +16,9 @@ namespace NEAT {
     class Population {
 
         private:
+
+            /* the Options of this */
+            Opts &opts;
 
             /* the species of this */
             vector<shared_ptr<Species>> species;
@@ -67,7 +71,9 @@ namespace NEAT {
         public:
 
             /* create a new Population */
-            Population(vector<vector<double>> inputs, vector<vector<double>> outputs);
+            Population(vector<vector<double>> inputs, 
+                       vector<vector<double>> outputs, 
+                       Opts &opts);
 
             /* increase the genaration counter and sort all genomes by theyr fitness */
             void calcNextGeneration();

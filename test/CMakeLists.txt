@@ -18,7 +18,6 @@ endif()
 
 add_executable(GenotypeTest 
                GenotypeTest 
-               ../src/Opts
                ../src/utils 
                ../src/Genotype 
                ../src/Gene 
@@ -27,7 +26,6 @@ add_executable(GenotypeTest
 
 add_executable(PhenotypeTest 
                PhenotypeTest 
-               ../src/Opts
                ../src/utils 
                ../src/Genotype 
                ../src/Phenotype 
@@ -44,7 +42,6 @@ add_executable(GeneHistoryTest
 
 add_executable(OrganismTest
                OrganismTest
-               ../src/Opts
                ../src/Organism
                ../src/utils 
                ../src/Genotype 
@@ -56,7 +53,6 @@ add_executable(OrganismTest
 add_executable(SpeciesTest
                SpeciesTest
                ../src/Species
-               ../src/Opts
                ../src/Organism
                ../src/utils 
                ../src/Genotype 
@@ -69,7 +65,6 @@ add_executable(PopulationTest
                PopulationTest
                ../src/Population
                ../src/Species
-               ../src/Opts
                ../src/Organism
                ../src/utils 
                ../src/Genotype 
@@ -80,7 +75,6 @@ add_executable(PopulationTest
 
 add_executable(FourWinns
                FourWinns
-               ../src/Opts
                ../src/utils
                ../src/Phenotype)
 

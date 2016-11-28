@@ -12,16 +12,24 @@ using namespace NEAT;
 rand64_t *Population::rand = new_rand64_t();
 
 /* create a new Population */
-Population::Population(vector<vector<double>> inputs, vector<vector<double>> outputs) {
+Population::Population(vector<vector<double>> inputs, 
+                       vector<vector<double>> outputs,
+                       Opts &opts) : opts(opts.freeze()) {
+
     this->inputs  = inputs;
     this->outputs = outputs;
     this->bestFitness = 0;
     this->lastImproveGeneration = GenerationCounter::get();
 
-    this->species.push_back(make_shared<Species>());
+    this->species.push_back(make_shared<Species>(opts));
 
-    for (unsigned i = 0; i < Opts::populationSize(); i++)
-        this->species.back()->add(make_shared<Organism>(inputs[0].size(), outputs[0].size()));
+    for (unsigned i = 0; i < opts.populationSize(); i++) {
+        this->species.back()->add(make_shared<Organism>(
+            inputs[0].size(), 
+            outputs[0].size(), 
+            opts
+        ));
+    }
 }
 
 /* sorts the Organisms and species as removing the deaths 
@@ -30,7 +38,7 @@ Population::Population(vector<vector<double>> inputs, vector<vector<double>> out
 vector<shared_ptr<Organism>> Population::prepareGenerationChange() {
 
     /* randomly shuffle the training data */
-    if (Opts::shuffleTrainingData()) {
+    if (opts.shuffleTrainingData()) {
         rand64_t randstate = *rand;
         std::random_shuffle(this->inputs.begin(), this->inputs.end(), shuffleRand);
         *rand = randstate;
@@ -111,7 +119,7 @@ vector<shared_ptr<Organism>> Population::createInterSpeciesOffsprings() {
     vector<shared_ptr<Organism>> offsprings;
     unsigned interSpeciesOffsprings = 0;
     if (this->species.size() > 1) {
-        interSpeciesOffsprings = Opts::populationSize() * Opts::interSpeciesMatingPropability() + 
+        interSpeciesOffsprings = opts.populationSize() * opts.interSpeciesMatingPropability() + 
                                  rand_range_d64(rand, 0, 1);
     }
 
@@ -144,7 +152,7 @@ Population::createInSpeciesOffsprings(vector<unsigned> offspringsPerSpecies) {
 
         /* try adding the offsprings to its species */
         for (auto &o : currentOffsprings) {
-            if (this->species[i]->similarity(o) < Opts::speciesSimilarityThreshold())
+            if (this->species[i]->similarity(o) < opts.speciesSimilarityThreshold())
                 this->species[i]->add(o);
             else
                 offsprings.push_back(o);
@@ -161,7 +169,7 @@ void Population::sortOffspringsIntoSpecies(vector<shared_ptr<Organism>> offsprin
 
         bool newSpecies = true;
         for (auto &s : this->species) {
-            if (s->similarity(o) < Opts::speciesSimilarityThreshold()) {
+            if (s->similarity(o) < opts.speciesSimilarityThreshold()) {
                 s->add(o);
                 newSpecies = false;
                 break;
@@ -169,7 +177,7 @@ void Population::sortOffspringsIntoSpecies(vector<shared_ptr<Organism>> offsprin
         }
 
         if (newSpecies) {
-            this->species.push_back(make_shared<Species>());
+            this->species.push_back(make_shared<Species>(opts));
             this->species.back()->add(o); 
         }
     }
@@ -212,7 +220,7 @@ void Population::calcNextGeneration() {
 
     /* calculate the number of offsprings per species */
     vector<unsigned> offspringsPerSpecies = this->calculateOffspringsPerSpecies(
-        Opts::populationSize() - interSpeciesOffsprings.size()
+        opts.populationSize() - interSpeciesOffsprings.size()
     );
 
     /* calculate the inspecies offsprings */

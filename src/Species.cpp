@@ -1,6 +1,5 @@
 #include "Species.h"
 #include "Organism.h"
-#include "Opts.h"
 #include <algorithm>
 
 using namespace NEAT;
@@ -49,7 +48,7 @@ void Species::calculateFittness(vector<vector<double>> inputs, vector<vector<dou
 /* creates a new offspring from the Organism with the given index */
 shared_ptr<Organism> Species::createOffspring(unsigned index) {
     
-    if (rand_range_d64(rand, 0, 1) < Opts::mutationOnlyPropability() || this->size() == 1) {
+    if (rand_range_d64(rand, 0, 1) < opts.mutationOnlyPropability() || this->size() == 1) {
 
         /* create new Organism and mutate its Genome */
        shared_ptr<Organism> offspring = make_shared<Organism>(this->organisms[index]->clone());
@@ -63,10 +62,13 @@ shared_ptr<Organism> Species::createOffspring(unsigned index) {
         while (index2 == index)
             index2 = rand64(rand) % this->size();
 
-        shared_ptr<Organism> offspring = make_shared<Organism>(*this->organisms[index], 
-                                                               *this->organisms[index2]);
+        shared_ptr<Organism> offspring = make_shared<Organism>(
+            *this->organisms[index], 
+            *this->organisms[index2],
+            opts
+        );
 
-        if (rand_range_d64(rand, 0, 1) > Opts::mateOnlyPropability())
+        if (rand_range_d64(rand, 0, 1) > opts.mateOnlyPropability())
             offspring->mutate();
 
         return offspring;
@@ -78,7 +80,7 @@ vector<shared_ptr<Organism>> Species::createOffsprings(unsigned nOffsprings) {
     
     /* let the fittest Organism survive if this species is big enought */
     vector<shared_ptr<Organism>> newGeneration;
-    if (nOffsprings > Opts::fittestSurvivalThreshold()) {
+    if (nOffsprings > opts.fittestSurvivalThreshold()) {
 
         /* copy the fittest Organism */
         newGeneration.push_back(make_shared<Organism>(*this->organisms[0]));
@@ -101,7 +103,11 @@ shared_ptr<Organism> Species::createOffspring(Species &other) {
     const unsigned thisIndex  = rand64(rand) % this->organisms.size();
     const unsigned otherIndex = rand64(rand) % other.organisms.size();
 
-    return make_shared<Organism>(*this->organisms[thisIndex], *other.organisms[otherIndex]);
+    return make_shared<Organism>(
+        *this->organisms[thisIndex], 
+        *other.organisms[otherIndex],
+        opts
+    );
 }
 
 /* kills the worst performing Organisms 
@@ -109,7 +115,7 @@ shared_ptr<Organism> Species::createOffspring(Species &other) {
  */
 void Species::killWorst() {
     
-    unsigned killStart = this->organisms.size() * Opts::survivalRate() + 1;
+    unsigned killStart = this->organisms.size() * opts.survivalRate() + 1;
 
     for (unsigned i = killStart; i < this->organisms.size(); i++)
         organisms[i]->kill();

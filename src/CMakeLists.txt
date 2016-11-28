@@ -24,7 +24,6 @@ add_executable(net
                utils 
                GeneHistory 
                GenerationCounter 
-               Opts 
                Organism 
                Population 
                Species)

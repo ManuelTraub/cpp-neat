@@ -33,10 +33,11 @@ AFTER() {
 
 TEST(basicSortingTest) {
     
+    Opts opts;
     vector<shared_ptr<Organism>> organisms;
 
     for (unsigned i = 0; i < 1000; i++) {
-        organisms.push_back(make_shared<Organism>(0, 0));
+        organisms.push_back(make_shared<Organism>(0, 0, opts));
         organisms.back()->setFitness(rand_range_d64(args, 0, 100));
     }
 
@@ -57,15 +58,16 @@ TEST(basicSortingTest) {
 TEST(advancedSortingTest) {
 
     /* speedup mutation for testing */
-    Opts::getInstance()._addNeuronMutationPropability = 0.3;
-    Opts::getInstance()._addConnectionMutationPropability = 0.5;
+    Opts opts;
+    opts.addNeuronMutationPropability(0.3);
+    opts.addConnectionMutationPropability(0.5);
 
     /* training data */
     vector<vector<double>> trainingInputs  = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
     vector<vector<double>> trainingOutputs = {{0}, {0}, {0}, {1}};
     
     vector<shared_ptr<Organism>> organisms;
-    organisms.push_back(make_shared<Organism>(2, 1));
+    organisms.push_back(make_shared<Organism>(2, 1, opts));
     organisms.back()->calculateFittness(trainingInputs, trainingOutputs);
 
 

@@ -8,6 +8,7 @@
 #include "utils.h"
 #include "Genotype.h"
 #include "Organism.h"
+#include "Opts.h"
 
 using std::shared_ptr;
 
@@ -16,6 +17,9 @@ namespace NEAT {
     class Species {
         
         private:
+
+            /* reference to the options of the whole population */
+            Opts &opts;
 
             /* global random value */
             static rand64_t *rand;
@@ -45,10 +49,11 @@ namespace NEAT {
         public:
             
             /* creats a new species */
-            Species() : bestFitness(std::nan("Species")), 
-                        averageFitness(std::nan("Species")),
-                        birthGeneration(GenerationCounter::get()),
-                        lastImproveGeneration(GenerationCounter::get()) { }
+            Species(Opts &opts) : opts(opts.freeze()),
+                                  bestFitness(std::nan("Species")), 
+                                  averageFitness(std::nan("Species")),
+                                  birthGeneration(GenerationCounter::get()),
+                                  lastImproveGeneration(GenerationCounter::get()) { }
 
             /* get the number of Geneomes of this */
             unsigned size() const { return organisms.size(); }
