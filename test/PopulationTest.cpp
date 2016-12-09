@@ -544,6 +544,9 @@ TEST(binaryXORZeroStartConectionsQualityTest) {
 TEST(basicRecurencyTest) {
     
     Opts opts;
+    opts.netActivationFunction(Opts::ActivationFunction::RELU);
+    opts.weightMultiplier(1.0);
+    opts.speciesSimilarityThreshold(5.0);
     opts.allowRecurentConnections(true);
     opts.shuffleTrainingData(false);
 
@@ -602,14 +605,14 @@ TEST(basicRecurencyTest) {
                       connections.back(), avgVector(connections),
                       species.back(), avgVector(species));
 
-            /*
+            /* * /
             Phenotype phenotype2(best->getGenome(), opts);
             Phenotype phenotype3(best->getGenome(), opts);
             for (unsigned t = 0; t < trainingOutputs.size(); t++)
                 printf("%f  =>  %f\n", trainingOutputs[t][0], phenotype2.run(trainingInputs[t])[0]);
             
             printf("maxDerivation: %f\n", phenotype3.maxDerivation(trainingInputs, trainingOutputs));
-            */
+            / * */
 
             if (r > nRuns / 1.5) {
                 ASSERT_TRUE(avgVector(generations) < 90);

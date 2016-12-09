@@ -64,6 +64,12 @@ namespace NEAT {
                 outputValue = tanh(gradient * weightedInputs);
             }
 
+            /* calculate the output value using a rectangular liner unit activation */
+            void calculateReLUOutput() {
+                outputValue = gradient * weightedInputs;
+                if (outputValue < 0) outputValue = 0;
+            }
+
             /* adds an input */
             void addInput(Neuron *input, double weight) {
                 this->inputs.push_back(input);

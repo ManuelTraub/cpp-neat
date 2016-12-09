@@ -122,6 +122,10 @@ vector<double> Phenotype::run(vector<double> inputs) {
             for (unsigned n = 0; n < neuronLayers[l].size(); n++) 
                 neuronLayers[l][n]->calculateTanhOutput();
 
+        } else if (opts.netActivationFunction() == Opts::ActivationFunction::RELU) {
+            for (unsigned n = 0; n < neuronLayers[l].size(); n++) 
+                neuronLayers[l][n]->calculateReLUOutput();
+
         } else assert(false);
     }
 

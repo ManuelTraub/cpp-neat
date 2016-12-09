@@ -50,7 +50,7 @@ namespace NEAT {
         public:
 
             /* the different Netactivation functions possible */
-            enum class ActivationFunction { SIGMOID, TANH };
+            enum class ActivationFunction { SIGMOID, TANH, RELU };
 
             /* standart constructor */
             Opts() { }
