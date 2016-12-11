@@ -1,7 +1,8 @@
 #include "Organism.h"
 #include "Opts.h"
 
-using namespace NEAT;
+using namespace NEAVC;
+using namespace AI;
 
 /* global random value */
 rand64_t *Organism::rand = new_rand64_t(); 
@@ -40,10 +41,13 @@ void Organism::mutate() {
         this->genome.mutateNeurons();
 }
 
-namespace NEAT {
+namespace NEAVC {
 
-    /* compares two Organism based on theyr adjustedFitness fittness */
-    bool orderOrganisms(const shared_ptr<Organism> &a, const shared_ptr<Organism> &b) {
-        return a->getFitness() > b->getFitness();
+    namespace AI {
+
+        /* compares two Organism based on theyr adjustedFitness fittness */
+        bool orderOrganisms(const shared_ptr<Organism> &a, const shared_ptr<Organism> &b) {
+            return a->getFitness() > b->getFitness();
+        }
     }
 }

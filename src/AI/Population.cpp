@@ -6,7 +6,8 @@
 
 using std::shared_ptr;
 using std::make_shared;
-using namespace NEAT;
+using namespace NEAVC;
+using namespace AI;
 
 /* global random value */
 rand64_t *Population::rand = new_rand64_t();

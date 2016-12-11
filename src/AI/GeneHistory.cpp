@@ -1,5 +1,7 @@
 #include "GeneHistory.h"
-using namespace NEAT;
+
+using namespace NEAVC;
+using namespace AI;
 
 /* the only instance of the GeneHistory */
 GeneHistory GeneHistory::onlyInstance;

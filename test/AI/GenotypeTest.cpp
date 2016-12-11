@@ -1,15 +1,16 @@
-#include "../src/utils.h"
-#include "../src/Genotype.h"
-#include "../src/Opts.h"
+#include "../../src/AI/utils.h"
+#include "../../src/AI/Genotype.h"
+#include "../../src/AI/Opts.h"
 
 #include <vector>
 
 using std::vector;
-using namespace NEAT;
+using namespace NEAVC;
+using namespace AI;
 
 #define static_t rand64_t
 #define test_t rand64_t
-#include "TestSuite.h"
+#include "../TestSuite.h"
 
 
 BEVOR_ALL() {

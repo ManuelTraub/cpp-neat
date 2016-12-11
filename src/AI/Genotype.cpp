@@ -3,7 +3,8 @@
 #include <iterator>
 #include <assert.h>
 
-using namespace NEAT;
+using namespace NEAVC;
+using namespace AI;
 
 /* global random value to mutate this */
 rand64_t *Genotype::rand = new_rand64_t();

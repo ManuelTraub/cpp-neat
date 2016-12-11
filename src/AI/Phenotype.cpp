@@ -2,10 +2,11 @@
 #include <assert.h>
 #include <set>
 #include <unordered_map>
-#include "../lib/simple_svg_1.0.0.hpp"
+#include "../../lib/simple_svg_1.0.0.hpp"
 
 using namespace svg;
-using namespace NEAT;
+using namespace NEAVC;
+using namespace AI;
 using std::set;
 using std::unordered_map;
 using std::make_pair;

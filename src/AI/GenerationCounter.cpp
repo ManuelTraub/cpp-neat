@@ -1,6 +1,7 @@
 #include "GenerationCounter.h"
 
-using namespace NEAT;
+using namespace NEAVC;
+using namespace AI;
 
 /* the only instance of the GenerationCounter */
 GenerationCounter GenerationCounter::onlyInstance;
