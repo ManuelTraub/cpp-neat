@@ -13,7 +13,7 @@
 
 #include <inttypes.h>
 
-namespace SPE {
+namespace NEAVC {
 
     /* abstract thread class to override */
     class Thread {

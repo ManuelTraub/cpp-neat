@@ -1,5 +1,5 @@
 #include "Threads.h"
-using namespace SPE;
+using namespace NEAVC;
 
 #include <algorithm>
 #include <memory.h>
