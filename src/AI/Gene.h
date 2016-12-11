@@ -10,7 +10,7 @@
 #include <pthread.h>
 #include <assert.h>
 #include <vector>
-#include "utils.h"
+#include "../utils/utils.h"
 #include "GenerationCounter.h"
 
 using std::vector;

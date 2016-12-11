@@ -1,4 +1,4 @@
-#include "../../src/AI/utils.h"
+#include "../../src/utils/utils.h"
 #include "../../src/AI/Genotype.h"
 #include "../../src/AI/Opts.h"
 

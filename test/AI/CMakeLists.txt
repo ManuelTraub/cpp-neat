@@ -18,7 +18,7 @@ endif()
 
 add_executable(GenotypeTest 
                GenotypeTest 
-               ../../src/AI/utils 
+               ../../src/utils/utils 
                ../../src/AI/Genotype 
                ../../src/AI/Gene 
                ../../src/AI/GeneHistory 
@@ -26,7 +26,7 @@ add_executable(GenotypeTest
 
 add_executable(PhenotypeTest 
                PhenotypeTest 
-               ../../src/AI/utils 
+               ../../src/utils/utils 
                ../../src/AI/Genotype 
                ../../src/AI/Phenotype 
                ../../src/AI/Gene 
@@ -36,14 +36,14 @@ add_executable(PhenotypeTest
 add_executable(GeneHistoryTest 
                GeneHistoryTest 
                ../../src/AI/GeneHistory 
-               ../../src/AI/utils 
+               ../../src/utils/utils 
                ../../src/AI/Gene 
                ../../src/AI/GenerationCounter)
 
 add_executable(OrganismTest
                OrganismTest
                ../../src/AI/Organism
-               ../../src/AI/utils 
+               ../../src/utils/utils 
                ../../src/AI/Genotype 
                ../../src/AI/Phenotype 
                ../../src/AI/Gene 
@@ -54,7 +54,7 @@ add_executable(SpeciesTest
                SpeciesTest
                ../../src/AI/Species
                ../../src/AI/Organism
-               ../../src/AI/utils 
+               ../../src/utils/utils 
                ../../src/AI/Genotype 
                ../../src/AI/Phenotype 
                ../../src/AI/Gene 
@@ -66,7 +66,7 @@ add_executable(PopulationTest
                ../../src/AI/Population
                ../../src/AI/Species
                ../../src/AI/Organism
-               ../../src/AI/utils 
+               ../../src/utils/utils 
                ../../src/AI/Genotype 
                ../../src/AI/Phenotype 
                ../../src/AI/Gene 

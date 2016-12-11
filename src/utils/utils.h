@@ -6,6 +6,7 @@
 #include <string.h>
 #include <string>
 #include <stdlib.h>
+
 using std::string;
 
 /* returns the current milliseconds time */
@@ -125,6 +126,9 @@ int get_arg_i(int argc,
 #define assertf(...)
 #endif /* __DEBUG__ */
 
+/* returns the next bigger prime number */
+uint64_t nextPrime(uint64_t n);
+
 /* returns the absolute difference between the two numbers 
  * (circumevents integer overflows) 
  */
@@ -135,6 +139,10 @@ int get_arg_i(int argc,
  */
 #define middle(x, y) (((x) < (y)) ? ((x) + ((y) - (x)) / 2) : ((y) + ((x) - (y)) / 2))
 
+/* signum function */
+template <typename T> int sgn(T val) {
+    return (T(0) < val) - (val < T(0));
+}
 /* returns the decimal part of an double value */
 #define decimals(x) ((x) - ((uint64_t) (x)))
 

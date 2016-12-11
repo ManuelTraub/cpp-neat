@@ -6,7 +6,7 @@
 
 #include <vector>
 #include <unordered_map>
-#include "utils.h"
+#include "../utils/utils.h"
 #include "Gene.h"
 #include "GeneHistory.h"
 #include "Opts.h"

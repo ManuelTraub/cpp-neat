@@ -5,7 +5,7 @@
 #define __SPECIES_H__
 
 #include <memory>
-#include "utils.h"
+#include "../utils/utils.h"
 #include "Genotype.h"
 #include "Organism.h"
 #include "Opts.h"

@@ -10,9 +10,10 @@ using std::string;
 /* returns the current milliseconds time */
 uint64_t gettime_usec() {
 
-  struct timeval time;
-  if (gettimeofday(&time, NULL) == -1)
-    return ((uint64_t) -1);
+    struct timeval time;
+    int error = gettimeofday(&time, NULL);
+    if (error)
+        return ((uint64_t) -1);
 
     return ((uint64_t) time.tv_sec) * ((uint64_t) 1000000) + 
            ((uint64_t) time.tv_usec);
