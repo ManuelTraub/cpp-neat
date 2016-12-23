@@ -6,15 +6,11 @@
 #define __INDIVIDUUM_H__
 
 #include "Genotype.h"
+#include "GeneHistory.h"
 #include "Phenotype.h"
 #include <memory>
 
 using std::shared_ptr;
-
-#define fitterGenome(o1, o2) ((o1.fitness > o2.fitness) ? o1.genome : o2.genome)
-#define weakerGenome(o1, o2) ((o1.fitness > o2.fitness) ? o2.genome : o1.genome)
-#define biggerGenome(o1, o2)  ((o1.genome.getConnections().size() > o2.genome.getConnections().size()) ? o1.genome : o2.genome)
-#define smallerGenome(o1, o2) ((o1.genome.getConnections().size() > o2.genome.getConnections().size()) ? o2.genome : o1.genome)
 
 namespace NEAVC {
 
@@ -26,6 +22,9 @@ namespace NEAVC {
 
                 /* reference to the options of the whole population */
                 Opts &opts;
+
+                /* reference to the GeneHistory of the whole population */
+                GeneHistory &geneHistory;
 
                 /* global random value */
                 static rand64_t *rand;
@@ -42,41 +41,29 @@ namespace NEAVC {
             public:
 
                 /* create a new Organism for the given number of input and output neurons */
-                Organism(const unsigned inputs, const unsigned outputs, Opts &opts) :
-                    opts(opts.freeze()),
-                    genome(Genotype(inputs, outputs, opts)), 
-                    fitness(std::nan("Organism")), 
-                    alive(true) { }
+                Organism(
+                    const unsigned inputs, 
+                    const unsigned outputs, 
+                    Opts &opts, 
+                    GeneHistory &geneHistory
+                );
 
                 /* creating a new Organism by cloning this */
-                Organism clone() {
-                    Organism newClone = *this;
-                    newClone.fitness = std::nan("Organism"); 
-                    newClone.alive = true;
-
-                    return newClone;
-                }
+                Organism clone();
 
                 /* creat a new Organism mixing the genes of the two given Organisms */
-                Organism(const Organism &parent1, const Organism &parent2, Opts &opts) : 
-                    opts(opts.freeze()),
-                    genome((parent1.fitness == parent2.fitness) ? 
-                            Genotype(smallerGenome(parent1, parent2), 
-                                     biggerGenome(parent1, parent2),
-                                     opts) :
-                            Genotype(fitterGenome(parent1, parent2), 
-                                     weakerGenome(parent1, parent2),
-                                     opts)),
-                    fitness(std::nan("Organism")), 
-                    alive(true) { 
-                    
-                    assert(!std::isnan(parent1.fitness) && !std::isnan(parent2.fitness));
-                }
+                Organism(
+                    const Organism &parent1, 
+                    const Organism &parent2, 
+                    Opts &opts,
+                    GeneHistory &geneHistory
+                );
 
                 /* calculates the fitness of this */
-                void calculateFittness(vector<vector<double>> inputs, 
-                                       vector<vector<double>> outputs);
-
+                void calculateFittness(
+                    vector<vector<double>> inputs, 
+                    vector<vector<double>> outputs
+                );
 
                 /* returns the original fitness of this */
                 double getFitness() const { 
@@ -120,10 +107,5 @@ namespace NEAVC {
 
     }
 }
-
-#undef weakerGenome
-#undef fitterGenome
-#undef smallerGenome
-#undef biggerGenome
 
 #endif /* __INDIVIDUUM_H__ */

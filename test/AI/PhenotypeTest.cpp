@@ -20,7 +20,6 @@ AFTER_ALL() {
 }
 
 BEVOR() {
-    GeneHistory::getInstance().clear();
     return args;
 }
 
@@ -31,7 +30,8 @@ AFTER() {
 TEST(basicTest) {
     
     Opts opts;
-    Genotype genotype(2, 1, opts);
+    GeneHistory geneHistory(opts);
+    Genotype genotype(2, 1, opts, geneHistory);
 
     /* create all posible connections */
     for (unsigned i = 0; i < 1000; i++)
@@ -59,7 +59,8 @@ TEST(basicTest) {
 TEST_N(advancedTest, 100) {
     
     Opts opts;
-    Genotype genotype(5, 5, opts);
+    GeneHistory geneHistory(opts);
+    Genotype genotype(5, 5, opts, geneHistory);
 
     for (unsigned n = 0; n < 20; n++) {
 
@@ -80,7 +81,8 @@ TEST_N(advancedTest, 100) {
 TEST(basicBinaryANDTest) {
 
     Opts opts;
-    Genotype genotype(2, 1, opts);
+    GeneHistory geneHistory(opts);
+    Genotype genotype(2, 1, opts, geneHistory);
 
     unordered_map<uint64_t, NeuronGene> neuronsMap = genotype.getNeurons();
     vector<NeuronGene> inputs;
@@ -123,7 +125,8 @@ TEST(basicBinaryANDTest) {
 TEST_N(advancedBinaryANDTest, 1000) {
 
     Opts opts;
-    Genotype genotype(2, 1, opts);
+    GeneHistory geneHistory(opts);
+    Genotype genotype(2, 1, opts, geneHistory);
 
     unordered_map<uint64_t, NeuronGene> neuronsMap = genotype.getNeurons();
     vector<NeuronGene> inputs;
@@ -199,7 +202,8 @@ TEST_N(advancedBinaryANDTest, 1000) {
 TEST(phenotypeGenerationSpeedTest) {
 
     Opts opts;
-    Genotype genotype(10, 10, opts);
+    GeneHistory geneHistory(opts);
+    Genotype genotype(10, 10, opts, geneHistory);
 
     for (unsigned i = 0; i < 100; i++)
         genotype.mutateInsertNeuron();

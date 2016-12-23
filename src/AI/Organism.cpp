@@ -4,9 +4,66 @@
 using namespace NEAVC;
 using namespace AI;
 
+#define fitterGenome(o1, o2) ((o1.fitness > o2.fitness) ? o1.genome : o2.genome)
+#define weakerGenome(o1, o2) ((o1.fitness > o2.fitness) ? o2.genome : o1.genome)
+#define biggerGenome(o1, o2)  ((o1.genome.getConnections().size() > o2.genome.getConnections().size()) ? o1.genome : o2.genome)
+#define smallerGenome(o1, o2) ((o1.genome.getConnections().size() > o2.genome.getConnections().size()) ? o2.genome : o1.genome)
+
+
 /* global random value */
 rand64_t *Organism::rand = new_rand64_t(); 
 
+/* create a new Organism for the given number of input and output neurons */
+Organism::Organism(
+    const unsigned inputs, 
+    const unsigned outputs, 
+    Opts &opts, 
+    GeneHistory &geneHistory
+) :
+    opts(opts.freeze()),
+    geneHistory(geneHistory),
+    genome(inputs, outputs, opts, geneHistory), 
+    fitness(std::nan("Organism")), 
+    alive(true) { }
+
+/* creating a new Organism by cloning this */
+Organism Organism::clone() {
+    Organism newClone = *this;
+    newClone.fitness = std::nan("Organism"); 
+    newClone.alive = true;
+
+    return newClone;
+}
+
+/* creat a new Organism mixing the genes of the two given Organisms */
+Organism::Organism(
+    const Organism &parent1, 
+    const Organism &parent2, 
+    Opts &opts,
+    GeneHistory &geneHistory
+) : 
+    opts(opts.freeze()),
+    geneHistory(geneHistory),
+    genome(
+        (parent1.fitness == parent2.fitness) ? 
+        Genotype(
+            smallerGenome(parent1, parent2), 
+            biggerGenome(parent1, parent2),
+            opts,
+            geneHistory
+        ) :
+        Genotype(
+            fitterGenome(parent1, parent2), 
+            weakerGenome(parent1, parent2),
+            opts,
+            geneHistory
+        )
+    ),
+    fitness(std::nan("Organism")), 
+    alive(true) { 
+
+    assert(!std::isnan(parent1.fitness) && !std::isnan(parent2.fitness));
+}
 
 /* calculates the fitness of this */
 void Organism::calculateFittness(vector<vector<double>> inputs, 
@@ -24,6 +81,11 @@ void Organism::mutate() {
 
     this->fitness = std::nan("Organism");
 
+    if (rand_range_d64(rand, 0, 1) < opts.addStructureMutationPropability()) 
+        for(unsigned i = 0; i < 30; i++) 
+            if (this->genome.mutateInsertStructure()) 
+                return;
+
     if (rand_range_d64(rand, 0, 1) < opts.addNeuronMutationPropability()) 
         for(unsigned i = 0; i < 30; i++) 
             if (this->genome.mutateInsertNeuron()) 
@@ -39,6 +101,9 @@ void Organism::mutate() {
 
     if (rand_range_d64(rand, 0, 1) < opts.mutateGradientPropability())
         this->genome.mutateNeurons();
+
+    if (rand_range_d64(rand, 0, 1) < opts.mutateStructurePropability())
+        this->genome.mutateStructures();
 }
 
 namespace NEAVC {

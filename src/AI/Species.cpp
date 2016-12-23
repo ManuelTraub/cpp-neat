@@ -66,7 +66,8 @@ shared_ptr<Organism> Species::createOffspring(unsigned index) {
         shared_ptr<Organism> offspring = make_shared<Organism>(
             *this->organisms[index], 
             *this->organisms[index2],
-            opts
+            this->opts,
+            this->geneHistory
         );
 
         if (rand_range_d64(rand, 0, 1) > opts.mateOnlyPropability())
@@ -107,7 +108,8 @@ shared_ptr<Organism> Species::createOffspring(Species &other) {
     return make_shared<Organism>(
         *this->organisms[thisIndex], 
         *other.organisms[otherIndex],
-        opts
+        this->opts,
+        this->geneHistory
     );
 }
 

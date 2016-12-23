@@ -99,6 +99,9 @@ namespace NEAVC {
             /* avg weight diference multiplier when calculating the similarity */
             addOption(double, weightMultiplier, 0.4)
 
+            /* the structure multiplayer for calculating similarity */
+            addOption(double, structureMultiplier, 1.0);
+
             /* the perturbe weight range start and end */
             addOption(double, perturbeWeightRangeStart, -2.5)
             addOption(double, perturbeWeightRangeEnd, 2.5)
@@ -137,6 +140,23 @@ namespace NEAVC {
 
             /* the net activation function used in the neurons */
             addOption(ActivationFunction, netActivationFunction, ActivationFunction::SIGMOID);
+
+            /* the propability of evolving a muscle structure gene */
+            addOption(double, muscleTissuePropability, 0.1);
+
+            /* the propability of evolving a sensor structure gene */
+            addOption(double, sensorTissuePropability, 0.05);
+
+            /* the propability of adding structure during mutation */
+            addOption(double, addStructureMutationPropability, 0.01);
+
+            /* the propability of mutating structure during mutation */
+            addOption(double, mutateStructurePropability, 0.02);
+
+            /* the offset to the agin propability for mutating a certain connection
+             * Propability = 1/(age + 1) + offset
+             */
+            addOption(double, ageingPropabilityOffset, 1.0);
 
         };
     }

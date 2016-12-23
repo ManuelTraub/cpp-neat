@@ -22,7 +22,6 @@ AFTER_ALL() {
 }
 
 BEVOR() {
-    GeneHistory::getInstance().clear();
     return args;
 }
 
@@ -33,10 +32,11 @@ AFTER() {
 TEST(basicTest) {
     
     Opts opts;
-    Genotype genotype1(2, 2, opts);
-    Genotype genotype2(2, 2, opts);
-    Genotype genotype3(2, 2, opts);
-    Genotype genotype4(2, 2, opts);
+    GeneHistory geneHistory(opts);
+    Genotype genotype1(2, 2, opts, geneHistory);
+    Genotype genotype2(2, 2, opts, geneHistory);
+    Genotype genotype3(2, 2, opts, geneHistory);
+    Genotype genotype4(2, 2, opts, geneHistory);
 
     /* sort the neurons by input and output */
     unordered_map<uint64_t, NeuronGene> neuronsMap1 = genotype1.getNeurons();
@@ -106,8 +106,9 @@ TEST(basicTest) {
 TEST(basic2DTest) {
     
     Opts opts;
-    Genotype genotype1(1, 2, opts);
-    Genotype genotype2(1, 2, opts);
+    GeneHistory geneHistory(opts);
+    Genotype genotype1(1, 2, opts, geneHistory);
+    Genotype genotype2(1, 2, opts, geneHistory);
 
     unordered_map<uint64_t, NeuronGene> neuronsMap = genotype1.getNeurons();
     vector<NeuronGene> inputs;
@@ -172,8 +173,9 @@ TEST(basic2DTest) {
 TEST(basicInLayerTestTest) {
     
     Opts opts;
-    Genotype genotype1(1, 2, opts);
-    Genotype genotype2(1, 2, opts);
+    GeneHistory geneHistory(opts);
+    Genotype genotype1(1, 2, opts, geneHistory);
+    Genotype genotype2(1, 2, opts, geneHistory);
 
     unordered_map<uint64_t, NeuronGene> neuronsMap = genotype1.getNeurons();
     vector<NeuronGene> inputs;
@@ -272,7 +274,8 @@ TEST_N(basicMutationTest, 1000) {
     
     Opts opts;
     opts.allowRecurentConnections(true);
-    Genotype genotype(2, 1, opts);
+    GeneHistory geneHistory(opts);
+    Genotype genotype(2, 1, opts, geneHistory);
 
     /* create all posible connections */
     for (unsigned i = 0; i < 1000; i++)
@@ -334,8 +337,9 @@ TEST_N(advancedMutationTest, 100) {
     
     Opts opts;
     opts.allowRecurentConnections(true);
-    Genotype genotype1(nInputs, nOutputs, opts);
-    Genotype genotype2(nInputs, nOutputs, opts);
+    GeneHistory geneHistory(opts);
+    Genotype genotype1(nInputs, nOutputs, opts, geneHistory);
+    Genotype genotype2(nInputs, nOutputs, opts, geneHistory);
 
     /* create all posible connections */
     for (unsigned i = 0; i < nConnections * 100; i++) {
@@ -433,8 +437,9 @@ TEST_N(advancedMutationTest, 100) {
 TEST_N(basicSimilarityTest, 100) {
     
     Opts opts;
-    Genotype genotype1(2, 2, opts);
-    Genotype genotype2(2, 2, opts);
+    GeneHistory geneHistory(opts);
+    Genotype genotype1(2, 2, opts, geneHistory);
+    Genotype genotype2(2, 2, opts, geneHistory);
 
     /* sort the neurons by input and output */
     unordered_map<uint64_t, NeuronGene> neuronsMap1 = genotype1.getNeurons();
@@ -504,8 +509,9 @@ TEST_N(basicSimilarityTest, 100) {
 TEST(basicRecombinationTest) {
     
     Opts opts;
-    Genotype genotype1(2, 2, opts);
-    Genotype genotype2(2, 2, opts);
+    GeneHistory geneHistory(opts);
+    Genotype genotype1(2, 2, opts, geneHistory);
+    Genotype genotype2(2, 2, opts, geneHistory);
 
     /* sort the neurons by input and output */
     unordered_map<uint64_t, NeuronGene> neuronsMap1 = genotype1.getNeurons();
@@ -543,8 +549,8 @@ TEST(basicRecombinationTest) {
     ConnectionGene gene3 = genotype2.addConnection(inputs2[1], outputs2[0]);
     NeuronGene     gene4 = genotype2.addNeuron(gene3);
 
-    Genotype child1 = Genotype(genotype1, genotype2, opts);
-    Genotype child2 = Genotype(genotype2, genotype1, opts);
+    Genotype child1 = Genotype(genotype1, genotype2, opts, geneHistory);
+    Genotype child2 = Genotype(genotype2, genotype1, opts, geneHistory);
 
     ASSERT_EQUAL(child1.getConnections().count(gene1.getID()), 1, "child 1 shoudl have gene1");
     ASSERT_EQUAL(child1.getConnections().count(gene2.getID()), 1, "child 1 shoudl have gene2");
@@ -562,8 +568,9 @@ TEST(basicRecombinationTest) {
 TEST(basicAgeingTest) {
     
     Opts opts;
-    Genotype genotype1(2, 2, opts);
-    Genotype genotype2(2, 2, opts);
+    GeneHistory geneHistory(opts);
+    Genotype genotype1(2, 2, opts, geneHistory);
+    Genotype genotype2(2, 2, opts, geneHistory);
 
     /* sort the neurons by input and output */
     unordered_map<uint64_t, NeuronGene> neuronsMap1 = genotype1.getNeurons();
@@ -633,8 +640,9 @@ TEST_N(advancedSimilarityTest, 10) {
     uint64_t nOutputs = rand_range64(args, 1, 10);
     
     Opts opts;
-    Genotype genotype1(nInputs, nOutputs, opts);
-    Genotype genotype2(nInputs, nOutputs, opts);
+    GeneHistory geneHistory(opts);
+    Genotype genotype1(nInputs, nOutputs, opts, geneHistory);
+    Genotype genotype2(nInputs, nOutputs, opts, geneHistory);
 
     /* randomly create connections and Neurons */
     for (unsigned i = 0; i < 10000; i++) {
@@ -680,8 +688,9 @@ TEST_N(advancedSimilarityTest2, 100) {
     Opts opts;
     opts.weightMultiplier(0);
     opts.allowRecurentConnections(true);
-    Genotype genotype1(nInputs, nOutputs, opts);
-    Genotype genotype2(nInputs, nOutputs, opts);
+    GeneHistory geneHistory(opts);
+    Genotype genotype1(nInputs, nOutputs, opts, geneHistory);
+    Genotype genotype2(nInputs, nOutputs, opts, geneHistory);
 
     /* create all posible connections */
     for (unsigned i = 0; i < nConnections * 100; i++) {
@@ -785,8 +794,9 @@ TEST_N(basicInitialConnectionsTest, 100) {
     uint64_t nOutputs = rand_range64(args, 1, 10);
     
     Opts opts;
-    Genotype genotype1(nInputs, nOutputs, opts);
-    Genotype genotype2(nInputs, nOutputs, opts);
+    GeneHistory geneHistory(opts);
+    Genotype genotype1(nInputs, nOutputs, opts, geneHistory);
+    Genotype genotype2(nInputs, nOutputs, opts, geneHistory);
 
     genotype1.createInitialConnections(true);
     genotype2.createInitialConnections(false);
@@ -798,5 +808,81 @@ TEST_N(basicInitialConnectionsTest, 100) {
 
     ASSERT_TRUE(genotype2.getConnections().size() == (nInputs + 1) * nOutputs);
 
+    return args;
+}
+
+TEST(basicStructurSimilarityTest) {
+    
+    Opts opts;
+    GeneHistory geneHistory(opts);
+    Genotype *genotype1 = new Genotype(opts, geneHistory);
+    Genotype *genotype2 = new Genotype(opts, geneHistory);
+
+    bool similar = false;
+
+    for (unsigned i = 0; i < 1000 && !similar; i++) {
+        delete genotype2;
+        genotype2 = new Genotype(opts, geneHistory);
+
+        if (genotype1->similarity(*genotype2) == 0)
+            similar = true;
+    }
+
+    ASSERT_TRUE(similar, "structure based Genotypes not similar");
+
+    genotype1->mutateInsertStructure();
+    Genotype *genotype3 = new Genotype(*genotype2);
+
+    similar = false;
+    for (unsigned i = 0; i < 1000 && !similar; i++) {
+        delete genotype3;
+        genotype3 = new Genotype(*genotype2);
+        genotype3->mutateInsertStructure();
+
+        if (genotype1->similarity(*genotype3) == 0)
+            similar = true;
+    }
+
+    delete genotype1;
+    delete genotype2;
+    delete genotype3;
+    return args;
+}
+
+TEST(basicStructurSimilarityTest2) {
+    
+    Opts opts;
+    GeneHistory geneHistory(opts);
+    Genotype *genotype1 = new Genotype(opts, geneHistory);
+    Genotype *genotype2 = new Genotype(opts, geneHistory);
+
+    bool similar = false;
+
+    for (unsigned i = 0; i < 1000 && !similar; i++) {
+        delete genotype2;
+        genotype2 = new Genotype(opts, geneHistory);
+
+        if (genotype1->similarity(*genotype2) == 2)
+            similar = true;
+    }
+
+    ASSERT_TRUE(similar, "structure based Genotypes not similar");
+
+    genotype1->mutateInsertStructure();
+    Genotype *genotype3 = new Genotype(*genotype2);
+
+    similar = false;
+    for (unsigned i = 0; i < 1000 && !similar; i++) {
+        delete genotype3;
+        genotype3 = new Genotype(*genotype2);
+        genotype3->mutateInsertStructure();
+
+        if (genotype1->similarity(*genotype3) == 4)
+            similar = true;
+    }
+
+    delete genotype1;
+    delete genotype2;
+    delete genotype3;
     return args;
 }

@@ -67,6 +67,12 @@ namespace NEAVC {
                     assert(generation <= GenerationCounter::get());
                     return generation; 
                 }
+
+                /* returns the age of this */
+                uint64_t age() const {
+                    assert(generation <= GenerationCounter::get());
+                    return GenerationCounter::get() - generation;
+                }
         };
 
         /**
@@ -226,6 +232,59 @@ namespace NEAVC {
                 NeuronGene split() const {
                     return NeuronGene(inputNeuron, outputNeuron);
                 }
+        };
+
+        /* the different types of cellular tissues */
+        enum class TissueType { TISSUE, NEURON, SENSOR, MUSCLE };
+
+        /**
+         * A StructureGene encodes for a specific cellular tissue 
+         * at a specific possition in 3D space
+         */
+        class StructureGene : public Gene {
+            
+            private:
+
+                /* the tissue type of this gene */
+                TissueType type;
+
+                /* the possition in 3D space */
+                int64_t x, y, z;
+
+                /* connected input or output gene ids for muscle or sensor tisues */
+                vector<uint64_t> connectedGeneIDs;
+
+            public:
+
+                /* getter method for the type of this */
+                TissueType getType() const { return type; }
+
+                /* sets the tissues type of this */
+                void setType(const TissueType type) { this->type = type; }
+
+                /* getter method for the X-coordinate of this */
+                int64_t getX() const { return x; }
+
+                /* getter method for the Y-coordinate of this */
+                int64_t getY() const { return y; }
+
+                /* getter method for the Z-coordinate of this */
+                int64_t getZ() const { return z; }
+
+                /* getter method for the connected gene ids of this */
+                vector<uint64_t> getConnections() const { return connectedGeneIDs; }
+
+                /* adds a gene id to the connected ids of this */
+                void connectToGene(const uint64_t geneID) { connectedGeneIDs.push_back(geneID); }
+
+                /* constructor of this */
+                StructureGene(
+                    const TissueType type, 
+                    const int64_t x,
+                    const int64_t y,
+                    const int64_t z
+                ) : type(type), x(x), y(y), z(z)  { }
+
         };
     }
 }

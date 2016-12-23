@@ -40,6 +40,7 @@ TEST(basicSortingTest) {
     Opts opts;
     opts.addNeuronMutationPropability(0.3);
     opts.addConnectionMutationPropability(0.5);
+    GeneHistory geneHistory(opts);
 
     /* training data */
     vector<vector<double>> trainingInputs  = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
@@ -48,11 +49,11 @@ TEST(basicSortingTest) {
     vector<shared_ptr<Species>> species;
 
     vector<shared_ptr<Organism>> organisms;
-    organisms.push_back(make_shared<Organism>(2, 1, opts));
+    organisms.push_back(make_shared<Organism>(2, 1, opts, geneHistory));
     organisms.back()->calculateFittness(trainingInputs, trainingOutputs);
 
     for (unsigned i = 0; i < 100; i++) {
-        species.push_back(make_shared<Species>(opts));
+        species.push_back(make_shared<Species>(opts, geneHistory));
         unsigned nOrganisms = rand_range64(args, 1, 15);
         for (unsigned n = 0; n < nOrganisms; n++) {
             organisms.push_back(make_shared<Organism>(organisms.back()->clone()));
@@ -95,6 +96,7 @@ TEST(offspringTest) {
     Opts opts;
     opts.addNeuronMutationPropability(0.3);
     opts.addConnectionMutationPropability(0.5);
+    GeneHistory geneHistory(opts);
 
     /* training data */
     vector<vector<double>> trainingInputs  = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
@@ -103,11 +105,11 @@ TEST(offspringTest) {
     vector<shared_ptr<Species>> species;
 
     vector<shared_ptr<Organism>> organisms;
-    organisms.push_back(make_shared<Organism>(2, 1, opts));
+    organisms.push_back(make_shared<Organism>(2, 1, opts, geneHistory));
     organisms.back()->calculateFittness(trainingInputs, trainingOutputs);
 
     for (unsigned i = 0; i < 100; i++) {
-        species.push_back(make_shared<Species>(opts));
+        species.push_back(make_shared<Species>(opts, geneHistory));
         unsigned nOrganisms = rand_range64(args, 1, 15);
         for (unsigned n = 0; n < nOrganisms; n++) {
             organisms.push_back(make_shared<Organism>(organisms.back()->clone()));

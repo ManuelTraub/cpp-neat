@@ -38,13 +38,14 @@ TEST(basicOrganismSpeedTest) {
 
     /* training data */
     Opts opts;
+    GeneHistory geneHistory(opts);
     vector<vector<double>> trainingInputs  = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
     vector<vector<double>> trainingOutputs = {{0}, {0}, {0}, {1}};
 
     vector<shared_ptr<Organism>> organisms;
 
     for (unsigned i = 0; i < opts.populationSize(); i++)
-        organisms.push_back(make_shared<Organism>(2, 1, opts));
+        organisms.push_back(make_shared<Organism>(2, 1, opts, geneHistory));
 
     for (unsigned i = 0; i < 100; i++) {
         
@@ -74,6 +75,7 @@ TEST(basicSpeciesSpeedTest) {
 
     /* training data */
     Opts opts;
+    GeneHistory geneHistory(opts);
     vector<vector<double>> trainingInputs  = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
     vector<vector<double>> trainingOutputs = {{0}, {0}, {0}, {1}};
 
@@ -81,10 +83,10 @@ TEST(basicSpeciesSpeedTest) {
     vector<shared_ptr<Species>> species;
 
     for (unsigned i = 0; i < opts.populationSize(); i++)
-        organisms.push_back(make_shared<Organism>(2, 1, opts));
+        organisms.push_back(make_shared<Organism>(2, 1, opts, geneHistory));
 
     for (unsigned i = 0; i < 15; i++)
-        species.push_back(make_shared<Species>(opts));
+        species.push_back(make_shared<Species>(opts, geneHistory));
 
     for (unsigned i = 0; i < 100; i++) {
 
@@ -128,6 +130,7 @@ TEST(advancedSpeciesSpeedTest) {
 
     /* training data */
     Opts opts;
+    GeneHistory geneHistory(opts);
     vector<vector<double>> trainingInputs  = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
     vector<vector<double>> trainingOutputs = {{0}, {0}, {0}, {1}};
 
@@ -135,10 +138,10 @@ TEST(advancedSpeciesSpeedTest) {
     vector<shared_ptr<Species>> species;
 
     for (unsigned i = 0; i < opts.populationSize(); i++)
-        organisms.push_back(make_shared<Organism>(2, 1, opts));
+        organisms.push_back(make_shared<Organism>(2, 1, opts, geneHistory));
 
     for (unsigned i = 0; i < 15; i++)
-        species.push_back(make_shared<Species>(opts));
+        species.push_back(make_shared<Species>(opts, geneHistory));
 
     for (unsigned i = 0; i < 100; i++) {
 
@@ -549,6 +552,7 @@ TEST(basicRecurencyTest) {
     opts.weightMultiplier(1.0);
     opts.speciesSimilarityThreshold(5.0);
     opts.allowRecurentConnections(true);
+    opts.ageingPropabilityOffset(0.0);
     opts.shuffleTrainingData(false);
 
     // training data
@@ -616,10 +620,10 @@ TEST(basicRecurencyTest) {
             / * */
 
             if (r > nRuns / 1.5) {
-                ASSERT_TRUE(avgVector(generations) < 90);
-                ASSERT_TRUE(avgVector(nodes) < 9);
-                ASSERT_TRUE(avgVector(connections) < 19);
-                ASSERT_TRUE(avgVector(species) < 25);
+                ASSERT_TRUE(avgVector(generations) < 40);
+                ASSERT_TRUE(avgVector(nodes) < 5);
+                ASSERT_TRUE(avgVector(connections) < 7);
+                ASSERT_TRUE(avgVector(species) < 8);
             }
         }
 

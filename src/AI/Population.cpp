@@ -13,22 +13,27 @@ using namespace AI;
 rand64_t *Population::rand = new_rand64_t();
 
 /* create a new Population */
-Population::Population(vector<vector<double>> inputs, 
-                       vector<vector<double>> outputs,
-                       Opts &opts) : opts(opts.freeze()) {
+Population::Population(
+    vector<vector<double>> inputs, 
+    vector<vector<double>> outputs,
+    Opts &opts
+) : 
+    opts(opts.freeze()),
+    geneHistory(opts) {
 
     this->inputs  = inputs;
     this->outputs = outputs;
     this->bestFitness = 0;
     this->lastImproveGeneration = GenerationCounter::get();
 
-    this->species.push_back(make_shared<Species>(opts));
+    this->species.push_back(make_shared<Species>(this->opts, this->geneHistory));
 
     for (unsigned i = 0; i < opts.populationSize(); i++) {
         this->species.back()->add(make_shared<Organism>(
             inputs[0].size(), 
             outputs[0].size(), 
-            opts
+            this->opts,
+            this->geneHistory
         ));
     }
 }
@@ -178,7 +183,7 @@ void Population::sortOffspringsIntoSpecies(vector<shared_ptr<Organism>> offsprin
         }
 
         if (newSpecies) {
-            this->species.push_back(make_shared<Species>(opts));
+            this->species.push_back(make_shared<Species>(this->opts, this->geneHistory));
             this->species.back()->add(o); 
         }
     }

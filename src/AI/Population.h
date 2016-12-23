@@ -22,6 +22,9 @@ namespace NEAVC {
                 /* the Options of this */
                 Opts &opts;
 
+                /* the GeneHistory of this */
+                GeneHistory geneHistory;
+
                 /* the species of this */
                 vector<shared_ptr<Species>> species;
 

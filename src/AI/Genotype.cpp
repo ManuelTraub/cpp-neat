@@ -9,9 +9,6 @@ using namespace AI;
 /* global random value to mutate this */
 rand64_t *Genotype::rand = new_rand64_t();
 
-/* the GeneHistory reference of this */
-GeneHistory &Genotype::history = GeneHistory::getInstance();
-
 /* mutate this by inserting a new hidden neuron */
 bool Genotype::mutateInsertNeuron() {
 
@@ -44,7 +41,7 @@ bool Genotype::mutateInsertNeuron() {
      * set the weight of the first part to 1 and the weight of the
      * second part to the weight of the splitted connection
      */
-    NeuronGene neuron = history.insertNeuron(mutatingGene);
+    NeuronGene neuron = geneHistory.insertNeuron(mutatingGene);
 
     /* stop if the neuron isn't a new neuron */
     if (neurons.count(neuron.getID()))
@@ -57,8 +54,8 @@ bool Genotype::mutateInsertNeuron() {
     mutatingGene.disable();
 
     /* create the new genes within the gene history */
-    ConnectionGene connection1 = history.insertConnection(mutatingGene.getInput(), neuron);
-    ConnectionGene connection2 = history.insertConnection(neuron, mutatingGene.getOutput());
+    ConnectionGene connection1 = geneHistory.insertConnection(mutatingGene.getInput(), neuron);
+    ConnectionGene connection2 = geneHistory.insertConnection(neuron, mutatingGene.getOutput());
 
     /* modifiy the weights according to minimize the impact of the inserted neuron */
     connection1.setWeight(1.0);
@@ -96,13 +93,14 @@ bool Genotype::mutateInsertConnection() {
     if (outputNeuron.getType() == NeuronType::INPUT ||
         outputNeuron.getType() == NeuronType::BIAS)
         return false;
+
     /* stop if its a recurent connection and we arent allowet to create one */
     if (!opts.allowRecurentConnections() && 
         outputNeuron.getLayerID() <= inputNeuron.getLayerID())
         return false;
 
     /* create the new conncetion */
-    ConnectionGene connection = history.insertConnection(inputNeuron, outputNeuron);
+    ConnectionGene connection = geneHistory.insertConnection(inputNeuron, outputNeuron);
 
     /* stop if the connection allready exists */
     if (connections.count(connection.getID()) != 0)
@@ -120,25 +118,76 @@ bool Genotype::mutateInsertConnection() {
     return true;
 }
 
+/* mutate this by creating a new structure */
+bool Genotype::mutateInsertStructure() {
+
+    /* return if this doesnt uses structure genes */
+    if (structures.empty())
+        return false;
+    
+    auto random_it = std::next(std::begin(structures), rand64(rand) % structures.size());
+    const StructureGene &baseStructure = random_it->second;
+
+    /* regest a new adjacent StructureGene from the GeneHistory */
+    StructureGene newStructure = this->geneHistory.insertStructure(baseStructure);
+
+    /* stop if the structure allready exists */
+    if (structures.count(newStructure.getID()) != 0)
+        return false;
+
+    /* randomly set the type of the new structure */
+    if (rand_range_d64(rand, 0.0, 1.0) < opts.sensorTissuePropability())
+        newStructure.setType(TissueType::SENSOR);
+    else if (rand_range_d64(rand, 0.0, 1.0) < opts.muscleTissuePropability())
+        newStructure.setType(TissueType::MUSCLE);
+    
+    /* add a new output Neuron for the new muscle if needed */
+    if (newStructure.getType() == TissueType::MUSCLE) {
+
+        /* count the output neurons */
+        uint64_t nOutputs = 0;
+        for (const auto &e : neurons)
+            if (e.second.getType() == NeuronType::OUTPUT)
+                nOutputs++;
+
+        /* add the ouput neuron */
+        const NeuronGene neuron = this->geneHistory.insertNeuron(NeuronType::OUTPUT, 0);
+        newStructure.connectToGene(neuron.getID());   
+        neurons.insert({neuron.getID(), neuron});
+    }
+
+    /* store the new structure */
+    this->structures.insert({newStructure.getID(), newStructure});
+
+    return true;
+}
+
 // TODO experiment with lovering the propability of mutating older genes
+// TODO propability for mutating a single gene = rand < 1/(age + n)
 /* mutate a given percentage of connections */
 void Genotype::mutateConnections() {
     
     for (auto &e : this->connections) {
-        if (rand_range_d64(rand, 0, 1) < opts.hardMutationPropabilityWeights()) {
-            e.second.mutateSet({opts.mutationSetWeightRangeStart(), 
-                                opts.mutationSetWeightRangeEnd()});
-        } else {
-            e.second.mutatePertube(
-                {
-                    opts.perturbeWeightRangeStart(), 
-                    opts.perturbeWeightRangeEnd()
-                },
-                {
-                    opts.mutationMaxPertubeWeightRangeStart(), 
-                    opts.mutationMaxPertubeWeightRangeEnd()
-                }
-            );
+
+        /* lower the propability of mutating older genes */
+        if (rand_range_d64(rand, 0, 1) < 
+            1.0 / (e.second.age() + 1) + opts.ageingPropabilityOffset()) {
+
+            if (rand_range_d64(rand, 0, 1) < opts.hardMutationPropabilityWeights()) {
+                e.second.mutateSet({opts.mutationSetWeightRangeStart(), 
+                                    opts.mutationSetWeightRangeEnd()});
+            } else {
+                e.second.mutatePertube(
+                    {
+                        opts.perturbeWeightRangeStart(), 
+                        opts.perturbeWeightRangeEnd()
+                    },
+                    {
+                        opts.mutationMaxPertubeWeightRangeStart(), 
+                        opts.mutationMaxPertubeWeightRangeEnd()
+                    }
+                );
+            }
         }
     }
 
@@ -154,25 +203,93 @@ void Genotype::mutateNeurons() {
     generation = GenerationCounter::get();
 }
 
+/* mutate the structures of this */
+void Genotype::mutateStructures() {
+
+    /* return if this doesnt uses structure genes */
+    if (structures.empty())
+        return;
+
+    /* select random gene for mutation */
+    auto random_it = std::next(std::begin(structures), rand64(rand) % structures.size());
+    StructureGene &gene = random_it->second;
+
+    /* mutate this by adding a muscle */
+    if (gene.getType() == TissueType::TISSUE) {
+        gene.setType(TissueType::MUSCLE);
+
+        /* add a new output Neuron for the new muscle if needed */
+        if (gene.getType() == TissueType::MUSCLE) {
+
+            /* count the output neurons */
+            uint64_t nOutputs = 0;
+            for (const auto &e : neurons)
+                if (e.second.getType() == NeuronType::OUTPUT)
+                    nOutputs++;
+
+            /* add a new the ouput neuron for the created muscle */
+            const NeuronGene neuron = this->geneHistory.insertNeuron(NeuronType::OUTPUT, 0);
+            gene.connectToGene(neuron.getID());   
+            neurons.insert({neuron.getID(), neuron});
+        }
+    }
+
+    generation = GenerationCounter::get();
+}
+
+/* create a new Genotype with minimal structure */
+Genotype::Genotype(Opts &opts, GeneHistory &geneHistory) : 
+                   opts(opts.freeze()), geneHistory(geneHistory) {
+
+    
+    /* add one output neuron */
+    NeuronGene neuron    = geneHistory.insertNeuron(NeuronType::OUTPUT, 0);
+    neurons.insert({neuron.getID(), neuron});
+
+    /* Add one Bias neuron to the inputs */
+    NeuronGene bias = geneHistory.insertNeuron(NeuronType::BIAS, 0);
+    neurons.insert({bias.getID(), bias});
+
+    /* the minimal structure consists of a single musce tissue atached to the brain */
+    StructureGene brain  = geneHistory.insertStructure(TissueType::NEURON);
+    StructureGene muscle = geneHistory.insertStructure(TissueType::MUSCLE);
+
+    muscle.connectToGene(neuron.getID());
+    structures.insert({brain.getID(), brain});
+    structures.insert({muscle.getID(), muscle});
+
+    /* add minimal connections */
+    ConnectionGene connection1 = geneHistory.insertConnection(bias, neuron);
+    ConnectionGene connection2 = geneHistory.insertConnection(neuron, neuron);
+    connections.insert({connection1.getID(), connection1});
+    connections.insert({connection2.getID(), connection2});
+}
+
 /* create a new Genotype for the given number of input and output neurons */
-Genotype::Genotype(const unsigned inputs, const unsigned outputs, Opts &opts) : 
-                   opts(opts.freeze()),
-                   generation(GenerationCounter::get()) {
+Genotype::Genotype(
+    const unsigned inputs, 
+    const unsigned outputs, 
+    Opts &opts,
+    GeneHistory &geneHistory
+) : 
+    opts(opts.freeze()),
+    geneHistory(geneHistory),
+    generation(GenerationCounter::get()) {
     
     /* create the input neurons */
     for (unsigned i = 0; i < inputs; i++) {
-        NeuronGene neuron = history.insertNeuron(NeuronType::INPUT, i);
+        NeuronGene neuron = geneHistory.insertNeuron(NeuronType::INPUT, i);
         neurons.insert({neuron.getID(), neuron});
     }
 
     /* Add one Bias neuron to the inputs */
-    NeuronGene neuron = history.insertNeuron(NeuronType::BIAS, 0);
+    NeuronGene neuron = geneHistory.insertNeuron(NeuronType::BIAS, 0);
     neurons.insert({neuron.getID(), neuron});
 
     /* create the output neurons */
     for (unsigned i = 0; i < outputs; i++) {
-        NeuronGene neuron = history.insertNeuron(NeuronType::OUTPUT, i);
-        neurons.insert({neuron.getID(), neuron});
+    NeuronGene neuron = geneHistory.insertNeuron(NeuronType::OUTPUT, i);
+    neurons.insert({neuron.getID(), neuron});
     }
 }
 
@@ -181,6 +298,8 @@ void Genotype::recombinateRandomChoose(const Genotype &fitter, const Genotype &o
 
     this->neurons = fitter.neurons;
     this->connections.reserve(fitter.connections.size());
+    this->structures = fitter.structures;
+    // TODO mix gradients
 
     /* actualize the generation number */
     for (const auto &e : this->neurons)
@@ -215,6 +334,7 @@ void Genotype::recombinateRandomChoose(const Genotype &fitter, const Genotype &o
         if (generation < this->connections.at(e.first).getGeneration())
             generation = this->connections.at(e.first).getGeneration();
     }
+
 }
 
 /* recombinate averaging the weights of similar genes */
@@ -222,6 +342,7 @@ void Genotype::recombinateAverage(const Genotype &fitter, const Genotype &other)
 
     this->neurons     = fitter.neurons;
     this->connections = fitter.connections;
+    this->structures  = fitter.structures;
 
     /* actualize the generation number */
     for (const auto &e : this->neurons)
@@ -256,8 +377,15 @@ void Genotype::recombinateAverage(const Genotype &fitter, const Genotype &other)
 }
 
 /* creat a new Genotype mixing the genes of this with other */
-Genotype::Genotype(const Genotype &fitter, const Genotype &other, Opts &opts) : 
-                   opts(opts.freeze()), generation(0) {
+Genotype::Genotype(
+    const Genotype &fitter, 
+    const Genotype &other, 
+    Opts &opts,
+    GeneHistory &geneHistory
+) : 
+   opts(opts.freeze()), 
+   geneHistory(geneHistory),
+   generation(0) {
 
     if (rand_range_d64(rand, 0, 1) < opts.avgMatingPropability())
         this->recombinateAverage(fitter, other);
@@ -268,13 +396,14 @@ Genotype::Genotype(const Genotype &fitter, const Genotype &other, Opts &opts) :
 /* calculates the similarity with this and other */
 double Genotype::similarity(const Genotype &other) const {
     
+    // TODO add gradient information
     uint64_t nWeights = 0;
     uint64_t nGenes   = this->connections.size() + other.connections.size();
 
     double geneSimilarity   = nGenes;
     double weightSimilarity = 0.0;
 
-    for (const auto &e : connections) {
+    for (const auto &e : this->connections) {
         if (other.connections.count(e.first)) {
             geneSimilarity   -= 2;
             weightSimilarity += absDiff(e.second.getWeight(), 
@@ -283,15 +412,20 @@ double Genotype::similarity(const Genotype &other) const {
         }
     }
 
-    /* use NEAT value */
-    nGenes = 1.0;
-                          
+    /* structure similarity */
+    uint64_t structureSimilarity = this->structures.size() + other.structures.size();
+    for (const auto & e: this->structures) 
+        if (other.structures.count(e.first)) 
+            structureSimilarity -= 2;
+
+
     double similarity = 0;    
-    if (nGenes > 0)
-        similarity += opts.geneMultiplier()   * (geneSimilarity   / nGenes);
+    similarity += opts.geneMultiplier() * geneSimilarity;
 
     if (nWeights > 0)
         similarity += opts.weightMultiplier() * (weightSimilarity / nWeights);
+
+    similarity += opts.structureMultiplier() * structureSimilarity;
 
     assert(!std::isnan(similarity));
     return similarity;
@@ -317,7 +451,7 @@ void Genotype::createInitialConnections(bool connectBias) {
     for (const auto &i : inputs) {
         for (const auto &o : outputs) {
 
-            const ConnectionGene connection = history.insertConnection(i, o);
+            const ConnectionGene connection = geneHistory.insertConnection(i, o);
   
             if (connections.count(connection.getID()) == 0) 
                 connections.insert({connection.getID(), connection});
@@ -336,7 +470,7 @@ void Genotype::createInitialConnections(bool connectBias) {
 #ifdef __DEBUG__ 
 NeuronGene &Genotype::addNeuron(const ConnectionGene &gene) {
 
-    const NeuronGene neuron = history.insertNeuron(gene);
+    const NeuronGene neuron = geneHistory.insertNeuron(gene);
 
     if (neurons.count(neuron.getID()) == 0) 
         neurons.insert({neuron.getID(), neuron});
@@ -348,7 +482,7 @@ NeuronGene &Genotype::addNeuron(const ConnectionGene &gene) {
 }
 ConnectionGene &Genotype::addConnection(const NeuronGene &gene1, const NeuronGene &gene2) {
 
-    const ConnectionGene connection = history.insertConnection(gene1, gene2);
+    const ConnectionGene connection = geneHistory.insertConnection(gene1, gene2);
 
     if (connections.count(connection.getID()) == 0) 
         connections.insert({connection.getID(), connection});

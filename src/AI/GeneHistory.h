@@ -6,6 +6,8 @@
 #define __GENE_HISTORY_H__
 
 #include "Gene.h"
+#include "../utils/TOGrid.h"
+#include "Opts.h"
 #include <vector>
 #include <unordered_map>
 
@@ -57,14 +59,11 @@ namespace NEAVC {
 
             private:
 
-                /* the only instance of the GeneHistory */
-                static GeneHistory onlyInstance;
+                /* reference to the options of the whole population */
+                Opts &opts;
 
-                /* private constructor and destructor to make this a singleton */
-                GeneHistory() { }
-
-                /* private destructor to avoid deletion of the singleton */
-                ~GeneHistory() { }
+                /* global random value */
+                static rand64_t *rand;
 
                 /* delete copy constructor to disalow copies of this */
                 GeneHistory(const GeneHistory &) = delete;
@@ -84,10 +83,13 @@ namespace NEAVC {
                 /* the output neurons of this */
                 vector<NeuronGene> outputs;
 
+                /* the structure genes of this */
+                unordered_map<TOGridIndex, StructureGene> structureMap;
+
             public:
 
-                /* access the only instance of this */
-                static GeneHistory &getInstance();
+                /* constructor */
+                GeneHistory(Opts &opts) : opts(opts.freeze()) { }
 
                 /* insert a new input, bias or output Neuron */
                 NeuronGene insertNeuron(NeuronType const type, uint64_t number);
@@ -99,6 +101,12 @@ namespace NEAVC {
 
                 /* insert a new input, bias or output Neuron */
                 ConnectionGene insertConnection(NeuronGene const &input, NeuronGene const &output);
+
+                /* insert a new StructureGene appending the given Gene */
+                StructureGene insertStructure(StructureGene const gene);
+
+                /* insert a initial neuron or muscle tissue */
+                StructureGene insertStructure(TissueType const type);
 
                 /* clears all stored genes */
                 void clear();

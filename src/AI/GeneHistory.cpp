@@ -3,13 +3,8 @@
 using namespace NEAVC;
 using namespace AI;
 
-/* the only instance of the GeneHistory */
-GeneHistory GeneHistory::onlyInstance;
-
-/* access the only instance of this */
-GeneHistory &GeneHistory::getInstance() {
-    return onlyInstance;
-}
+/* global random value */
+rand64_t *GeneHistory::rand = new_rand64_t();
 
 /* insert a new input, bias or output Neuron
  */
@@ -107,6 +102,57 @@ ConnectionGene GeneHistory::insertConnection(NeuronGene const &input, NeuronGene
         connectionsMap.insert({geneID, ConnectionGene(input, output)});
 
     return connectionsMap.at(geneID);
+}
+
+/* insert a new StructureGene appending the given Gene */
+StructureGene GeneHistory::insertStructure(StructureGene const gene) {
+
+    /* create an adjacent structure index */
+    TOGridIndex index(gene.getX(), gene.getY(), gene.getZ());
+    TOGridIndex newIndex = index.getAjacent(rand64(rand) % 14);
+    
+    /* only insert a new StructureGene if there isn't allready one */
+    if (!structureMap.count(newIndex)) {
+
+        StructureGene gene(
+            TissueType::TISSUE,
+            newIndex.getX(),
+            newIndex.getY(),
+            newIndex.getZ()
+        );
+        structureMap.insert({newIndex, gene});
+    }
+
+    return structureMap.at(newIndex);
+}
+
+/* insert a initial neuron or muscle tissue */
+StructureGene GeneHistory::insertStructure(TissueType const type) {
+    
+    if (type == TissueType::NEURON) {
+        TOGridIndex index;
+
+        /* only insert a new StructureGene if there isn't allready one */
+        if (!structureMap.count(index)) {
+
+            StructureGene gene(
+                TissueType::NEURON,
+                index.getX(),
+                index.getY(),
+                index.getZ()
+            );
+            structureMap.insert({index, gene});
+        }
+
+        return structureMap.at(index);
+    }
+
+    assert(type == TissueType::MUSCLE);
+    assert(structureMap.count(TOGridIndex()));
+
+    StructureGene gene = insertStructure(structureMap.at(TOGridIndex()));
+    gene.setType(TissueType::MUSCLE);
+    return gene;
 }
 
 /* clears all stored genes */
