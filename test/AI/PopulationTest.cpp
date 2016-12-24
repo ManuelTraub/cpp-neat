@@ -553,6 +553,7 @@ TEST(basicRecurencyTest) {
     opts.speciesSimilarityThreshold(5.0);
     opts.allowRecurentConnections(true);
     opts.ageingPropabilityOffset(0.0);
+    opts.gradientMultiplier(0.0);
     opts.shuffleTrainingData(false);
 
     // training data

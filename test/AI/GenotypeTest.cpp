@@ -886,3 +886,65 @@ TEST(basicStructurSimilarityTest2) {
     delete genotype3;
     return args;
 }
+
+TEST(basicStructurSimilarityTest3) {
+    
+    Opts opts;
+    GeneHistory geneHistory(opts);
+    Genotype *genotype1 = new Genotype(opts, geneHistory);
+    Genotype *genotype2 = new Genotype(opts, geneHistory);
+
+    bool normalTisue = false;
+    for (unsigned i = 0; i < 100 && !normalTisue; i++) {
+        delete genotype1;
+        genotype1 = new Genotype(opts, geneHistory);
+        genotype1->mutateInsertStructure();
+
+        for (const auto &e: genotype1->getStructures())
+            if (e.second.getType() == TissueType::TISSUE)
+                normalTisue = true;
+    }
+
+    ASSERT_TRUE(normalTisue, "could not mutate to normal tissue");
+
+    bool similar = false;
+
+    for (unsigned i = 0; i < 1000 && !similar; i++) {
+        delete genotype2;
+        genotype2 = new Genotype(opts, geneHistory);
+
+        if (genotype1->similarity(*genotype2) == 1)
+            similar = true;
+    }
+
+    ASSERT_TRUE(similar, "structure based Genotypes not similar");
+
+    Genotype *genotype3 = new Genotype(*genotype2);
+
+    similar = false;
+    for (unsigned i = 0; i < 1000 && !similar; i++) {
+        delete genotype3;
+        genotype3 = new Genotype(*genotype2);
+        genotype3->mutateInsertStructure();
+
+        if (genotype1->similarity(*genotype3) == 0)
+            similar = true;
+    }
+
+    /* can only mutate muscles */
+    for (unsigned i = 0; i < 100; i++)
+        genotype1->mutateStructures();
+
+    ASSERT_EQUAL(genotype1->similarity(*genotype3), 2, "Genotypes should be 2 structures apart");
+
+    /* can only mutate muscles */
+    for (unsigned i = 0; i < 100; i++)
+        genotype3->mutateStructures();
+
+    ASSERT_EQUAL(genotype1->similarity(*genotype3), 0, "Genotypes should be similar");
+
+    delete genotype1;
+    delete genotype2;
+    delete genotype3;
+    return args;
+}

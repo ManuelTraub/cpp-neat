@@ -162,8 +162,6 @@ bool Genotype::mutateInsertStructure() {
     return true;
 }
 
-// TODO experiment with lovering the propability of mutating older genes
-// TODO propability for mutating a single gene = rand < 1/(age + n)
 /* mutate a given percentage of connections */
 void Genotype::mutateConnections() {
     
@@ -396,27 +394,47 @@ Genotype::Genotype(
 /* calculates the similarity with this and other */
 double Genotype::similarity(const Genotype &other) const {
     
-    // TODO add gradient information
-    uint64_t nWeights = 0;
-    uint64_t nGenes   = this->connections.size() + other.connections.size();
+    /* gradient similarity */
+    uint64_t nGradients = 0;
+    double gradientSimilarity = 0.0;
+    for (const auto &e : this->neurons) {
+        if (e.second.getType() != NeuronType::INPUT && 
+            e.second.getType() != NeuronType::BIAS  &&
+            other.neurons.count(e.first)) {
 
-    double geneSimilarity   = nGenes;
+            gradientSimilarity += absDiff(
+                e.second.getGradient(),
+                other.neurons.at(e.first).getGradient()
+            );
+            nGradients++;
+        }
+    }
+
+    /* weith similarity */
+    uint64_t nWeights       = 0;
+    double geneSimilarity   = this->connections.size() + other.connections.size();
     double weightSimilarity = 0.0;
 
     for (const auto &e : this->connections) {
         if (other.connections.count(e.first)) {
             geneSimilarity   -= 2;
-            weightSimilarity += absDiff(e.second.getWeight(), 
-                                        other.connections.at(e.first).getWeight());
+            weightSimilarity += absDiff(
+                e.second.getWeight(), 
+                other.connections.at(e.first).getWeight()
+            );
             nWeights++;
         }
     }
 
     /* structure similarity */
     uint64_t structureSimilarity = this->structures.size() + other.structures.size();
-    for (const auto & e: this->structures) 
-        if (other.structures.count(e.first)) 
+    for (const auto & e: this->structures) {
+        if (other.structures.count(e.first) && 
+            e.second.getType() == other.structures.at(e.first).getType()) {
+
             structureSimilarity -= 2;
+        }
+    }
 
 
     double similarity = 0;    
@@ -424,6 +442,9 @@ double Genotype::similarity(const Genotype &other) const {
 
     if (nWeights > 0)
         similarity += opts.weightMultiplier() * (weightSimilarity / nWeights);
+
+    if (nGradients > 0)
+        similarity += opts.gradientMultiplier() * log(1 + gradientSimilarity / nGradients);
 
     similarity += opts.structureMultiplier() * structureSimilarity;
 

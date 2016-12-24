@@ -70,7 +70,7 @@ namespace NEAVC {
             addOption(unsigned, fittestSurvivalThreshold, 5)
 
             /* the similarity threshold for Organism to be in the same species */
-            addOption(double, speciesSimilarityThreshold, 3)
+            addOption(double, speciesSimilarityThreshold, 3.2)
 
             /* the survival rate of the population during generation change */
             addOption(double, survivalRate, 0.2)
@@ -96,8 +96,11 @@ namespace NEAVC {
             /* the gene multiplayer for calculating similarity */
             addOption(double, geneMultiplier, 1.0)
 
-            /* avg weight diference multiplier when calculating the similarity */
+            /* avg weight difference multiplier when calculating the similarity */
             addOption(double, weightMultiplier, 0.4)
+
+            /* avg gradient difference multiplier when calculating the similarity */
+            addOption(double, gradientMultiplier, 0.1)
 
             /* the structure multiplayer for calculating similarity */
             addOption(double, structureMultiplier, 1.0);
