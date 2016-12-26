@@ -554,6 +554,7 @@ TEST(basicRecurencyTest) {
     opts.allowRecurentConnections(true);
     opts.ageingPropabilityOffset(0.0);
     opts.gradientMultiplier(0.0);
+    opts.recombinateNeurons(false);
     opts.shuffleTrainingData(false);
 
     // training data

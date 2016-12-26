@@ -84,6 +84,12 @@ namespace NEAVC {
                     weightedInputs(0.0), 
                     gradient(gradient) { }
 
+                /* resets this to zero */
+                void reset() {
+                    this->outputValue    = 0.0;
+                    this->weightedInputs = 0.0;
+                }
+
         };
     }
 };

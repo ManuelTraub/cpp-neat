@@ -93,6 +93,9 @@ namespace NEAVC {
             /* the propability of mutating the gradient of a Genome during mutation */
             addOption(double, mutateGradientPropability, 0.5)
 
+            /* indicates whether the gradient shoud be recombinated or choosen from the fitter */
+            addOption(bool, recombinateNeurons, true);
+
             /* the gene multiplayer for calculating similarity */
             addOption(double, geneMultiplier, 1.0)
 

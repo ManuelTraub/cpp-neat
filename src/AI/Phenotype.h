@@ -30,6 +30,9 @@ namespace NEAVC {
                  * to sequentaly calculate the output of this neural network */
                 vector<vector<Neuron *>> neuronLayers;
 
+                /* efficient mapping of Neurons to theyr gene id */
+                unordered_map<uint64_t, Neuron *> neuronMap;
+
                 /* the bias neuron */
                 Neuron *bias;
 
@@ -40,6 +43,9 @@ namespace NEAVC {
 
                 /* returns the neuronLayers of this */
                 vector<vector<Neuron *>> getLayers() const { return neuronLayers; }
+
+                /* returns the neurons of this mapped to gene ids */
+                unordered_map<uint64_t, Neuron *> getIDMap() const { return neuronMap; }
 
                 /* create a new Phenotype out of the given Genotype */
                 Phenotype(const Genotype &genome, Opts &opts); 
@@ -58,6 +64,12 @@ namespace NEAVC {
 
                 /* export this as an svg image */
                 void saveAsSVG(string fname);
+
+                /* resets all neurons of this to zero */
+                void reset() {
+                    for (auto &e: neuronMap)
+                        e.second->reset();
+                }
 
                 /* destructor */
                 ~Phenotype();

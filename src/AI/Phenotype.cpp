@@ -39,8 +39,6 @@ Phenotype::Phenotype(const Genotype &genome, Opts &opts) :
     }
 
     /* create all neurons and store them efficiently in a unordered_map */
-    unordered_map<uint64_t, Neuron *> neuronMap;
-
     for (const auto &e : neuronGenes) {
 
         /* store neuron for efficient access */

@@ -294,16 +294,35 @@ Genotype::Genotype(
 /* recombinate using the weight of similar genes from a random parrent */
 void Genotype::recombinateRandomChoose(const Genotype &fitter, const Genotype &other) {
 
-    this->neurons = fitter.neurons;
+    this->neurons.reserve(fitter.neurons.size());
     this->connections.reserve(fitter.connections.size());
     this->structures = fitter.structures;
-    // TODO mix gradients
 
-    /* actualize the generation number */
-    for (const auto &e : this->neurons)
+    /* recombinate neurons */
+    for (const auto &e : fitter.neurons) {
+
+        /* if a neuron with the same historical id exists in other
+         * choose a random gradient from fitter or other
+         */
+        if (other.neurons.count(e.first) != 0) {
+            if (rand64(rand) % 2 == 1)
+                this->neurons.insert({e.first, other.neurons.at(e.first)});
+            else
+                this->neurons.insert({e.first, fitter.neurons.at(e.first)});
+
+        /* use only missing genes from the fitter individual */
+        } else 
+            this->neurons.insert({e.first, fitter.neurons.at(e.first)});
+
+        /* actualize the generation number */
         if (generation < this->neurons.at(e.first).getGeneration())
             generation = this->neurons.at(e.first).getGeneration();
+    }
 
+    if (!opts.recombinateNeurons())
+        this->neurons = fitter.neurons;
+
+    /* recombinate connections */
     for (const auto &e : fitter.connections) {
 
         /* if a connection with the same historical id exists in other
@@ -342,15 +361,32 @@ void Genotype::recombinateAverage(const Genotype &fitter, const Genotype &other)
     this->connections = fitter.connections;
     this->structures  = fitter.structures;
 
-    /* actualize the generation number */
-    for (const auto &e : this->neurons)
+    /* recombinate neurons */
+    for (const auto &e : fitter.neurons) {
+
+        /* if a neuron with the same historical id exists in other
+         * average the gradient of both
+         */
+        if (other.neurons.count(e.first) != 0) {
+            this->neurons.at(e.first).setGradient((
+                fitter.neurons.at(e.first).getGradient() + 
+                other.neurons.at(e.first).getGradient()
+            ) / 2.0);
+        }
+
+        /* actualize the generation number */
         if (generation < this->neurons.at(e.first).getGeneration())
             generation = this->neurons.at(e.first).getGeneration();
+    }
 
+    if (!opts.recombinateNeurons())
+        this->neurons = fitter.neurons;
+
+    /* recombinate connections */
     for (const auto &e : fitter.connections) {
 
         /* if a connection with the same historical id exists in other
-         * average the weith of both
+         * average the weight of both
          */
         if (other.connections.count(e.first) != 0) {
             this->connections.at(e.first).setWeight((

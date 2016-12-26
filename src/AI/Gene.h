@@ -140,6 +140,12 @@ namespace NEAVC {
 
                 /* returns the gradient of this */
                 double getGradient() const { return gradient; }
+
+                /* sets the gradient of this */
+                void setGradient(const double gradient) { 
+                    generation     = GenerationCounter::get();
+                    this->gradient = gradient; 
+                }
         };
 
         /**
