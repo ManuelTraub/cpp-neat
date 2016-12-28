@@ -814,6 +814,9 @@ TEST_N(basicInitialConnectionsTest, 100) {
 TEST(basicStructurSimilarityTest) {
     
     Opts opts;
+    opts.allowRecurentConnections(true);
+    opts.structureMultiplier(1.0);
+    opts.weightMultiplier(0.0);
     GeneHistory geneHistory(opts);
     Genotype *genotype1 = new Genotype(opts, geneHistory);
     Genotype *genotype2 = new Genotype(opts, geneHistory);
@@ -852,6 +855,9 @@ TEST(basicStructurSimilarityTest) {
 TEST(basicStructurSimilarityTest2) {
     
     Opts opts;
+    opts.allowRecurentConnections(true);
+    opts.structureMultiplier(1.0);
+    opts.weightMultiplier(0.0);
     GeneHistory geneHistory(opts);
     Genotype *genotype1 = new Genotype(opts, geneHistory);
     Genotype *genotype2 = new Genotype(opts, geneHistory);
@@ -890,6 +896,9 @@ TEST(basicStructurSimilarityTest2) {
 TEST(basicStructurSimilarityTest3) {
     
     Opts opts;
+    opts.allowRecurentConnections(true);
+    opts.structureMultiplier(1.0);
+    opts.weightMultiplier(0.0);
     GeneHistory geneHistory(opts);
     Genotype *genotype1 = new Genotype(opts, geneHistory);
     Genotype *genotype2 = new Genotype(opts, geneHistory);

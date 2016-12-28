@@ -23,10 +23,26 @@ void Species::removeDeaths() {
 /* clalculate the fittness of all Organism */
 void Species::calculateFittness(vector<vector<double>> inputs, vector<vector<double>> outputs) {
 
+    for (auto &o : this->organisms)
+        o->calculateFittness(inputs, outputs);
+
+    this->update();
+}
+
+void Species::calculateFittness(FitnessCalculator *fitnessCalculator) {
+
+    for (auto &o : this->organisms)
+        o->calculateFittness(fitnessCalculator);
+
+    this->update();
+}
+
+/* updates the best and average fitness of this */
+void Species::update() {
+
     this->averageFitness = 0;
     
     for (auto &o : this->organisms) {
-        o->calculateFittness(inputs, outputs);
 
         /* actualitze the best fitness of this */
         if (std::isnan(this->bestFitness) ||

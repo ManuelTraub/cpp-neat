@@ -16,6 +16,17 @@ namespace NEAVC {
 
     namespace AI {
 
+        /* abstract interface to calculate the fittness of a given Genome */
+        struct FitnessCalculator {
+
+            /* virtual fitness operator */
+            virtual double operator () (const Genotype &genome) = 0;
+
+            /* abstract constructor */
+            virtual ~FitnessCalculator() { }
+
+        };
+
         class Organism {
 
             private:
@@ -48,6 +59,12 @@ namespace NEAVC {
                     GeneHistory &geneHistory
                 );
 
+                /* create a new Organism */
+                Organism(
+                    Opts &opts, 
+                    GeneHistory &geneHistory
+                );
+
                 /* creating a new Organism by cloning this */
                 Organism clone();
 
@@ -64,6 +81,12 @@ namespace NEAVC {
                     vector<vector<double>> inputs, 
                     vector<vector<double>> outputs
                 );
+
+                /* calculates the fitness of this by using single creature simulation */
+                void calculateFittness(FitnessCalculator *fitnessCalculator) {
+                    if (std::isnan(fitness))
+                        this->fitness = (*fitnessCalculator)(this->genome);
+                }
 
                 /* returns the original fitness of this */
                 double getFitness() const { 

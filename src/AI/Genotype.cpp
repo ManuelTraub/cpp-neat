@@ -28,7 +28,8 @@ bool Genotype::mutateInsertNeuron() {
         return false;
 
     /* stop if the connection is a bias connection */
-    if (mutatingGene.getInput().getType() == NeuronType::BIAS)
+    if (mutatingGene.getInput().getType() == NeuronType::BIAS &&
+        !opts.allowNeuronIntoBiasConnectionInsert())
         return false;
 
     /* stop if the connection is between two output neurons */
@@ -235,13 +236,16 @@ void Genotype::mutateStructures() {
     generation = GenerationCounter::get();
 }
 
+#include "Phenotype.h"
+
 /* create a new Genotype with minimal structure */
 Genotype::Genotype(Opts &opts, GeneHistory &geneHistory) : 
                    opts(opts.freeze()), geneHistory(geneHistory) {
 
+    assert(opts.allowRecurentConnections());
     
     /* add one output neuron */
-    NeuronGene neuron    = geneHistory.insertNeuron(NeuronType::OUTPUT, 0);
+    NeuronGene neuron = geneHistory.insertNeuron(NeuronType::OUTPUT, 0);
     neurons.insert({neuron.getID(), neuron});
 
     /* Add one Bias neuron to the inputs */
@@ -259,6 +263,8 @@ Genotype::Genotype(Opts &opts, GeneHistory &geneHistory) :
     /* add minimal connections */
     ConnectionGene connection1 = geneHistory.insertConnection(bias, neuron);
     ConnectionGene connection2 = geneHistory.insertConnection(neuron, neuron);
+    connection1.mutateSet({opts.creationWeightRangeStart(), opts.creationWeightRangeEnd()}); 
+    connection2.mutateSet({opts.creationWeightRangeStart(), opts.creationWeightRangeEnd()}); 
     connections.insert({connection1.getID(), connection1});
     connections.insert({connection2.getID(), connection2});
 }

@@ -26,10 +26,20 @@ Organism::Organism(
     fitness(std::nan("Organism")), 
     alive(true) { }
 
+/* create a new Organism */
+Organism::Organism(
+    Opts &opts, 
+    GeneHistory &geneHistory
+) :
+    opts(opts.freeze()),
+    geneHistory(geneHistory),
+    genome(opts, geneHistory), 
+    fitness(std::nan("Organism")), 
+    alive(true) { }
+
 /* creating a new Organism by cloning this */
 Organism Organism::clone() {
     Organism newClone = *this;
-    newClone.fitness = std::nan("Organism"); 
     newClone.alive = true;
 
     return newClone;

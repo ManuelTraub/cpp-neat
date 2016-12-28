@@ -9,6 +9,9 @@ using std::make_shared;
 using namespace NEAVC;
 using namespace AI;
 
+/* abstract destructor */
+SpeciesInspector::~SpeciesInspector() { };
+
 /* global random value */
 rand64_t *Population::rand = new_rand64_t();
 
@@ -16,10 +19,12 @@ rand64_t *Population::rand = new_rand64_t();
 Population::Population(
     vector<vector<double>> inputs, 
     vector<vector<double>> outputs,
-    Opts &opts
+    Opts &opts,
+    FitnessCalculator *fitnessCalculator
 ) : 
     opts(opts.freeze()),
-    geneHistory(opts) {
+    geneHistory(opts),
+    fitnessCalculator(fitnessCalculator) {
 
     this->inputs  = inputs;
     this->outputs = outputs;
@@ -32,6 +37,27 @@ Population::Population(
         this->species.back()->add(make_shared<Organism>(
             inputs[0].size(), 
             outputs[0].size(), 
+            this->opts,
+            this->geneHistory
+        ));
+    }
+}
+
+/* create a new Population */
+Population::Population(FitnessCalculator *fitnessCalculator, Opts &opts) : 
+    opts(opts.freeze()),
+    geneHistory(opts),
+    fitnessCalculator(fitnessCalculator) {
+
+    this->inputs  = vector<vector<double>>();
+    this->outputs = vector<vector<double>>();
+    this->bestFitness = 0;
+    this->lastImproveGeneration = GenerationCounter::get();
+
+    this->species.push_back(make_shared<Species>(this->opts, this->geneHistory));
+
+    for (unsigned i = 0; i < opts.populationSize(); i++) {
+        this->species.back()->add(make_shared<Organism>(
             this->opts,
             this->geneHistory
         ));
@@ -51,9 +77,22 @@ vector<shared_ptr<Organism>> Population::prepareGenerationChange() {
         std::random_shuffle(this->outputs.begin(), this->outputs.end(), shuffleRand);
     }
 
+    /* inform species observers */
+    for (auto i: this->speciesInspectors)
+        i->bevor(this->species);
+
     /* calculate the fitness of all Organisms */
-    for (auto &s : this->species)
-        s->calculateFittness(this->inputs, this->outputs);
+    if (this->fitnessCalculator != NULL) {
+        for (auto &s : this->species)
+            s->calculateFittness(this->fitnessCalculator);
+    } else {
+        for (auto &s : this->species)
+            s->calculateFittness(this->inputs, this->outputs);
+    }
+
+    /* inform species observers */
+    for (auto i: this->speciesInspectors)
+        i->during(this->species);
 
     /* kill the Organisms with the worst fitness */
     for (auto &s : this->species)
@@ -61,6 +100,10 @@ vector<shared_ptr<Organism>> Population::prepareGenerationChange() {
 
     /* sort species by their best fitness */
     std::sort(this->species.begin(), this->species.end(), orderSpecies);
+
+    /* inform species observers */
+    for (auto i: this->speciesInspectors)
+        i->after(this->species);
 
     /* check if we found a new best fitness */
     if (this->species[0]->getBestFitness() > this->bestFitness) {
@@ -248,7 +291,11 @@ shared_ptr<Organism> Population::getBestOrganism() {
     vector<shared_ptr<Organism>> organisms;
 
     for (auto &s : this->species) {
-        s->calculateFittness(inputs, outputs);
+        if (this->fitnessCalculator != NULL)
+            s->calculateFittness(this->fitnessCalculator);
+        else
+            s->calculateFittness(inputs, outputs);
+
         vector<shared_ptr<Organism>> currentOrganisms = s->getOrganisms();
         organisms.insert(organisms.end(), currentOrganisms.begin(), currentOrganisms.end());
     }

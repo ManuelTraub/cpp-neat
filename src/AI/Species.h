@@ -80,6 +80,10 @@ namespace NEAVC {
 
                 /* clalculate the fittness of all Organism */
                 void calculateFittness(vector<vector<double>> inputs, vector<vector<double>> outputs);
+                void calculateFittness(FitnessCalculator *fitnessCalculator);
+
+                /* updates the best and average fitness of this */
+                void update();
 
                 /* calculates the given number of offsprings for the next generation */
                 vector<shared_ptr<Organism>> createOffsprings(unsigned nOffsprings);

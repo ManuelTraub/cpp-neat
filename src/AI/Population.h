@@ -14,6 +14,33 @@ using std::vector;
 namespace NEAVC {
 
     namespace AI {
+
+        /* foreard declarations */
+        struct FitnessCalculator;
+
+        /* abstract class to access the species of this during training */
+        struct SpeciesInspector {
+
+            /* gets called just bevor the fitness calculation
+             * (can be used for fitness calculation based on whole Population)
+             * Note: species are not sorted
+             */
+            virtual void bevor(vector<shared_ptr<Species>>) { }
+
+            /* gets called right after fittnes calculation
+             * Note: species are not sorted
+             */
+            virtual void during(vector<shared_ptr<Species>>) { }
+
+            /* called after selection 
+             * (after not surviving Organisms are killed and species are sorted) 
+             */
+             virtual void after(vector<shared_ptr<Species>>) { }
+
+            /* abstract destructor */
+            virtual ~SpeciesInspector() = 0;
+
+        };
         
         class Population {
 
@@ -43,6 +70,12 @@ namespace NEAVC {
 
                 /* the generation of the last fittnes improvment of this */
                 uint64_t lastImproveGeneration;
+
+                /* the FitnessCalculator of this */
+                FitnessCalculator *fitnessCalculator;
+
+                /* the SpeciesInspectors of this */
+                vector<SpeciesInspector *> speciesInspectors;
 
 #ifdef __DEBUG__
             public:
@@ -76,9 +109,15 @@ namespace NEAVC {
             public:
 
                 /* create a new Population */
-                Population(vector<vector<double>> inputs, 
-                           vector<vector<double>> outputs, 
-                           Opts &opts);
+                Population(
+                    vector<vector<double>> inputs, 
+                    vector<vector<double>> outputs, 
+                    Opts &opts,
+                    FitnessCalculator *fitnessCalculator = NULL
+                );
+
+                /* create a new Population */
+                Population(FitnessCalculator *fitnessCalculator, Opts &opts);
 
                 /* increase the genaration counter and sort all genomes by theyr fitness */
                 void calcNextGeneration();
@@ -88,6 +127,11 @@ namespace NEAVC {
 
                 /* create all initial connections */
                 void createInitialConnections(bool connectBias = true);
+
+                /* adds a SpeciesInspector for this */
+                void add(SpeciesInspector *inspector) {
+                    this->speciesInspectors.push_back(inspector);
+                }
 
 #ifdef __DEBUG__
                 vector<shared_ptr<Species>> &getSpecies() { return this->species; }

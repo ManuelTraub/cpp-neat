@@ -164,6 +164,9 @@ namespace NEAVC {
              */
             addOption(double, ageingPropabilityOffset, 1.0);
 
+            /* indicate that we are alowing insertion of neurons into BIAS neurons */
+            addOption(bool, allowNeuronIntoBiasConnectionInsert, false);
+
         };
     }
 }

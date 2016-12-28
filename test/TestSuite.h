@@ -582,10 +582,18 @@ static inline void timeval_subtract(struct timeval *result,
     result->tv_usec = diff % 1000000L;
 }
 
+/* global comandline args */
+int argc = 0;
+char **argv = NULL;
+
+
 /**
  * Main function which runs the tests
  */
-int main(int argc, char *argv[]) {
+int main(int main_argc, char *main_argv[]) {
+
+  argc = main_argc;
+  argv = main_argv;
 
   init(argc, argv);
 
