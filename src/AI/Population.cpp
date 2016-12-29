@@ -92,6 +92,9 @@ vector<shared_ptr<Organism>> Population::prepareGenerationChange() {
 
             processor.start();
             processor.join();
+
+            for (auto &s : this->species)
+                s->update();
         } else {
             for (auto &s : this->species)
                 s->calculateFittness(this->fitnessCalculator);
