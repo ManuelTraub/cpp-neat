@@ -240,7 +240,9 @@ void Genotype::mutateStructures() {
 
 /* create a new Genotype with minimal structure */
 Genotype::Genotype(Opts &opts, GeneHistory &geneHistory) : 
-                   opts(opts.freeze()), geneHistory(geneHistory) {
+                   opts(opts.freeze()), 
+                   geneHistory(geneHistory),
+                   generation(GenerationCounter::get()) {
 
     assert(opts.allowRecurentConnections());
     

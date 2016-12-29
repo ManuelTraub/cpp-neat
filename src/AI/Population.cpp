@@ -1,6 +1,7 @@
 #include "Population.h"
 #include "Organism.h"
 #include "Opts.h"
+#include "ParallelWorker.h"
 #include <memory>
 #include <algorithm>
 
@@ -83,8 +84,18 @@ vector<shared_ptr<Organism>> Population::prepareGenerationChange() {
 
     /* calculate the fitness of all Organisms */
     if (this->fitnessCalculator != NULL) {
-        for (auto &s : this->species)
-            s->calculateFittness(this->fitnessCalculator);
+        if (opts.numThreads() > 1) {
+            ParallelProcessor processor(opts.numThreads(), fitnessCalculator);
+
+            for (auto &s : this->species)
+                processor.add(s->getOrganisms());
+
+            processor.start();
+            processor.join();
+        } else {
+            for (auto &s : this->species)
+                s->calculateFittness(this->fitnessCalculator);
+        }
     } else {
         for (auto &s : this->species)
             s->calculateFittness(this->inputs, this->outputs);

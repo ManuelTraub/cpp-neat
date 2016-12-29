@@ -51,13 +51,13 @@ namespace NEAVC {
             public:
 
                 /* return the neurons of this */
-                unordered_map<uint64_t, NeuronGene> getNeurons() const { return neurons; }
+                const unordered_map<uint64_t, NeuronGene> &getNeurons() const { return neurons; }
 
                 /* returns the connections of this */
-                unordered_map<uint64_t, ConnectionGene> getConnections() const { return connections; }
+                const unordered_map<uint64_t, ConnectionGene> &getConnections() const { return connections; }
 
                 /* returns the structures of this */
-                unordered_map<uint64_t, StructureGene> getStructures() const { return structures; }
+                const unordered_map<uint64_t, StructureGene> &getStructures() const { return structures; }
                 
                 /* mutate this by inserting a new hidden neuron */
                 bool mutateInsertNeuron();

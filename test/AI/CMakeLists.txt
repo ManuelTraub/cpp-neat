@@ -64,6 +64,7 @@ add_executable(SpeciesTest
 add_executable(PopulationTest
                PopulationTest
                ../../src/AI/Population
+               ../../src/AI/ParallelWorker
                ../../src/AI/Species
                ../../src/AI/Organism
                ../../src/utils/utils 

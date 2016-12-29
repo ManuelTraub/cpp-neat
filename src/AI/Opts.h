@@ -106,7 +106,7 @@ namespace NEAVC {
             addOption(double, gradientMultiplier, 0.1)
 
             /* the structure multiplayer for calculating similarity */
-            addOption(double, structureMultiplier, 1.0);
+            addOption(double, structureMultiplier, 4.0);
 
             /* the perturbe weight range start and end */
             addOption(double, perturbeWeightRangeStart, -2.5)
@@ -166,6 +166,9 @@ namespace NEAVC {
 
             /* indicate that we are alowing insertion of neurons into BIAS neurons */
             addOption(bool, allowNeuronIntoBiasConnectionInsert, false);
+
+            /* number of threads */
+            addOption(unsigned, numThreads, 1);
 
         };
     }

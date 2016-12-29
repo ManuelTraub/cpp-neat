@@ -44,6 +44,32 @@ add_executable(VirtualCreatureTest
                ../src/Graphics/loadShaders
                ../src/utils/utils)
 
+add_executable(VEPopulationTest
+               VEPopulation
+               ../src/VESimulation
+               ../src/VirtualCreature
+               ../src/AI/Gene
+               ../src/AI/GeneHistory
+               ../src/AI/GenerationCounter
+               ../src/AI/Genotype
+               ../src/AI/Phenotype
+               ../src/AI/Organism
+               ../src/AI/Species
+               ../src/AI/Population
+               ../src/AI/ParallelWorker
+               ../src/Physics/3DBase
+               ../src/Physics/MassSpring
+               ../src/Physics/TOSoftBody
+               ../src/Physics/PhysicsSimulation
+               ../src/Physics/RealtimePhysics
+               ../src/Graphics/GLWindow
+               ../src/Graphics/GLObject
+               ../src/Graphics/GLOrbitingCamera
+               ../src/utils/Threads
+               ../src/Graphics/GPConverter
+               ../src/Graphics/loadShaders
+               ../src/utils/utils)
+
 target_link_libraries(VirtualCreatureTest
     ${OPENGL_LIBRARY}
     glfw
@@ -51,4 +77,12 @@ target_link_libraries(VirtualCreatureTest
     pthread
 )
 
+target_link_libraries(VEPopulationTest
+    ${OPENGL_LIBRARY}
+    glfw
+    GLEW
+    pthread
+)
+
 add_test(NAME VirtualCreatureTest COMMAND VirtualCreatureTest)
+add_test(NAME VEPopulationTest COMMAND VEPopulationTest)

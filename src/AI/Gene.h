@@ -49,10 +49,11 @@ namespace NEAVC {
             public:
                 
                 /* creates a new Gene */
-                Gene() : generation(GenerationCounter::get()) {
+                Gene() {
 
                     pthread_mutex_lock(&mutex);
-                    this->id = idCounter++;
+                    this->generation = GenerationCounter::get();
+                    this->id         = idCounter++;
                     pthread_mutex_unlock(&mutex);
 
                     assert(id != UINT64_MAX);
@@ -278,7 +279,7 @@ namespace NEAVC {
                 int64_t getZ() const { return z; }
 
                 /* getter method for the connected gene ids of this */
-                vector<uint64_t> getConnections() const { return connectedGeneIDs; }
+                const vector<uint64_t> &getConnections() const { return connectedGeneIDs; }
 
                 /* adds a gene id to the connected ids of this */
                 void connectToGene(const uint64_t geneID) { connectedGeneIDs.push_back(geneID); }
