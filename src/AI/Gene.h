@@ -44,7 +44,7 @@ namespace NEAVC {
                 uint64_t generation;
 
                 /* should save the child of this */
-                virtual bool saveChild(const int) { return false; }
+                virtual bool saveChild(const int) const { return false; }
 
                 /* loads the base parts of this */
                 bool loadBase(const int fd);
@@ -79,7 +79,7 @@ namespace NEAVC {
                 }
 
                 /* saves this */
-                bool save(const int fd);
+                bool save(const int fd) const;
         };
 
         /* the different types of neurons (input output or hidden) */
@@ -105,7 +105,7 @@ namespace NEAVC {
                 double gradient;
 
                 /* should save the child of this */
-                virtual bool saveChild(const int fd);
+                virtual bool saveChild(const int fd) const;
 
             public:
 
@@ -181,7 +181,7 @@ namespace NEAVC {
                 bool enabled;
 
                 /* should save the child of this */
-                virtual bool saveChild(const int fd);
+                virtual bool saveChild(const int fd) const;
 
             public: 
 
@@ -283,7 +283,7 @@ namespace NEAVC {
                 vector<uint64_t> connectedGeneIDs;
 
                 /* should save the child of this */
-                virtual bool saveChild(const int fd);
+                virtual bool saveChild(const int fd) const;
 
             public:
 

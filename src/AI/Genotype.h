@@ -107,6 +107,12 @@ namespace NEAVC {
                  */
                 void createInitialConnections(bool connectBias = true);
 
+                /* saves this to the given file descriptor */
+                bool save(const int fd) const;
+
+                /* loads the given Genotype from the given file */
+                Genotype(const int fd, Opts &opts, GeneHistory &geneHistory);
+
 #ifdef __DEBUG__ 
                 NeuronGene &addNeuron(const ConnectionGene &gene);
                 ConnectionGene &addConnection(const NeuronGene &gene1, const NeuronGene &gene2);

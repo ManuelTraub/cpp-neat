@@ -93,7 +93,7 @@ TEST_N(basicSaveLoadTest, 10000) {
     StructureGene sensor2(fd2);
     StructureGene muscle2(fd2);
 
-    close(fd2);
+    ASSERT_FALSE(close(fd2), "failed to close file");
 
     ASSERT_EQUAL(input.getID(),         input2.getID(),         "ids not equal");
     ASSERT_EQUAL(input.getGeneration(), input2.getGeneration(), "generation not equal");

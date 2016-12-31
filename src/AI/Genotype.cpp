@@ -2,6 +2,7 @@
 #include "Opts.h"
 #include <iterator>
 #include <assert.h>
+#include <unistd.h>
 
 using namespace NEAVC;
 using namespace AI;
@@ -529,6 +530,76 @@ void Genotype::createInitialConnections(bool connectBias) {
                 opts.creationWeightRangeEnd()
             });
         }
+    }
+}
+
+/* saves this to the given file descriptor */
+bool Genotype::save(const int fd) const {
+
+    if (write(fd, &generation, sizeof(uint64_t)) != sizeof(uint64_t))
+        return false;
+
+    const uint64_t neuronsSize = neurons.size();
+    if (write(fd, &neuronsSize, sizeof(uint64_t)) != sizeof(uint64_t))
+        return false;
+
+    for (const auto &e : neurons)
+        if (!e.second.save(fd))
+            return false;
+
+    const uint64_t connectionsSize = connections.size();
+    if (write(fd, &connectionsSize, sizeof(uint64_t)) != sizeof(uint64_t))
+        return false;
+
+    for (const auto &e : connections)
+        if (!e.second.save(fd))
+            return false;
+
+    const uint64_t structuresSize = structures.size();
+    if (write(fd, &structuresSize, sizeof(uint64_t)) != sizeof(uint64_t))
+        return false;
+
+    for (const auto &e : structures)
+        if (!e.second.save(fd))
+            return false;
+
+    return true;
+}
+
+/* loads the given Genotype from the given file */
+Genotype::Genotype(const int fd, Opts &opts, GeneHistory &geneHistory) :
+    opts(opts.freeze()),
+    geneHistory(geneHistory)
+{
+
+    if (read(fd, &generation, sizeof(uint64_t)) != sizeof(uint64_t))
+        throw "IO Exception";
+
+    uint64_t neuronsSize = 0;
+    if (read(fd, &neuronsSize, sizeof(uint64_t)) != sizeof(uint64_t))
+        throw "IO Exception";
+
+    for (unsigned i = 0; i < neuronsSize; i++) {
+        const NeuronGene neuron(fd);
+        neurons.insert({neuron.getID(), neuron});
+    }
+
+    uint64_t connectionsSize = 0;
+    if (read(fd, &connectionsSize, sizeof(uint64_t)) != sizeof(uint64_t))
+        throw "IO Exception";
+
+    for (unsigned i = 0; i < connectionsSize; i++) {
+        const ConnectionGene connection(fd);
+        connections.insert({connection.getID(), connection});
+    }
+
+    uint64_t structuresSize = 0;
+    if (read(fd, &structuresSize, sizeof(uint64_t)) != sizeof(uint64_t))
+        throw "IO Exception";
+
+    for (unsigned i = 0; i < structuresSize; i++) {
+        const StructureGene structure(fd);
+        structures.insert({structure.getID(), structure});
     }
 }
 

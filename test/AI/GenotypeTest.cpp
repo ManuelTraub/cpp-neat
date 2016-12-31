@@ -957,3 +957,191 @@ TEST(basicStructurSimilarityTest3) {
     delete genotype3;
     return args;
 }
+
+TEST_N(basicSaveLoadTest, 1000) {
+    
+    Opts opts;
+    GeneHistory geneHistory(opts);
+    Genotype genotype1(rand64(args) % 25 + 1, rand64(args) % 25 + 1, opts, geneHistory);
+
+    for (unsigned i = 0; i < rand64(args) % 100; i++) {
+        genotype1.mutateInsertStructure();
+        genotype1.mutateInsertNeuron();
+        genotype1.mutateInsertConnection();
+        genotype1.mutateConnections();
+        genotype1.mutateNeurons();
+    }
+
+    char fname[64];
+    sprintf(fname, "temp%lu.gene", rand64(args));
+    const int fd = open(fname, O_WRONLY|O_CREAT|O_TRUNC, 00777);
+
+    ASSERT_TRUE(fd > 0, "failed to open file for writing");
+    
+    ASSERT_TRUE(genotype1.save(fd), "failed to save Genotype");
+
+    ASSERT_FALSE(close(fd), "failed to close file");
+
+    const int fd2 = open(fname, O_RDONLY);
+    ASSERT_TRUE(fd2 > 0, "failed to open file for reading");
+
+    Genotype genotype2(fd2, opts, geneHistory);
+
+    ASSERT_FALSE(close(fd2),    "failed to close file");
+    ASSERT_FALSE(unlink(fname), "failed to delete file");
+
+    ASSERT_EQUAL(genotype1.getNeurons().size(),     genotype2.getNeurons().size(),     "neuron size not equal");
+    ASSERT_EQUAL(genotype1.getConnections().size(), genotype2.getConnections().size(), "neuron size not equal");
+    ASSERT_EQUAL(genotype1.getStructures().size(),  genotype2.getStructures().size(),  "neuron size not equal");
+    ASSERT_EQUAL(genotype1.genomeAge(),             genotype2.genomeAge(),           "genome age not equal");
+
+    for (const auto &e: genotype1.getNeurons()) {
+        ASSERT_TRUE(genotype2.getNeurons().count(e.first), "neuron not found in genotype2");
+
+        const NeuronGene neuron1 = e.second;
+        const NeuronGene neuron2 = genotype2.getNeurons().at(e.first);
+
+        ASSERT_EQUAL(neuron1.getID(),         neuron2.getID(),         "ids not equal");
+        ASSERT_EQUAL(neuron1.getGeneration(), neuron2.getGeneration(), "generation not equal");
+        ASSERT_EQUAL(neuron1.getType(),       neuron2.getType(),       "types not equal");
+        ASSERT_EQUAL(neuron1.getLayerID(),    neuron2.getLayerID(),    "layerIDs not equal");
+        ASSERT_EQUAL(neuron1.getGradient(),   neuron2.getGradient(),   "gradients not equal");
+    }
+
+    for (const auto &e: genotype1.getConnections()) {
+        ASSERT_TRUE(genotype2.getConnections().count(e.first), "neuron not found in genotype2");
+
+        const ConnectionGene connection1 = e.second;
+        const ConnectionGene connection2 = genotype2.getConnections().at(e.first);
+
+        ASSERT_EQUAL(connection1.getID(),                     connection2.getID(),                     "ids not equal");
+        ASSERT_EQUAL(connection1.getGeneration(),             connection2.getGeneration(),             "generation not equal");
+        ASSERT_EQUAL(connection1.getInput().getID(),          connection2.getInput().getID(),          "ids not equal");
+        ASSERT_EQUAL(connection1.getInput().getGeneration(),  connection2.getInput().getGeneration(),  "generation not equal");
+        ASSERT_EQUAL(connection1.getInput().getType(),        connection2.getInput().getType(),        "types not equal");
+        ASSERT_EQUAL(connection1.getInput().getLayerID(),     connection2.getInput().getLayerID(),     "layerIDs not equal");
+        ASSERT_EQUAL(connection1.getInput().getGradient(),    connection2.getInput().getGradient(),    "gradients not equal");
+        ASSERT_EQUAL(connection1.getOutput().getID(),         connection2.getOutput().getID(),         "ids not equal");
+        ASSERT_EQUAL(connection1.getOutput().getGeneration(), connection2.getOutput().getGeneration(), "generation not equal");
+        ASSERT_EQUAL(connection1.getOutput().getType(),       connection2.getOutput().getType(),       "types not equal");
+        ASSERT_EQUAL(connection1.getOutput().getLayerID(),    connection2.getOutput().getLayerID(),    "layerIDs not equal");
+        ASSERT_EQUAL(connection1.getOutput().getGradient(),   connection2.getOutput().getGradient(),   "gradients not equal");
+        ASSERT_EQUAL(connection1.getWeight(),                 connection2.getWeight(),                 "weights not equal");
+        ASSERT_EQUAL(connection1.isEnabled(),                 connection2.isEnabled(),                 "enabled not equal");
+    }
+
+    for (const auto &e: genotype1.getStructures()) {
+        ASSERT_TRUE(genotype2.getStructures().count(e.first), "neuron not found in genotype2");
+
+        const StructureGene structure1 = e.second;
+        const StructureGene structure2 = genotype2.getStructures().at(e.first);
+
+        ASSERT_EQUAL(structure1.getID(),                 structure2.getID(),                 "ids not equal");
+        ASSERT_EQUAL(structure1.getGeneration(),         structure2.getGeneration(),         "generation not equal");
+        ASSERT_EQUAL(structure1.getType(),               structure2.getType(),               "types not equal");
+        ASSERT_EQUAL(structure1.getX(),                  structure2.getX(),                  "x not equal");
+        ASSERT_EQUAL(structure1.getY(),                  structure2.getY(),                  "y not equal");
+        ASSERT_EQUAL(structure1.getZ(),                  structure2.getZ(),                  "z not equal");
+        ASSERT_EQUAL(structure1.getConnections().size(), structure2.getConnections().size(), "getConnections() size not equal");
+        for (unsigned i = 0; i < structure1.getConnections().size(); i++)
+            ASSERT_EQUAL(structure1.getConnections()[i], structure2.getConnections()[i],     "getConnections() %u not equal", i);
+    }
+
+    ASSERT_TRUE(genotype1.similarity(genotype2) == 0.0, "geneotyps sould be similar");
+    return args;
+}
+
+TEST_N(basicSaveLoadTest2, 1000) {
+    
+    Opts opts;
+    opts.allowRecurentConnections(true);
+    opts.allowNeuronIntoBiasConnectionInsert(true);
+    GeneHistory geneHistory(opts);
+    Genotype genotype1(opts, geneHistory);
+
+    for (unsigned i = 0; i < rand64(args) % 100; i++) {
+        genotype1.mutateInsertStructure();
+        genotype1.mutateInsertNeuron();
+        genotype1.mutateInsertConnection();
+        genotype1.mutateConnections();
+        genotype1.mutateNeurons();
+    }
+
+    char fname[64];
+    sprintf(fname, "temp%lu.gene", rand64(args));
+    const int fd = open(fname, O_WRONLY|O_CREAT|O_TRUNC, 00777);
+
+    ASSERT_TRUE(fd > 0, "failed to open file for writing");
+    
+    ASSERT_TRUE(genotype1.save(fd), "failed to save Genotype");
+
+    ASSERT_FALSE(close(fd), "failed to close file");
+
+    const int fd2 = open(fname, O_RDONLY);
+    ASSERT_TRUE(fd2 > 0, "failed to open file for reading");
+
+    Genotype genotype2(fd2, opts, geneHistory);
+
+    ASSERT_FALSE(close(fd2),    "failed to close file");
+    ASSERT_FALSE(unlink(fname), "failed to delete file");
+
+    ASSERT_EQUAL(genotype1.getNeurons().size(),     genotype2.getNeurons().size(),     "neuron size not equal");
+    ASSERT_EQUAL(genotype1.getConnections().size(), genotype2.getConnections().size(), "neuron size not equal");
+    ASSERT_EQUAL(genotype1.getStructures().size(),  genotype2.getStructures().size(),  "neuron size not equal");
+    ASSERT_EQUAL(genotype1.genomeAge(),             genotype2.genomeAge(),           "genome age not equal");
+
+    for (const auto &e: genotype1.getNeurons()) {
+        ASSERT_TRUE(genotype2.getNeurons().count(e.first), "neuron not found in genotype2");
+
+        const NeuronGene neuron1 = e.second;
+        const NeuronGene neuron2 = genotype2.getNeurons().at(e.first);
+
+        ASSERT_EQUAL(neuron1.getID(),         neuron2.getID(),         "ids not equal");
+        ASSERT_EQUAL(neuron1.getGeneration(), neuron2.getGeneration(), "generation not equal");
+        ASSERT_EQUAL(neuron1.getType(),       neuron2.getType(),       "types not equal");
+        ASSERT_EQUAL(neuron1.getLayerID(),    neuron2.getLayerID(),    "layerIDs not equal");
+        ASSERT_EQUAL(neuron1.getGradient(),   neuron2.getGradient(),   "gradients not equal");
+    }
+
+    for (const auto &e: genotype1.getConnections()) {
+        ASSERT_TRUE(genotype2.getConnections().count(e.first), "neuron not found in genotype2");
+
+        const ConnectionGene connection1 = e.second;
+        const ConnectionGene connection2 = genotype2.getConnections().at(e.first);
+
+        ASSERT_EQUAL(connection1.getID(),                     connection2.getID(),                     "ids not equal");
+        ASSERT_EQUAL(connection1.getGeneration(),             connection2.getGeneration(),             "generation not equal");
+        ASSERT_EQUAL(connection1.getInput().getID(),          connection2.getInput().getID(),          "ids not equal");
+        ASSERT_EQUAL(connection1.getInput().getGeneration(),  connection2.getInput().getGeneration(),  "generation not equal");
+        ASSERT_EQUAL(connection1.getInput().getType(),        connection2.getInput().getType(),        "types not equal");
+        ASSERT_EQUAL(connection1.getInput().getLayerID(),     connection2.getInput().getLayerID(),     "layerIDs not equal");
+        ASSERT_EQUAL(connection1.getInput().getGradient(),    connection2.getInput().getGradient(),    "gradients not equal");
+        ASSERT_EQUAL(connection1.getOutput().getID(),         connection2.getOutput().getID(),         "ids not equal");
+        ASSERT_EQUAL(connection1.getOutput().getGeneration(), connection2.getOutput().getGeneration(), "generation not equal");
+        ASSERT_EQUAL(connection1.getOutput().getType(),       connection2.getOutput().getType(),       "types not equal");
+        ASSERT_EQUAL(connection1.getOutput().getLayerID(),    connection2.getOutput().getLayerID(),    "layerIDs not equal");
+        ASSERT_EQUAL(connection1.getOutput().getGradient(),   connection2.getOutput().getGradient(),   "gradients not equal");
+        ASSERT_EQUAL(connection1.getWeight(),                 connection2.getWeight(),                 "weights not equal");
+        ASSERT_EQUAL(connection1.isEnabled(),                 connection2.isEnabled(),                 "enabled not equal");
+    }
+
+    for (const auto &e: genotype1.getStructures()) {
+        ASSERT_TRUE(genotype2.getStructures().count(e.first), "neuron not found in genotype2");
+
+        const StructureGene structure1 = e.second;
+        const StructureGene structure2 = genotype2.getStructures().at(e.first);
+
+        ASSERT_EQUAL(structure1.getID(),                 structure2.getID(),                 "ids not equal");
+        ASSERT_EQUAL(structure1.getGeneration(),         structure2.getGeneration(),         "generation not equal");
+        ASSERT_EQUAL(structure1.getType(),               structure2.getType(),               "types not equal");
+        ASSERT_EQUAL(structure1.getX(),                  structure2.getX(),                  "x not equal");
+        ASSERT_EQUAL(structure1.getY(),                  structure2.getY(),                  "y not equal");
+        ASSERT_EQUAL(structure1.getZ(),                  structure2.getZ(),                  "z not equal");
+        ASSERT_EQUAL(structure1.getConnections().size(), structure2.getConnections().size(), "getConnections() size not equal");
+        for (unsigned i = 0; i < structure1.getConnections().size(); i++)
+            ASSERT_EQUAL(structure1.getConnections()[i], structure2.getConnections()[i],     "getConnections() %u not equal", i);
+    }
+
+    ASSERT_TRUE(genotype1.similarity(genotype2) == 0.0, "geneotyps sould be similar");
+    return args;
+}

@@ -22,7 +22,7 @@ bool NeuronGene::canBeInserted(const NeuronGene &gene1, const NeuronGene &gene2)
 rand64_t *Gene::rand = new_rand64_t();
 
 /* saves this to the given file descriptor */
-bool Gene::save(const int fd) {
+bool Gene::save(const int fd) const {
     
     if (write(fd, &id, sizeof(uint64_t)) != sizeof(uint64_t))
         return false;
@@ -49,7 +49,7 @@ bool Gene::loadBase(const int fd) {
 }
 
 /* should save the child of this */
-bool NeuronGene::saveChild(const int fd) {
+bool NeuronGene::saveChild(const int fd) const {
 
     if (type == NeuronType::BIAS) {
         if (write(fd, "b", 1) != 1) return false;
@@ -101,7 +101,7 @@ NeuronGene::NeuronGene(const int fd) {
 }
 
 /* should save the child of this */
-bool ConnectionGene::saveChild(const int fd) {
+bool ConnectionGene::saveChild(const int fd) const {
 
     if (!inputNeuron.save(fd)) 
         return false;
@@ -138,7 +138,7 @@ ConnectionGene::ConnectionGene(const int fd) :
 }
 
 /* should save the child of this */
-bool StructureGene::saveChild(const int fd) {
+bool StructureGene::saveChild(const int fd) const {
 
     if (type == TissueType::TISSUE) {
         if (write(fd, "t", 1) != 1) return false;
