@@ -19,9 +19,6 @@ namespace NEAVC {
 
     namespace AI {
 
-        /* the different types of neurons (input output or hidden) */
-        enum class NeuronType { BIAS = 0, INPUT = 1, HIDDEN = 2, OUTPUT = 3 };
-
         /* An abstract Gene which has an historical id so as an generation number 
          * naming the generation it was invented or mutated.
          */
@@ -45,6 +42,12 @@ namespace NEAVC {
 
                 /* the generation this was invented or mutated */
                 uint64_t generation;
+
+                /* should save the child of this */
+                virtual bool saveChild(const int) { return false; }
+
+                /* loads the base parts of this */
+                bool loadBase(const int fd);
 
             public:
                 
@@ -74,7 +77,13 @@ namespace NEAVC {
                     assert(generation <= GenerationCounter::get());
                     return GenerationCounter::get() - generation;
                 }
+
+                /* saves this */
+                bool save(const int fd);
         };
+
+        /* the different types of neurons (input output or hidden) */
+        enum class NeuronType { BIAS = 0, INPUT = 1, HIDDEN = 2, OUTPUT = 3 };
 
         /**
          * A Neuron Gene representing a neuron within a neural network
@@ -95,6 +104,9 @@ namespace NEAVC {
                 /* the gradient of this */
                 double gradient;
 
+                /* should save the child of this */
+                virtual bool saveChild(const int fd);
+
             public:
 
                 /* returns the type of this */
@@ -111,6 +123,9 @@ namespace NEAVC {
                            type == NeuronType::OUTPUT ||
                            type == NeuronType::BIAS);
                 }
+
+                /* loads the NeuronGene from the given file */
+                NeuronGene(const int fd);
 
                 /* returns wether a new node can be created between the two given nodes */
                 static bool canBeInserted(const NeuronGene &gene1, const NeuronGene &gene2);
@@ -165,6 +180,9 @@ namespace NEAVC {
                 /* bool indicates if this gene is expressed within the phenotype */
                 bool enabled;
 
+                /* should save the child of this */
+                virtual bool saveChild(const int fd);
+
             public: 
 
                 /* creats a new Gene with two given neuron ids */
@@ -175,6 +193,9 @@ namespace NEAVC {
                                outputNeuron(outputNeuron),
                                weight(weight),
                                enabled(true) { }
+
+                /* loads the ConnectionGene from the given file */
+                ConnectionGene(const int fd);
 
                 /* returns the inputNeuron of this */
                 NeuronGene getInput() const { return inputNeuron; }
@@ -261,6 +282,9 @@ namespace NEAVC {
                 /* connected input or output gene ids for muscle or sensor tisues */
                 vector<uint64_t> connectedGeneIDs;
 
+                /* should save the child of this */
+                virtual bool saveChild(const int fd);
+
             public:
 
                 /* getter method for the type of this */
@@ -291,6 +315,9 @@ namespace NEAVC {
                     const int64_t y,
                     const int64_t z
                 ) : type(type), x(x), y(y), z(z)  { }
+
+                /* loads the StructureGene from the given file */
+                StructureGene(const int fd);
 
         };
     }

@@ -16,6 +16,12 @@ else()
   SET (CMAKE_C_FLAGS                "-Wall -Wextra -g -O3 -march=native")
 endif()
 
+add_executable(GeneTest 
+               GeneTest 
+               ../../src/utils/utils 
+               ../../src/AI/Gene
+               ../../src/AI/GenerationCounter)
+
 add_executable(GenotypeTest 
                GenotypeTest 
                ../../src/utils/utils 
@@ -74,6 +80,7 @@ add_executable(PopulationTest
                ../../src/AI/GeneHistory 
                ../../src/AI/GenerationCounter)
 
+add_test(NAME Gene                COMMAND GeneTest)
 add_test(NAME Genotype            COMMAND GenotypeTest)
 add_test(NAME Phenotype           COMMAND PhenotypeTest)
 add_test(NAME GeneHistory         COMMAND GeneHistoryTest)
