@@ -65,6 +65,13 @@ namespace NEAVC {
                     GeneHistory &geneHistory
                 );
 
+                /* create a new Organism from the given genome */
+                Organism(
+                    Genotype &genome,
+                    Opts &opts, 
+                    GeneHistory &geneHistory
+                );
+
                 /* creating a new Organism by cloning this */
                 Organism clone();
 
@@ -112,7 +119,7 @@ namespace NEAVC {
                 }
 
                 /* returns a copy of the Genome of this */
-                Genotype getGenome() const { return genome; }
+                const Genotype &getGenome() const { return genome; }
 
                 /* create all initial connections */
                 void createInitialConnections(bool connectBias = true) {

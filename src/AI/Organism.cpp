@@ -37,6 +37,18 @@ Organism::Organism(
     fitness(std::nan("Organism")), 
     alive(true) { }
 
+/* create a new Organism from the given genome */
+Organism::Organism(
+   Genotype &genome,
+   Opts &opts, 
+   GeneHistory &geneHistory
+) : 
+    opts(opts.freeze()),
+    geneHistory(geneHistory),
+    genome(genome),
+    fitness(std::nan("Organism")), 
+    alive(true) { }
+
 /* creating a new Organism by cloning this */
 Organism Organism::clone() {
     Organism newClone = *this;

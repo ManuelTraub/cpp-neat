@@ -100,7 +100,7 @@ namespace NEAVC {
                 }
 
                 /* returns the Organisms of this */
-                vector<shared_ptr<Organism>> getOrganisms() const { return organisms; }
+                const vector<shared_ptr<Organism>> &getOrganisms() const { return organisms; }
 
                 /* returns the averageFitness of this */
                 double getAverageFitness() const { return averageFitness; }
