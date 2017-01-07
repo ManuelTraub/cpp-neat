@@ -42,16 +42,16 @@ uint64_t rand64(rand64_t *rand) {
 }
 
 /**
- * converts a given integer to a std::string
+ * converts a given integer to a string
  */
-std::string itoa(int64_t i) {
+string itoa(int64_t i) {
 
   char a[32];
 
   if (i == 0) {
     a[0] = '0';
     a[1] = '\0';
-    return std::string(a);
+    return string(a);
   }
 
   char is_neg = (i < 0);
@@ -69,30 +69,31 @@ std::string itoa(int64_t i) {
   }
 
   a[j] = '\0';
-  std::string str = std::string(a);;
-  return std::string(str.rbegin(), str.rend());
+  string str = string(a);;
+  return string(str.rbegin(), str.rend());
 }
 
 /**
- * converts a given double to a std::string
+ * converts a given double to a string
  */
-std::string ftoa(double d, unsigned precision) {
+string ftoa(double d, unsigned precision) {
     
   /* check for NaN */
   if (std::isnan(d))
-      return std::string("NaN");
+      return string("NaN");
 
   /* check for infinity */
   if (std::isinf(d) && d < 0.0)
-      return std::string("-inf");
+      return string("-inf");
   if (std::isinf(d) && d > 0.0)
-      return std::string("inf");
+      return string("inf");
 
-
-  std::string res = itoa(d) + ".";
+  string res = (d < 0.0) ? "-" : "";
 
   if (d < 0.0)
     d *= -1.0;
+
+  res += itoa(d) + ".";
 
   double decimal = (d - ((double) ((uint64_t) d))) * 10;
 

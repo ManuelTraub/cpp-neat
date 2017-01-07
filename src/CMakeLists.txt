@@ -25,7 +25,6 @@ add_executable(neavc
     Graphics/GLWindow
     Graphics/GLObject
     Graphics/GLOrbitingCamera
-    Physics/TOSoftBody
     Graphics/GPConverter
     Physics/3DBase
     Physics/MassSpring
