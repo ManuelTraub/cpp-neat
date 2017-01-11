@@ -28,6 +28,7 @@ add_executable(neavc
     Graphics/GPConverter
     Physics/3DBase
     Physics/MassSpring
+    Physics/IcoSphere
     Physics/PhysicsSimulation
     Physics/RealtimePhysics
     utils/Threads
