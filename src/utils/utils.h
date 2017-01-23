@@ -6,8 +6,11 @@
 #include <string.h>
 #include <string>
 #include <stdlib.h>
+#include <vector>
+#include <algorithm>
 
 using std::string;
+using std::vector;
 
 /* returns the current milliseconds time */
 uint64_t gettime_usec();
@@ -145,5 +148,10 @@ template <typename T> int sgn(T val) {
 }
 /* returns the decimal part of an double value */
 #define decimals(x) ((x) - ((uint64_t) (x)))
+
+/* returns true if the given vector contains the given element */
+template <typename T> static bool vectorContains(vector<T> v, T e) {
+    return std::find(v.begin(), v.end(), e) != v.end();
+}
 
 #endif /* __UTILS_H__ */

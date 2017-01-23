@@ -53,6 +53,9 @@ namespace NEAVC {
                 /* calculate the output for a given input */
                 vector<double> run(vector<double> inputs);
 
+                /* calculate the output by updateing each layer of this once */
+                vector<double> run();
+
                 /* returns the index of the output with tha higest value */
                 unsigned maxOutput(vector<double> inputs);
 

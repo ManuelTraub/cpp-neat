@@ -106,7 +106,10 @@ namespace NEAVC {
             addOption(double, gradientMultiplier, 0.1)
 
             /* the structure multiplayer for calculating similarity */
-            addOption(double, structureMultiplier, 4.0);
+            addOption(double, structureMultiplier, 1.0);
+
+            /* avg gradient difference multiplier when calculating the similarity */
+            addOption(double, sizeMultiplier, 0.5)
 
             /* the perturbe weight range start and end */
             addOption(double, perturbeWeightRangeStart, -2.5)
@@ -156,8 +159,11 @@ namespace NEAVC {
             /* the propability of adding structure during mutation */
             addOption(double, addStructureMutationPropability, 0.01);
 
-            /* the propability of mutating structure during mutation */
-            addOption(double, mutateStructurePropability, 0.02);
+            /* the propability of mutating structure type during mutation */
+            addOption(double, mutateStructureTypePropability, 0.02);
+
+            /* the propability of mutating structure size during mutation */
+            addOption(double, mutateStructureSizePropability, 0.9);
 
             /* the offset to the agin propability for mutating a certain connection
              * Propability = 1/(age + 1) + offset
@@ -169,6 +175,27 @@ namespace NEAVC {
 
             /* number of threads */
             addOption(unsigned, numThreads, 1);
+
+            /* the perturbe size range start and end */
+            addOption(double, perturbeSizeRangeStart, -0.1)
+            addOption(double, perturbeSizeRangeEnd, 0.1)
+
+            /* the size range for seting sizes during mutation */
+            addOption(double, mutationSetSizeRangeStart, 0.0)
+            addOption(double, mutationSetSizeRangeEnd, 6.283185307179586l)
+
+            /* the size range for creating a ConnectionGene */
+            addOption(double, creationSizeRangeStart, 0.0) 
+            addOption(double, creationSizeRangeEnd, 6.283185307179586)
+
+            /* the max size range for pertubing size during mutation */
+            addOption(double, mutationMaxPertubeSizeRangeStart, 0.0) 
+            addOption(double, mutationMaxPertubeSizeRangeEnd, 6.283185307179586)
+
+            /* the propability of setting a structure size to 
+             * a new random value during mutation 
+             */
+            addOption(double, hardMutationPropabilitySize, 0.1)
 
         };
     }

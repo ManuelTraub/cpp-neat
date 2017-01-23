@@ -76,12 +76,14 @@ namespace NEAVC {
 
                 /* the input neurons of this */
                 vector<NeuronGene> inputs;
+                unordered_map<TOGridIndex, NeuronGene> inputsGrid;
 
                 /* the bias Neuron of this */
                 vector<NeuronGene> bias;
 
                 /* the output neurons of this */
                 vector<NeuronGene> outputs;
+                unordered_map<TOGridIndex, NeuronGene> outputsGrid;
 
                 /* the structure genes of this */
                 unordered_map<TOGridIndex, StructureGene> structureMap;
@@ -92,7 +94,8 @@ namespace NEAVC {
                 GeneHistory(Opts &opts) : opts(opts.freeze()) { }
 
                 /* insert a new input, bias or output Neuron */
-                NeuronGene insertNeuron(NeuronType const type, uint64_t number);
+                NeuronGene insertNeuron(NeuronType const type, const uint64_t number);
+                NeuronGene insertNeuron(NeuronType const type, const TOGridIndex index);
 
                 /* insert a new Neuron between the given connection 
                  * Note: the gene must be splitable 

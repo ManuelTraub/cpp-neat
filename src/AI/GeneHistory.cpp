@@ -8,7 +8,7 @@ rand64_t *GeneHistory::rand = new_rand64_t();
 
 /* insert a new input, bias or output Neuron
  */
-NeuronGene GeneHistory::insertNeuron(NeuronType const type, uint64_t number) {
+NeuronGene GeneHistory::insertNeuron(NeuronType const type, const uint64_t number) {
     assert(type == NeuronType::INPUT ||
            type == NeuronType::BIAS  ||
            type == NeuronType::OUTPUT);
@@ -37,6 +37,30 @@ NeuronGene GeneHistory::insertNeuron(NeuronType const type, uint64_t number) {
     
     assert(false);
     return NeuronGene(NeuronType::BIAS, 0);
+}
+NeuronGene GeneHistory::insertNeuron(NeuronType const type, const TOGridIndex index) {
+
+    assert(type == NeuronType::INPUT ||
+           type == NeuronType::OUTPUT);
+
+    if (type == NeuronType::INPUT) {
+        if (!inputsGrid.count(index)) {
+            inputsGrid.insert({index, NeuronGene(NeuronType::INPUT, 0)});
+            neuronMap.insert({inputsGrid.at(index).getID(), inputsGrid.at(index)});
+        }
+        return inputsGrid.at(index);
+
+    } else if (type == NeuronType::OUTPUT) {
+        if (!outputsGrid.count(index)) {
+            outputsGrid.insert({index, NeuronGene(NeuronType::OUTPUT, UINT64_MAX)});
+            neuronMap.insert({outputsGrid.at(index).getID(), outputsGrid.at(index)});
+        }
+        return outputsGrid.at(index);
+    }
+    
+    assert(false);
+    return NeuronGene(NeuronType::BIAS, 0);
+
 }
 
 /* insert a new Neuron between the given connection 
@@ -108,7 +132,7 @@ ConnectionGene GeneHistory::insertConnection(NeuronGene const &input, NeuronGene
 StructureGene GeneHistory::insertStructure(StructureGene const gene) {
 
     /* create an adjacent structure index */
-    TOGridIndex index(gene.getX(), gene.getY(), gene.getZ());
+    const TOGridIndex index = gene.getIndex();
     TOGridIndex newIndex = index.getAjacent(rand64(rand) % 14);
     
     /* only insert a new StructureGene if there isn't allready one */
@@ -118,7 +142,8 @@ StructureGene GeneHistory::insertStructure(StructureGene const gene) {
             TissueType::TISSUE,
             newIndex.getX(),
             newIndex.getY(),
-            newIndex.getZ()
+            newIndex.getZ(),
+            rand_range_d64(rand, opts.creationSizeRangeStart(), opts.creationSizeRangeEnd())
         );
         structureMap.insert({newIndex, gene});
     }
@@ -139,7 +164,8 @@ StructureGene GeneHistory::insertStructure(TissueType const type) {
                 TissueType::NEURON,
                 index.getX(),
                 index.getY(),
-                index.getZ()
+                index.getZ(),
+                rand_range_d64(rand, opts.creationSizeRangeStart(), opts.creationSizeRangeEnd())
             );
             structureMap.insert({index, gene});
         }

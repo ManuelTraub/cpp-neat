@@ -47,6 +47,8 @@ add_executable(VirtualCreatureTest
 add_executable(VEPopulationTest
                VEPopulation
                ../src/VESimulation
+               ../src/VEFitnessCalculator
+               ../src/VESpeciesInspector
                ../src/VirtualCreature
                ../src/AI/Gene
                ../src/AI/GeneHistory

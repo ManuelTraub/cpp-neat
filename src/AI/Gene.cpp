@@ -161,14 +161,6 @@ bool StructureGene::saveChild(const int fd) const {
     if (write(fd, &z, sizeof(int64_t)) != sizeof(int64_t))
         return false;
 
-    const uint32_t nConnections = connectedGeneIDs.size();
-    if (write(fd, &nConnections, sizeof(uint32_t)) != sizeof(uint32_t))
-        return false;
-
-    for (const auto &c: connectedGeneIDs)
-        if (write(fd, &c, sizeof(uint64_t)) != sizeof(uint64_t))
-            return false;
-
     return true;
 }
 
@@ -202,16 +194,4 @@ StructureGene::StructureGene(const int fd) {
 
     if (read(fd, &z, sizeof(int64_t)) != sizeof(int64_t))
         throw "IO Exception";
-
-    uint32_t nConnections = 0;
-    if (read(fd, &nConnections, sizeof(uint32_t)) != sizeof(uint32_t))
-        throw "IO Exception";
-
-    for (uint32_t i = 0; i < nConnections; i++) {
-        uint64_t cID = 0;
-        if (read(fd, &cID, sizeof(uint64_t)) != sizeof(uint64_t))
-            throw "IO Exception";
-
-        connectedGeneIDs.push_back(cID);
-    }
 }

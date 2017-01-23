@@ -124,8 +124,11 @@ void Organism::mutate() {
     if (rand_range_d64(rand, 0, 1) < opts.mutateGradientPropability())
         this->genome.mutateNeurons();
 
-    if (rand_range_d64(rand, 0, 1) < opts.mutateStructurePropability())
-        this->genome.mutateStructures();
+    if (rand_range_d64(rand, 0, 1) < opts.mutateStructureTypePropability())
+        this->genome.mutateStructureType();
+
+    if (rand_range_d64(rand, 0, 1) < opts.mutateStructureSizePropability())
+        this->genome.mutateStructureSize();
 }
 
 namespace NEAVC {

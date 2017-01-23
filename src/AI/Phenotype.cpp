@@ -98,11 +98,18 @@ Phenotype::Phenotype(const Genotype &genome, Opts &opts) :
 vector<double> Phenotype::run(vector<double> inputs) {
 
     assert(inputs.size() == neuronLayers[0].size());
-    vector<double> outputs(this->neuronLayers.back().size());
     
     /* set the input neurons */
     for (unsigned i = 0; i < inputs.size(); i++)
         this->neuronLayers[0][i]->setValue(inputs[i]);
+    
+    return this->run();
+}
+
+/* calculate the output by updateing each layer of this once */
+vector<double> Phenotype::run() {
+
+    vector<double> outputs(this->neuronLayers.back().size());
     
     /* calculate the output for each layer (except the input layers)
      * (calculate and applay in several steps to preserv recurent
