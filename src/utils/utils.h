@@ -154,4 +154,9 @@ template <typename T> static bool vectorContains(vector<T> v, T e) {
     return std::find(v.begin(), v.end(), e) != v.end();
 }
 
+/* pi constant */
+#ifndef PI
+#define PI 3.141592653589793l
+#endif
+
 #endif /* __UTILS_H__ */
