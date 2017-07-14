@@ -78,7 +78,10 @@ add_executable(PopulationTest
                ../../src/AI/Phenotype 
                ../../src/AI/Gene 
                ../../src/AI/GeneHistory 
-               ../../src/AI/GenerationCounter)
+               ../../src/AI/GenerationCounter
+               ../../src/utils/Threads)
+
+target_link_libraries(PopulationTest -pthread)
 
 add_test(NAME Gene                COMMAND GeneTest)
 add_test(NAME Genotype            COMMAND GenotypeTest)

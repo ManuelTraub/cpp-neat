@@ -304,12 +304,28 @@ shared_ptr<Organism> Population::getBestOrganism() {
     
     vector<shared_ptr<Organism>> organisms;
 
-    for (auto &s : this->species) {
-        if (this->fitnessCalculator != NULL)
-            s->calculateFittness(this->fitnessCalculator);
-        else
-            s->calculateFittness(inputs, outputs);
+    if (this->fitnessCalculator != NULL) {
+        if (opts.numThreads() > 1) {
+            ParallelProcessor processor(opts.numThreads(), fitnessCalculator);
 
+            for (auto &s : this->species)
+                processor.add(s->getOrganisms());
+
+            processor.start();
+            processor.join();
+
+            for (auto &s : this->species)
+                s->update();
+        } else {
+            for (auto &s : this->species)
+                s->calculateFittness(this->fitnessCalculator);
+        }
+    } else {
+        for (auto &s : this->species)
+            s->calculateFittness(this->inputs, this->outputs);
+    }
+
+    for (auto &s : this->species) {
         vector<shared_ptr<Organism>> currentOrganisms = s->getOrganisms();
         organisms.insert(organisms.end(), currentOrganisms.begin(), currentOrganisms.end());
     }

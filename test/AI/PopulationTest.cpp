@@ -933,3 +933,179 @@ TEST(sinusRecurencyTest) {
 
     return args;
 }
+
+class ParityFitnessCalculator: public FitnessCalculator {
+
+    private:
+
+        /* reference to the options of the whole population */
+        Opts &opts;
+
+        uint64_t organismIndex = 0;
+
+        rand64_t *rand;
+
+        /* virtual fitness operator */
+        virtual double operator () (const Genotype &genome) {
+
+            organismIndex++;
+            Phenotype phenotype(genome, opts);
+            double error = 0.0;
+
+            double lastOutput = 0.0;
+            for (unsigned i = 0; i < 1000; i++) {
+                const double input  = (rand64(rand) % 2 == 0) ? -1.0 : 1.0;
+                const double output = phenotype.run({input}).at(0);
+                const double target = ((input <= 0 && lastOutput <= 0) ? -1.0 :
+                                      ((input >  0 && lastOutput <= 0) ?  1.0 :
+                                      ((input <= 0 && lastOutput  > 0) ?  1.0 :
+                                      ((input >  0 && lastOutput  > 0) ? -1.0 : 0.0/0.0))));
+                error += abs(output - target);
+                lastOutput = output;
+            }
+
+            error /= 2000;
+            return 1.0 / error;
+        }
+
+    public:
+
+        /* constructor */
+        ParityFitnessCalculator(Opts &opts) : opts(opts.freeze()), rand(new_rand64_t()) { }
+
+        /* visualizes the fitness callculation */
+        virtual void visualize(const Genotype &genome, const unsigned length, const unsigned timeSteps) {
+
+            Phenotype phenotype(genome, opts);
+
+            double lastOutput = 0.0;
+            for (unsigned i = 0; i < timeSteps; i++) {
+                const double input  = (rand64(rand) % 2 == 0) ? -1.0 : 1.0;
+                const double output = phenotype.run({input}).at(0);
+                const double target = ((input < 0 && lastOutput < 0) ? -1.0 :
+                                      ((input > 0 && lastOutput < 0) ?  1.0 :
+                                      ((input < 0 && lastOutput > 0) ?  1.0 :
+                                      ((input > 0 && lastOutput > 0) ? -1.0 : 0.0/0.0))));
+
+                lastOutput = output;
+
+                if (abs(target - output) < 0.25)
+                    printf(" ");
+                else if (abs(target - output) < 0.5)
+                    printf("_");
+                else if (abs(target - output) < 0.75)
+                    printf("-");
+                else if (abs(target - output) < 1.0)
+                    printf("~");
+                else if (abs(target - output) < 1.25)
+                    printf("+");
+                else if (abs(target - output) < 1.5)
+                    printf("*");
+                else if (abs(target - output) < 1.75)
+                    printf("$");
+                else if (abs(target - output) < 2.0)
+                    printf("%%");
+                else
+                    printf("#");
+            }
+            printf("\n");
+        }
+
+};
+
+TEST(ParityRecurencyTest) {
+
+    Opts opts;
+    opts.netActivationFunction(Opts::ActivationFunction::TANH);
+    opts.weightMultiplier(0.1);
+    opts.speciesSimilarityThreshold(1.0);
+    opts.allowRecurentConnections(true);
+    opts.ageingPropabilityOffset(0.0);
+    opts.recombinateNeurons(false);
+    opts.allowNeuronIntoBiasConnectionInsert(true);
+    opts.shuffleTrainingData(false);
+    opts.mutateGradientPropability(0.0);
+    opts.mutationMaxPertubeWeightRangeStart(-8);
+    opts.mutationMaxPertubeWeightRangeEnd(8);
+    opts.addNeuronMutationPropability(0.001);
+    opts.numThreads(15);
+
+    // training data
+    vector<vector<double>> trainingInputs  = {{1}};
+    vector<vector<double>> trainingOutputs = {{0}};
+    ParityFitnessCalculator fitnessCalculator(opts);
+
+    vector<unsigned> generations;
+    vector<unsigned> nodes;
+    vector<unsigned> connections;
+    vector<unsigned> species;
+
+    const unsigned nRuns = 1000;
+    const unsigned nGenerations = 500;
+
+    for (unsigned r = 0; r < nRuns; r++) {
+
+        Population population(trainingInputs, trainingOutputs, opts, &fitnessCalculator);
+        population.createInitialConnections();
+
+        unsigned i;
+        for (i = 0; i < nGenerations; i++) {
+            population.calcNextGeneration();
+
+            shared_ptr<Organism> best = population.getBestOrganism();
+            best->calculateFittness(&fitnessCalculator);
+            //fitnessCalculator.visualize(best->getGenome(), 100, 211);
+            //
+            //unsigned enabledGenes = 0;
+            //for (const auto &c : best->getGenome().getConnections())
+            //  if (c.second.isEnabled())
+            //      enabledGenes++;
+            //
+            //TEST_MSGD("[%u] Generation %3u, Nodes %3u, Connections: %3u, Species %3u, Fitness %F", r,
+            //        i, (unsigned) best->getGenome().getNeurons().size(),
+            //        enabledGenes, (unsigned) population.getSpecies().size(),
+            //        1.0 / best->getFitness());
+            
+            if (1.0 / best->getFitness() < 0.02)
+                break;
+        }
+
+        shared_ptr<Organism> best = population.getBestOrganism();
+        Phenotype phenotype(best->getGenome(), opts);
+
+        if (i == nGenerations) {
+            printf("failed\n");
+            phenotype.saveAsSVG("failedOrganism" + itoa(r) + ".svg");
+        } else {
+
+            unsigned enabledGenes = 0;
+            for (const auto &c : best->getGenome().getConnections())
+                if (c.second.isEnabled())
+                    enabledGenes++;
+
+            generations.push_back(i);
+            nodes.push_back(best->getGenome().getNeurons().size());
+            connections.push_back(enabledGenes);
+            species.push_back(population.getSpecies().size());
+
+            phenotype.saveAsSVG("bestOrganism" + itoa(connections.back()) + "c" + 
+                                itoa(nodes.back()) + "n" + itoa(generations.back()) + "g.svg");
+
+            TEST_MSGD("[%u] Generation %3u / %3.1F, Nodes %3u / %3.1F, Connections: %3u / %3.1F, Species %3u / %3.1F", r,
+                      generations.back(), avgVector(generations),
+                      nodes.back(), avgVector(nodes),
+                      connections.back(), avgVector(connections),
+                      species.back(), avgVector(species));
+
+            if (r > nRuns / 1.5) {
+                ASSERT_TRUE(avgVector(generations) < 80);
+                ASSERT_TRUE(avgVector(nodes) < 6);
+                ASSERT_TRUE(avgVector(connections) < 15);
+                ASSERT_TRUE(avgVector(species) < 50);
+            }
+        }
+
+    }
+
+    return args;
+}
