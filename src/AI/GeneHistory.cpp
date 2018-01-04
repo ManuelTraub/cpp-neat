@@ -8,41 +8,48 @@ rand64_t *GeneHistory::rand = new_rand64_t();
 
 /* insert a new input, bias or output Neuron
  */
-NeuronGene GeneHistory::insertNeuron(NeuronType const type, uint64_t number) {
+NeuronGene GeneHistory::insertNeuron(
+    NeuronType const type, 
+    const ActivationFunction function, 
+    uint64_t number
+) {
     assert(type == NeuronType::INPUT ||
            type == NeuronType::BIAS  ||
            type == NeuronType::OUTPUT);
 
     if (type == NeuronType::INPUT) {
         while (inputs.size() <= number) {
-            inputs.push_back(NeuronGene(NeuronType::INPUT, 0));
+            inputs.push_back(NeuronGene(NeuronType::INPUT, function, 0));
             neuronMap.insert({inputs.back().getID(), inputs.back()});
         }
         return inputs[number];
 
     } else if (type == NeuronType::BIAS) {
         while (bias.size() <= number) {
-            bias.push_back(NeuronGene(NeuronType::BIAS, 0));
+            bias.push_back(NeuronGene(NeuronType::BIAS, function, 0));
             neuronMap.insert({bias.back().getID(), bias.back()});
         }
         return bias[number];
 
     } else if (type == NeuronType::OUTPUT) {
         while (outputs.size() <= number) {
-            outputs.push_back(NeuronGene(NeuronType::OUTPUT, UINT64_MAX));
+            outputs.push_back(NeuronGene(NeuronType::OUTPUT, function, UINT64_MAX));
             neuronMap.insert({outputs.back().getID(), outputs.back()});
         }
         return outputs[number];
     }
     
     assert(false);
-    return NeuronGene(NeuronType::BIAS, 0);
+    return NeuronGene(NeuronType::BIAS, ActivationFunction::LENGTH, 0);
 }
 
 /* insert a new Neuron between the given connection 
  * Note: the gene must be splitable 
  */
-NeuronGene GeneHistory::insertNeuron(const ConnectionGene &gene) {
+NeuronGene GeneHistory::insertNeuron(
+    const ConnectionGene &gene, 
+    const ActivationFunction function
+) {
 
     assert(gene.canBeSplitted());
     
@@ -68,7 +75,7 @@ NeuronGene GeneHistory::insertNeuron(const ConnectionGene &gene) {
     }
 
     /* if no connection was found insert a new one */
-    NeuronGene newNeuron = gene.split();
+    NeuronGene newNeuron = gene.split(function);
 
     inputConnections.addOutput(newNeuron.getID());
     outputConnections.addInput(newNeuron.getID());

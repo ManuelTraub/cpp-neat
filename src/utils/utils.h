@@ -154,5 +154,10 @@ template <typename T> static bool vectorContains(vector<T> v, T e) {
     return std::find(v.begin(), v.end(), e) != v.end();
 }
 
+/**
+ * Splits a String by a specific char
+ * returns vector<string> splitted Strings
+ */
+std::vector<std::string> split(const string str, const string seperator);
 
 #endif /* __UTILS_H__ */

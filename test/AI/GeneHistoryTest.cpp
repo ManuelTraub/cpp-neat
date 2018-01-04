@@ -33,14 +33,16 @@ TEST(basicTest) {
     Opts opts;
     GeneHistory geneHistory(opts);
 
-    NeuronGene input  = geneHistory.insertNeuron(NeuronType::INPUT, 0);
-    NeuronGene output = geneHistory.insertNeuron(NeuronType::OUTPUT, 0);
+    NeuronGene input  = geneHistory.insertNeuron(NeuronType::INPUT, ActivationFunction::SIGMOID, 0);
+    NeuronGene output = geneHistory.insertNeuron(NeuronType::OUTPUT, ActivationFunction::SIGMOID, 0);
 
     ConnectionGene connection(input, output);
 
-    NeuronGene neuron1 = geneHistory.insertNeuron(connection);
-    NeuronGene neuron2 = geneHistory.insertNeuron(ConnectionGene(connection.getInput(), 
-                                                             connection.getOutput()));
+    NeuronGene neuron1 = geneHistory.insertNeuron(connection, ActivationFunction::SIGMOID);
+    NeuronGene neuron2 = geneHistory.insertNeuron(
+        ConnectionGene(connection.getInput(), connection.getOutput()), 
+        ActivationFunction::SIGMOID
+    );
     ASSERT_EQUAL(neuron1.getID(), neuron2.getID(), "neuron genes not equal");
 
     ConnectionGene connection1 = geneHistory.insertConnection(input, output);

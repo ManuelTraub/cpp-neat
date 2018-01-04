@@ -63,6 +63,18 @@ bool NeuronGene::saveChild(const int fd) const {
         if (write(fd, "e", 1) != 1) return false;
     }
 
+    if (function == ActivationFunction::SIGMOID) {
+        if (write(fd, "s", 1) != 1) return false;
+    } else if (function == ActivationFunction::TANH) {
+        if (write(fd, "t", 1) != 1) return false;
+    } else if (function == ActivationFunction::RELU) {
+        if (write(fd, "r", 1) != 1) return false;
+    } else if (function == ActivationFunction::SPIKING) {
+        if (write(fd, "i", 1) != 1) return false;
+    } else {
+        if (write(fd, "e", 1) != 1) return false;
+    }
+
     if (write(fd, &layerID, sizeof(uint64_t)) != sizeof(uint64_t))
         return false;
 
@@ -93,6 +105,21 @@ NeuronGene::NeuronGene(const int fd) {
     else 
         throw "IO Exception";
 
+    char cFunction = '\0';
+    if (read(fd, &cFunction, 1) != 1)
+        throw "IO Exception";
+
+    if (cFunction == 's')
+        function = ActivationFunction::SIGMOID;
+    else if (cFunction == 't')
+        function = ActivationFunction::TANH;
+    else if (cFunction == 'r')
+        function = ActivationFunction::RELU;
+    else if (cFunction == 'i')
+        function = ActivationFunction::SPIKING;
+    else 
+        throw "IO Exception";
+
     if (read(fd, &layerID, sizeof(uint64_t)) != sizeof(uint64_t))
         throw "IO Exception";
 
@@ -120,8 +147,8 @@ bool ConnectionGene::saveChild(const int fd) const {
 
 /* loads the ConnectionGene from the given file */
 ConnectionGene::ConnectionGene(const int fd) : 
-    inputNeuron(NeuronType::INPUT, 0), 
-    outputNeuron(NeuronType::OUTPUT, UINT64_MAX) 
+    inputNeuron(NeuronType::INPUT, ActivationFunction::SIGMOID, 0), 
+    outputNeuron(NeuronType::OUTPUT, ActivationFunction::SIGMOID, UINT64_MAX) 
 {
 
     if (!this->loadBase(fd))

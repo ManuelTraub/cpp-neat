@@ -51,9 +51,6 @@ namespace NEAVC {
 
             public:
 
-                /* the different Netactivation functions possible */
-                enum class ActivationFunction { SIGMOID, TANH, RELU };
-
                 /* standart constructor */
                 Opts() { }
                 
@@ -62,6 +59,9 @@ namespace NEAVC {
 
                 /* freezes this so its values can not longer be changed */
                 Opts &freeze() { frozen = true; return *this; }
+
+                /* the different spiking econdigns */
+                enum class SpikeCoding { FREQUENCY, TIME, TIMEFREQUENCY };
                 
             /* propability for a mutation only offspring */
             addOption(double, mutationOnlyPropability, 0.25)
@@ -87,11 +87,20 @@ namespace NEAVC {
             /* propability of adding a new Connection between two Neurons during mutation */
             addOption(double, addConnectionMutationPropability, 0.05)
 
+            /* propability of removing a Neuron during mutation */
+            addOption(double, removeNeuronMutationPropability, 0)
+
+            /* propability of removing a new Connection between two Neurons during mutation */
+            addOption(double, removeConnectionMutationPropability, 0)
+
             /* the propability of mutating the weights of a Genome during mutation */
             addOption(double, mutateWeightsPropability, 0.9)
 
-            /* the propability of mutating the gradient of a Genome during mutation */
-            addOption(double, mutateGradientPropability, 0.5)
+            /* the propability of mutating the neurons of a Genome during mutation */
+            addOption(double, mutateNeuronsPropability, 0.5)
+
+            /* the propability of mutating the function of a genome during mutating */
+            addOption(double, mutateFunctionPropability, 0);
 
             /* indicates whether the gradient shoud be recombinated or choosen from the fitter */
             addOption(bool, recombinateNeurons, true);
@@ -104,6 +113,9 @@ namespace NEAVC {
 
             /* avg gradient difference multiplier when calculating the similarity */
             addOption(double, gradientMultiplier, 0.1)
+
+            /* avg function difference multiplier when calculating the similarity */
+            addOption(double, functionMultiplier, 1.0)
 
             /* the structure multiplayer for calculating similarity */
             addOption(double, structureMultiplier, 4.0);
@@ -147,6 +159,26 @@ namespace NEAVC {
             /* the net activation function used in the neurons */
             addOption(ActivationFunction, netActivationFunction, ActivationFunction::SIGMOID);
 
+            /* indicates wheter to randomly coose the activation function */
+            addOption(bool, randomActivationFunction, false);
+
+            /* the activation function for output neurons (LENGTH => use netActivationFunction) */
+            addOption(ActivationFunction, outputActivationFunction, ActivationFunction::LENGTH);
+
+            /* the number of simulation steps which are neccessary 
+             * to compute on output in a spiking neural network */
+            addOption(unsigned, spikingNumSimulationStepsPerOutoput, 8);
+
+            /* the maxium nmber of simulation steps to wait for an spike to occour */
+            addOption(unsigned, spikingMaxOutputSiumlationSteps, 128);
+
+            /* the spike encoding */
+            addOption(SpikeCoding, spikeOutputEncoding, SpikeCoding::FREQUENCY);
+
+            /* indicates that a (spinking/reccurent) neuronal network 
+             * should be reset bevor each run */
+            addOption(bool, resetNetBeforRun, false);
+
             /* the propability of evolving a muscle structure gene */
             addOption(double, muscleTissuePropability, 0.1);
 
@@ -155,6 +187,9 @@ namespace NEAVC {
 
             /* the propability of adding structure during mutation */
             addOption(double, addStructureMutationPropability, 0.01);
+
+            /* the propability of removing structure during mutation */
+            addOption(double, removeStructureMutationPropability, 0.005);
 
             /* the propability of mutating structure during mutation */
             addOption(double, mutateStructurePropability, 0.02);
@@ -166,6 +201,12 @@ namespace NEAVC {
 
             /* indicate that we are alowing insertion of neurons into BIAS neurons */
             addOption(bool, allowNeuronIntoBiasConnectionInsert, false);
+            
+            /* indicates that the network should be updated layer by layer */
+            addOption(bool, layeredNetwork, true);
+
+            /* indicates that the fitness should always be recalculated for each organism */
+            addOption(bool, alwaysRecalculateFitness, false);
 
             /* number of threads */
             addOption(unsigned, numThreads, 1);

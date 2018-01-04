@@ -92,12 +92,19 @@ namespace NEAVC {
                 GeneHistory(Opts &opts) : opts(opts.freeze()) { }
 
                 /* insert a new input, bias or output Neuron */
-                NeuronGene insertNeuron(NeuronType const type, uint64_t number);
+                NeuronGene insertNeuron(
+                    NeuronType const type, 
+                    const ActivationFunction function, 
+                    uint64_t number
+                );
 
                 /* insert a new Neuron between the given connection 
                  * Note: the gene must be splitable 
                  */
-                NeuronGene insertNeuron(const ConnectionGene &gene);
+                NeuronGene insertNeuron(
+                    const ConnectionGene &gene, 
+                    const ActivationFunction function
+                );
 
                 /* insert a new input, bias or output Neuron */
                 ConnectionGene insertConnection(NeuronGene const &input, NeuronGene const &output);

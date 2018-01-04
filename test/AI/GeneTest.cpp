@@ -34,28 +34,28 @@ AFTER() {
 TEST_N(basicSaveLoadTest, 10000) {
     
 
-    NeuronGene input(NeuronType::INPUT, rand64(args));
-    NeuronGene output(NeuronType::OUTPUT, rand64(args));
-    NeuronGene bias(NeuronType::BIAS, rand64(args));
+    NeuronGene input(NeuronType::INPUT, ActivationFunction::SIGMOID, rand64(args));
+    NeuronGene output(NeuronType::OUTPUT, ActivationFunction::TANH, rand64(args));
+    NeuronGene bias(NeuronType::BIAS, ActivationFunction::SPIKING, rand64(args));
 
     ConnectionGene connection(input, output);
-    NeuronGene hidden = connection.split();
+    NeuronGene hidden = connection.split(ActivationFunction::RELU);
 
     StructureGene tissue(TissueType::TISSUE, rand64(args), rand64(args), rand64(args));
     StructureGene neuron(TissueType::TISSUE, rand64(args), rand64(args), rand64(args));
     StructureGene sensor(TissueType::TISSUE, rand64(args), rand64(args), rand64(args));
     StructureGene muscle(TissueType::TISSUE, rand64(args), rand64(args), rand64(args));
 
-    for (unsigned i = 0; i < rand64(args) % 10; i++);
+    for (unsigned i = 0; i < rand64(args) % 10; i++)
         tissue.connectToGene(rand64(args));
 
-    for (unsigned i = 0; i < rand64(args) % 10; i++);
+    for (unsigned i = 0; i < rand64(args) % 10; i++)
         neuron.connectToGene(rand64(args));
 
-    for (unsigned i = 0; i < rand64(args) % 10; i++);
+    for (unsigned i = 0; i < rand64(args) % 10; i++)
         sensor.connectToGene(rand64(args));
 
-    for (unsigned i = 0; i < rand64(args) % 10; i++);
+    for (unsigned i = 0; i < rand64(args) % 10; i++)
         muscle.connectToGene(rand64(args));
 
     char fname[64];
@@ -100,24 +100,28 @@ TEST_N(basicSaveLoadTest, 10000) {
     ASSERT_EQUAL(input.getType(),       input2.getType(),       "types not equal");
     ASSERT_EQUAL(input.getLayerID(),    input2.getLayerID(),    "layerIDs not equal");
     ASSERT_EQUAL(input.getGradient(),   input2.getGradient(),   "gradients not equal");
+    ASSERT_EQUAL(input.getFunction(),   input2.getFunction(),   "activation functions not equal");
 
     ASSERT_EQUAL(output.getID(),         output2.getID(),         "ids not equal");
     ASSERT_EQUAL(output.getGeneration(), output2.getGeneration(), "generation not equal");
     ASSERT_EQUAL(output.getType(),       output2.getType(),       "types not equal");
     ASSERT_EQUAL(output.getLayerID(),    output2.getLayerID(),    "layerIDs not equal");
     ASSERT_EQUAL(output.getGradient(),   output2.getGradient(),   "gradients not equal");
+    ASSERT_EQUAL(output.getFunction(),   output2.getFunction(),   "activation functions not equal");
 
     ASSERT_EQUAL(bias.getID(),         bias2.getID(),         "ids not equal");
     ASSERT_EQUAL(bias.getGeneration(), bias2.getGeneration(), "generation not equal");
     ASSERT_EQUAL(bias.getType(),       bias2.getType(),       "types not equal");
     ASSERT_EQUAL(bias.getLayerID(),    bias2.getLayerID(),    "layerIDs not equal");
     ASSERT_EQUAL(bias.getGradient(),   bias2.getGradient(),   "gradients not equal");
+    ASSERT_EQUAL(bias.getFunction(),   bias2.getFunction(),   "activation functions not equal");
 
     ASSERT_EQUAL(hidden.getID(),         hidden2.getID(),         "ids not equal");
     ASSERT_EQUAL(hidden.getGeneration(), hidden2.getGeneration(), "generation not equal");
     ASSERT_EQUAL(hidden.getType(),       hidden2.getType(),       "types not equal");
     ASSERT_EQUAL(hidden.getLayerID(),    hidden2.getLayerID(),    "layerIDs not equal");
     ASSERT_EQUAL(hidden.getGradient(),   hidden2.getGradient(),   "gradients not equal");
+    ASSERT_EQUAL(hidden.getFunction(),   hidden2.getFunction(),   "activation functions not equal");
 
     ASSERT_EQUAL(connection.getID(),                     connection2.getID(),                     "ids not equal");
     ASSERT_EQUAL(connection.getGeneration(),             connection2.getGeneration(),             "generation not equal");

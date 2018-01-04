@@ -85,6 +85,10 @@ namespace NEAVC {
         /* the different types of neurons (input output or hidden) */
         enum class NeuronType { BIAS = 0, INPUT = 1, HIDDEN = 2, OUTPUT = 3 };
 
+        /* the different Netactivation functions possible */
+        enum class ActivationFunction { SIGMOID, TANH, RELU, SPIKING, LENGTH };
+
+
         /**
          * A Neuron Gene representing a neuron within a neural network
          * NeuronGenes are enumerated within a genome to unique identify them.
@@ -97,6 +101,9 @@ namespace NEAVC {
 
                 /* the neuron type of this */
                 NeuronType type;
+
+                /* the ActivationFunction of this */
+                ActivationFunction function;
 
                 /* the layer id of this (greater means nearer to the output layer) */
                 uint64_t layerID;
@@ -112,12 +119,24 @@ namespace NEAVC {
                 /* returns the type of this */
                 NeuronType getType() const { return type; }
 
+                /* returns the ActivationFunction of this */
+                ActivationFunction getFunction() const { return function; }
+
+                /* set the ActivationFunction of this */
+                void setFunction(const ActivationFunction function) {
+                    this->function = function;
+                }
+
                 /* returns the layer if of this */
                 uint64_t getLayerID() const { return layerID; }
 
                 /* creats a new NeuronGeneID */
-                NeuronGene(const NeuronType type, const uint64_t layerID) : 
-                           type(type), layerID(layerID), gradient(4.924273) { 
+                NeuronGene(
+                    const NeuronType type, 
+                    const ActivationFunction function, 
+                    const uint64_t layerID
+                ) : 
+                    type(type), function(function), layerID(layerID), gradient(4.924273) { 
 
                     assert(type == NeuronType::INPUT  || 
                            type == NeuronType::OUTPUT ||
@@ -133,8 +152,10 @@ namespace NEAVC {
                 /* create a new node between two nodes */
                 NeuronGene(
                     const NeuronGene &gene1, 
-                    const NeuronGene &gene2
+                    const NeuronGene &gene2,
+                    const ActivationFunction function
                 ) : type(NeuronType::HIDDEN),
+                    function(function),
                     layerID(middle(gene1.layerID, gene2.layerID)), gradient(4.924273) {
 
                     assert(canBeInserted(gene1, gene2));
@@ -149,9 +170,14 @@ namespace NEAVC {
                 }
                 
                 /* mutates the gradient of this */
-                void mutate() {
+                void mutateGradient() {
                     assert(gradient >= 0);
                     gradient *= rand_range_d64(rand, 0.0, 2.0);
+                }
+
+                /* mutates the ActivationFunction of this */
+                void mutateFunction() {
+                    function = ActivationFunction(rand64(rand) % int(ActivationFunction::SPIKING));
                 }
 
                 /* returns the gradient of this */
@@ -257,8 +283,8 @@ namespace NEAVC {
                 }
 
                 /* returns a new NeuronGene spliting this */
-                NeuronGene split() const {
-                    return NeuronGene(inputNeuron, outputNeuron);
+                NeuronGene split(const ActivationFunction function) const {
+                    return NeuronGene(inputNeuron, outputNeuron, function);
                 }
         };
 

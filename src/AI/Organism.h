@@ -91,7 +91,7 @@ namespace NEAVC {
 
                 /* calculates the fitness of this by using single creature simulation */
                 void calculateFittness(FitnessCalculator *fitnessCalculator) {
-                    if (std::isnan(fitness))
+                    if (std::isnan(fitness) || opts.alwaysRecalculateFitness())
                         this->fitness = (*fitnessCalculator)(this->genome);
                 }
 

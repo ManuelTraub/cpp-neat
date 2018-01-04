@@ -17,6 +17,12 @@ namespace NEAVC {
             
             private:
 
+                /* the ActivationFunction of this */
+                const ActivationFunction function;
+
+                /* the gradient of how fast this neuron switches from min to max */
+                const double gradient;
+
                 /* the input connections of this */
                 vector<Neuron *> inputs;
 
@@ -31,30 +37,11 @@ namespace NEAVC {
                  */
                 double weightedInputs;
 
-                /* the gradient of how fast this neuron switches from min to max */
-                const double gradient;
+                /* the membran potential for a spiking neuron */
+                double v;
 
-            public:
-
-                /* returns the inputs of this */
-                vector<Neuron *> getInputs() const { return inputs; }
-
-                /* returns the weights of this */
-                vector<double> getWeights() const { return weights; }
-
-                /* returns the output value of this */
-                double getValue() const { return outputValue; }
-
-                /* set the value for input neurons */
-                void setValue(double value) { outputValue = value; }
-
-                /* calculates the weighted input sum */
-                void calculateWeightedInputs() {
-                    
-                    weightedInputs = 0.0;
-                    for (unsigned i = 0; i < inputs.size(); i++)
-                        weightedInputs += weights[i] * inputs[i]->getValue();
-                }
+                /* membran recovery variable for a spiking neuron */
+                double u;
 
                 /* calculate the output value using a sigmoid activation */
                 void calculateSigmoidOutput() {
@@ -72,6 +59,63 @@ namespace NEAVC {
                     if (outputValue < 0) outputValue = 0;
                 }
 
+                /* calculate the output using a spiking neuron */
+                void calculateSpikingOutput() {
+                    v += 0.5 * (0.04 * v * v + 5 * v + 140 - u + weightedInputs + gradient);
+                    v += 0.5 * (0.04 * v * v + 5 * v + 140 - u + weightedInputs + gradient);
+                    u += 0.02 * (0.2 * v - u);
+                    outputValue = 0.0;
+
+                    if (v >= 30) {
+                        u += 8;
+                        v  = -65;
+                        outputValue = 1.0;
+                    }
+                }
+
+            public:
+
+                /* returns the inputs of this */
+                vector<Neuron *> getInputs() const { return inputs; }
+
+                /* returns the weights of this */
+                vector<double> getWeights() const { return weights; }
+
+                /* returns the gradient of this */
+                double getGradient() const { return gradient; }
+
+                /* returns the activation function of this */
+                ActivationFunction getFunction() const { return function; }
+
+                /* returns the output value of this */
+                double getValue() const { return outputValue; }
+
+                /* set the value for input neurons */
+                void setValue(double value) { outputValue = value; }
+
+                /* calculates the weighted input sum */
+                void calculateWeightedInputs() {
+                    
+                    weightedInputs = 0.0;
+                    for (unsigned i = 0; i < inputs.size(); i++)
+                        weightedInputs += weights[i] * inputs[i]->getValue();
+                }
+
+                /* calculates the output of this */
+                void calculateOutput() {
+                    
+                    if (function == ActivationFunction::SIGMOID)
+                        this->calculateSigmoidOutput();
+                    else if (function == ActivationFunction::TANH)
+                        this->calculateTanhOutput();
+                    else if (function == ActivationFunction::RELU)
+                        this->calculateReLUOutput();
+                    else if (function == ActivationFunction::SPIKING)
+                        this->calculateSpikingOutput();
+                    else
+                        assert(false);
+                }
+
                 /* adds an input */
                 void addInput(Neuron *input, double weight) {
                     this->inputs.push_back(input);
@@ -79,15 +123,20 @@ namespace NEAVC {
                 }
 
                 /* creats a new Neuron */
-                Neuron(double gradient) : 
+                Neuron(const double gradient, const ActivationFunction function) :
+                    function(function),
+                    gradient(gradient),
                     outputValue(0.0), 
                     weightedInputs(0.0), 
-                    gradient(gradient) { }
+                    v(-65),
+                    u(8) { }
 
                 /* resets this to zero */
                 void reset() {
                     this->outputValue    = 0.0;
                     this->weightedInputs = 0.0;
+                    this->v = -65;
+                    this->u = 8;
                 }
 
         };

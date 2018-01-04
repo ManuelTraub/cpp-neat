@@ -437,8 +437,10 @@ static inline void print_usage(char *name) {
   printf("%s Test Suite:\n", name);
   printf("  -h  --help\t\tprint these message\n"
          "  -q  --quiet\t\tbe quiet\n"
-         "  -l  --log [FILE]\tlog qutput to FILE\n"
+         "  -o  --log [FILE]\tlog qutput to FILE\n"
          "  -e  --exit-on-error\texit on assertion fail\n"
+         "  -t  --tests [NAMES]\tcomma separated list of tests to run\n"
+         "  -l  --list\t\tlist all test\n"
          "  -v  --verbose [1,2,3,4,5] set the verbose level\n"
          "        1: only summary\n"
          "        2: 1 + errors\n"
@@ -479,19 +481,44 @@ static inline void init(int argc, char *argv[]) {
     exit(EXIT_SUCCESS);
   }
 
+  if (has_arg("-l", "--list")) {
+    
+    for (unsigned i = 0; i < ARY_LEN(tunit.tests); i++)
+      printf("%s\n", ARY_AT(tunit.tests, i).test_name);
+
+    exit(EXIT_SUCCESS);
+  }
+
   if (has_arg("-v", "--verbose"))
     tunit.verbose = atoi(get_arg("-v", "--verbose").c_str());
   
   tunit.verbose       = has_arg("-q", "--quiet") ? 0 : tunit.verbose;
-  tunit.log           = has_arg("-l", "--log");
+  tunit.log           = has_arg("-o", "--log");
   tunit.exit_on_error = has_arg("-e", "--exit-on-error");
 
   if (tunit.log)
-    tunit.log_fd = fopen(get_arg("-l", "--log").c_str(), "w");
+    tunit.log_fd = fopen(get_arg("-o", "--log").c_str(), "w");
 
   if (tunit.log_fd == NULL && tunit.log) {
     perror("Failed to open log file");
     exit(EXIT_FAILURE);
+  }
+
+  if (has_arg("-t", "--tests")) {
+	vector<string> tests = split(get_arg("-t", "--tests"), ",");
+
+    for (unsigned i = 0; i < ARY_LEN(tunit.tests); i++) {
+        
+      bool found = false;
+      for (auto &test: tests)
+        if (string(ARY_AT(tunit.tests, i).test_name) == test)
+          found = true;
+
+      if (!found) {
+        ARY_DELETE_AT_FAST(tunit.tests, i);
+        i--;
+      }
+    }
   }
 
   info_messages(argc, argv);

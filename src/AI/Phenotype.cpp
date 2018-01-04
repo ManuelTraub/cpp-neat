@@ -42,7 +42,7 @@ Phenotype::Phenotype(const Genotype &genome, Opts &opts) :
     for (const auto &e : neuronGenes) {
 
         /* store neuron for efficient access */
-        Neuron *const newNeuron = new Neuron(e.second.getGradient());
+        Neuron *const newNeuron = new Neuron(e.second.getGradient(), e.second.getFunction());
         neuronMap.insert({e.second.getID(), newNeuron});
 
         /* store the neuron in its desired layer */
@@ -94,8 +94,35 @@ Phenotype::Phenotype(const Genotype &genome, Opts &opts) :
     }
 }
 
+/* resets the network and introduces random dynamics */
+void Phenotype::initNet(unsigned cycles) {
+
+    for (auto &layer: neuronLayers)
+        for (auto &neuron: layer)
+            neuron->reset();
+    
+    for (unsigned i = 0; i < cycles; i++) {
+        if (opts.netActivationFunction() == ActivationFunction::SPIKING) 
+            this->runSpiking(vector<double>(this->neuronLayers[0].size(), 0.0));
+
+        this->runSinglePass(vector<double>(this->neuronLayers[0].size(), 0.0));
+    }
+}
+
 /* calculate the output for a given input */
 vector<double> Phenotype::run(vector<double> inputs) {
+
+    if (opts.resetNetBeforRun())
+        this->initNet();
+
+    if (opts.netActivationFunction() == ActivationFunction::SPIKING) 
+        return this->runSpiking(inputs);
+
+    return this->runSinglePass(inputs);
+}
+
+/* calculate the output for a given input within a single pass trough the network */
+vector<double> Phenotype::runSinglePass(vector<double> inputs) {
 
     assert(inputs.size() == neuronLayers[0].size());
     vector<double> outputs(this->neuronLayers.back().size());
@@ -104,28 +131,30 @@ vector<double> Phenotype::run(vector<double> inputs) {
     for (unsigned i = 0; i < inputs.size(); i++)
         this->neuronLayers[0][i]->setValue(inputs[i]);
     
-    /* calculate the output for each layer (except the input layers)
-     * (calculate and applay in several steps to preserv recurent
-     * connections within the same layer)
-     */
-    for (unsigned l = 1; l < neuronLayers.size(); l++) {
+    if (opts.layeredNetwork()) {
 
-        for (unsigned n = 0; n < neuronLayers[l].size(); n++) 
-            neuronLayers[l][n]->calculateWeightedInputs();
+        /* calculate the output for each layer (except the input layers)
+         * (calculate and applay in several steps to preserv recurent
+         * connections within the same layer)
+         */
+        for (unsigned l = 1; l < neuronLayers.size(); l++) {
 
-        if (opts.netActivationFunction() == Opts::ActivationFunction::SIGMOID) {
             for (unsigned n = 0; n < neuronLayers[l].size(); n++) 
-                neuronLayers[l][n]->calculateSigmoidOutput();
+                neuronLayers[l][n]->calculateWeightedInputs();
 
-        } else if (opts.netActivationFunction() == Opts::ActivationFunction::TANH) {
             for (unsigned n = 0; n < neuronLayers[l].size(); n++) 
-                neuronLayers[l][n]->calculateTanhOutput();
+                neuronLayers[l][n]->calculateOutput();
+        }
+    } else {
 
-        } else if (opts.netActivationFunction() == Opts::ActivationFunction::RELU) {
+        /* clacluate the output for each neuron */
+        for (unsigned l = 1; l < neuronLayers.size(); l++) 
             for (unsigned n = 0; n < neuronLayers[l].size(); n++) 
-                neuronLayers[l][n]->calculateReLUOutput();
+                neuronLayers[l][n]->calculateWeightedInputs();
 
-        } else assert(false);
+        for (unsigned l = 1; l < neuronLayers.size(); l++)
+            for (unsigned n = 0; n < neuronLayers[l].size(); n++) 
+                neuronLayers[l][n]->calculateOutput();
     }
 
     /* collect the output values */
@@ -133,7 +162,55 @@ vector<double> Phenotype::run(vector<double> inputs) {
         outputs[i] = neuronLayers.back()[i]->getValue();
 
     return outputs;
+    
+
+    /* collect the output values */
+    for (unsigned i = 0; i < neuronLayers.back().size(); i++)
+        outputs[i] = neuronLayers.back()[i]->getValue();
+
+    return outputs;
 }
+
+/* calculate the output of a spiking neural network for a given input */
+vector<double> Phenotype::runSpiking(vector<double> inputs) {
+
+    assert(inputs.size() == neuronLayers[0].size());
+    vector<double> outputs(this->neuronLayers.back().size(), 0.0);
+
+    if (opts.spikeOutputEncoding() == Opts::SpikeCoding::FREQUENCY) {
+        for (unsigned i = 0; i < opts.spikingNumSimulationStepsPerOutoput(); i++) {
+            vector<double> cur = this->runSinglePass(inputs);
+            for (unsigned n = 0; n < outputs.size(); n++)
+                outputs[n] += cur[n];
+        }
+
+        for (unsigned n = 0; n < outputs.size(); n++)
+            outputs[n] /= opts.spikingNumSimulationStepsPerOutoput();
+
+    } else if (opts.spikeOutputEncoding() == Opts::SpikeCoding::TIME) {
+
+        for (unsigned i = 0, setted = 0; 
+             setted < outputs.size() && i < opts.spikingMaxOutputSiumlationSteps(); 
+             i++) {
+
+            vector<double> cur = this->runSinglePass(inputs);
+
+            double curValue = opts.spikingMaxOutputSiumlationSteps() - i;
+            curValue /= opts.spikingMaxOutputSiumlationSteps();
+
+            for (unsigned n = 0; n < outputs.size(); n++) {
+                if (outputs[n] < curValue && cur[n] > 0.5) {
+                    outputs[n] = curValue;
+                    setted++;
+                }
+            }
+        }
+    }
+
+    return outputs;
+}
+
+
 
 /* returns the index of the output with tha higest value */
 unsigned Phenotype::maxOutput(vector<double> inputs) {
@@ -290,9 +367,35 @@ void Phenotype::saveAsSVG(string fname) {
                       neuronDiameter, 
                       colorsBias[e.first], 
                       Stroke(circleStroke, colorsRecurent[e.first]));
+
+        string neuronFunction = "Error";
+        if (e.first->getFunction() == ActivationFunction::SIGMOID)
+            neuronFunction = "sigmoid";
+        else if (e.first->getFunction() == ActivationFunction::TANH)
+            neuronFunction = "tanh";
+        else if (e.first->getFunction() == ActivationFunction::RELU)
+            neuronFunction = "relu";
+        else if (e.first->getFunction() == ActivationFunction::SPIKING)
+            neuronFunction = "spiking";
+
+        Point p(e.second.x - 50, e.second.y);
+        doc << Text(p, neuronFunction, Color::Black, Font(30, "Verdana"));
     }
 
     doc.save();
+}
+
+/* prints the weights of this */
+void Phenotype::printWeights() {
+    for (auto &layer: neuronLayers) {
+        for (auto &neuron: layer) {
+            for (auto &w: neuron->getWeights())
+                printf("%F ", w);
+
+            printf("\n");
+        }
+        printf("\n");
+    }
 }
 
 /* destructor */

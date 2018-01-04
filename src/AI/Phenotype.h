@@ -50,8 +50,17 @@ namespace NEAVC {
                 /* create a new Phenotype out of the given Genotype */
                 Phenotype(const Genotype &genome, Opts &opts); 
 
+                /* resets the network and intorduces random dynamics */
+                void initNet(unsigned cycles = 200);
+
                 /* calculate the output for a given input */
                 vector<double> run(vector<double> inputs);
+
+                /* calculate the output for a given input within a single pass trough the network */
+                vector<double> runSinglePass(vector<double> inputs);
+
+                /* calculate the output of a spiking neural network for a given input */
+                vector<double> runSpiking(vector<double> inputs);
 
                 /* returns the index of the output with tha higest value */
                 unsigned maxOutput(vector<double> inputs);
@@ -64,6 +73,9 @@ namespace NEAVC {
 
                 /* export this as an svg image */
                 void saveAsSVG(string fname);
+
+                /* prints the weights of this */
+                void printWeights();
 
                 /* resets all neurons of this to zero */
                 void reset() {

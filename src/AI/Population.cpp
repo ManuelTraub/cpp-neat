@@ -361,5 +361,5 @@ void Population::createInitialConnections(bool connectBias) {
 
     this->species.clear();
     this->sortOffspringsIntoSpecies(organisms);
-    assert(this->species.size() == 1);
+    assert(this->species.size() >= 1);
 }

@@ -48,6 +48,9 @@ namespace NEAVC {
                 /* recombinate averaging the weights of similar genes */
                 void recombinateAverage(const Genotype &fitter, const Genotype &other);
 
+                /* removes hidden neurons without connections */
+                void cleanupNeuorns();
+
             public:
 
                 /* return the neurons of this */
@@ -67,6 +70,15 @@ namespace NEAVC {
 
                 /* mutate this by creating a new structure */
                 bool mutateInsertStructure();
+
+                /* mutate this by deleting a new hidden neuron */
+                bool mutateDeleteNeuron();
+
+                /* mutate this by creating a new connection */
+                bool mutateDeleteConnection();
+
+                /* mutate this by creating a new structure */
+                bool mutateDeleteStructure();
 
                 /* mutate a given percentage of connections */
                 void mutateConnections();

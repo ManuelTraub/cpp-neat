@@ -190,3 +190,27 @@ uint64_t nextPrime(uint64_t n) {
 
     return n;
 }
+
+
+/**
+ * Splits a String by a specific char
+ * returns vector<string> splitted Strings
+ */
+vector<string> split(const string str, const string seperator) {
+
+  char *copy = strdup(str.c_str());
+  char *ptr = strtok(copy, seperator.c_str());
+
+  vector<string> res;
+
+  int i;
+  for (i = 0; ptr != NULL; i++) {
+
+    int size = strlen(ptr);
+    res.push_back(string(ptr, size));
+    ptr = strtok(NULL, seperator.c_str());
+  }
+
+  free(copy);
+  return res;
+}
