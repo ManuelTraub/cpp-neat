@@ -197,6 +197,9 @@ namespace NEAVC {
              */
             addOption(double, hardMutationPropabilitySize, 0.1)
 
+            /* the desired number of stuctures */
+            addOption(unsigned, wantedNumberOfStructures, 30);
+
         };
     }
 }
