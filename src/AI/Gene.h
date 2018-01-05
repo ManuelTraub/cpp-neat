@@ -11,6 +11,7 @@
 #include <assert.h>
 #include <vector>
 #include "../utils/utils.h"
+#include "../utils/TOGrid.h"
 #include "GenerationCounter.h"
 
 using std::vector;
@@ -305,8 +306,8 @@ namespace NEAVC {
                 /* the possition in 3D space */
                 int64_t x, y, z;
 
-                /* connected input or output gene ids for muscle or sensor tisues */
-                vector<uint64_t> connectedGeneIDs;
+                /* the size of this */
+                double size;
 
                 /* should save the child of this */
                 virtual bool saveChild(const int fd) const;
@@ -317,34 +318,101 @@ namespace NEAVC {
                 TissueType getType() const { return type; }
 
                 /* sets the tissues type of this */
-                void setType(const TissueType type) { this->type = type; }
+                void setType(const TissueType type) { 
+                    this->type = type; 
+                    generation = GenerationCounter::get();
+                }
 
-                /* getter method for the X-coordinate of this */
-                int64_t getX() const { return x; }
+                /* returns the possition in 3D space of this */
+                TOGridIndex getIndex() const { return TOGridIndex(x, y, z); }
 
-                /* getter method for the Y-coordinate of this */
-                int64_t getY() const { return y; }
+                /* returns the size of this */
+                double getSize() const { return size; }
 
-                /* getter method for the Z-coordinate of this */
-                int64_t getZ() const { return z; }
+                /* sets the size of this */
+                void setSize(const double size) { this->size = size; }
 
-                /* getter method for the connected gene ids of this */
-                const vector<uint64_t> &getConnections() const { return connectedGeneIDs; }
+                /* resets the size of this to a random value */
+                void mutateSet(const vector<double> sizeRange) { 
+                    size = rand_range_d64(rand, sizeRange[0], sizeRange[1]); 
+                    generation = GenerationCounter::get();
+                }
 
-                /* adds a gene id to the connected ids of this */
-                void connectToGene(const uint64_t geneID) { connectedGeneIDs.push_back(geneID); }
+                /* uniformly perturbe the weight of this */
+                void mutatePertube(const vector<double> sizeRange,
+                                   const vector<double> maxSizeRange) {
+
+                    size += rand_range_d64(rand, sizeRange[0], sizeRange[1]); 
+
+                    if (size < maxSizeRange[0]) size = maxSizeRange[0];
+                    if (size > maxSizeRange[1]) size = maxSizeRange[1];
+
+                    generation = GenerationCounter::get();
+                }
+                
 
                 /* constructor of this */
                 StructureGene(
                     const TissueType type, 
                     const int64_t x,
                     const int64_t y,
-                    const int64_t z
-                ) : type(type), x(x), y(y), z(z)  { }
+                    const int64_t z,
+                    const double size
+                ) : type(type), x(x), y(y), z(z), size(size)  { }
 
                 /* loads the StructureGene from the given file */
                 StructureGene(const int fd);
 
+        };
+
+        /* the sensor effector types of this */
+        enum class SensorEffector { ENERGY_SENSOR, TOUCH_SENSOR, MUSCLE_EFFECTOR };
+
+        /* linking an sensor / effector (NeuronGene) */
+        class SEGeneLink {
+
+            private:
+
+                /* the NeuronGene of this */
+                NeuronGene neuron;
+
+                /* the SensorEffector type of this */
+                SensorEffector type;
+
+                /* the structural possition this belongs to */
+                int64_t x, y, z;
+
+                /* extra dimensional index */
+                uint64_t n;
+
+            public:
+
+                /* returns the neuron of this */
+                NeuronGene getNeuron() const { return neuron; }
+
+                /* returns the type of this */
+                SensorEffector getType() const {  return type; }
+
+                /* returns teh index of this */
+                const TOGridIndex getIndex() const { return TOGridIndex(x, y, z, n); }
+
+                /* constructor */
+                SEGeneLink(
+                    const NeuronGene &neuron, 
+                    const SensorEffector type, 
+                    const TOGridIndex index = TOGridIndex()
+                ) :
+                    neuron(neuron), 
+                    type(type),
+                    x(index.getX()),
+                    y(index.getY()),
+                    z(index.getZ()),
+                    n(index.getN()) { 
+
+                    assert(neuron.getType() == NeuronType::INPUT || 
+                           neuron.getType() == NeuronType::OUTPUT);
+
+                }
         };
     }
 }

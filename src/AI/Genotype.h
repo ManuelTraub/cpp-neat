@@ -42,6 +42,9 @@ namespace NEAVC {
                 /* the latest gene generation number */
                 uint64_t generation;
 
+                /* the sensor / effector links of this */
+                vector<SEGeneLink> geneLinks;
+
                 /* recombinate using the weight of similar genes from a random parrent */
                 void recombinateRandomChoose(const Genotype &fitter, const Genotype &other);
 
@@ -50,6 +53,12 @@ namespace NEAVC {
 
                 /* removes hidden neurons without connections */
                 void cleanupNeuorns();
+
+                /* connects all inputs to the the given (new) output */
+                void connectOutput(NeuronGene o, bool connectBias = true);
+   
+                /* conects the given (new) input to all outputs */
+                void connectInput(NeuronGene i, bool connectBias = true);
 
             public:
 
@@ -61,6 +70,9 @@ namespace NEAVC {
 
                 /* returns the structures of this */
                 const unordered_map<uint64_t, StructureGene> &getStructures() const { return structures; }
+
+                /* returns the sensor / effector links of this */
+                const vector<SEGeneLink> &getSELinks() const { return geneLinks; }
                 
                 /* mutate this by inserting a new hidden neuron */
                 bool mutateInsertNeuron();
@@ -87,7 +99,8 @@ namespace NEAVC {
                 void mutateNeurons();
 
                 /* mutate the structures of this */
-                void mutateStructures();
+                void mutateStructureType();
+                void mutateStructureSize();
 
                 /* create a new Genotype with minimal structure */
                 Genotype(Opts &opts, GeneHistory &geneHistory);

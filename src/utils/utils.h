@@ -160,4 +160,10 @@ template <typename T> static bool vectorContains(vector<T> v, T e) {
  */
 std::vector<std::string> split(const string str, const string seperator);
 
+/* pi constant */
+#ifndef PI
+#define PI 3.141592653589793l
+#endif
+
+
 #endif /* __UTILS_H__ */

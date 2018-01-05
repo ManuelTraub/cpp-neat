@@ -858,6 +858,9 @@ TEST(basicStructurSimilarityTest2) {
     opts.allowRecurentConnections(true);
     opts.structureMultiplier(1.0);
     opts.weightMultiplier(0.0);
+    opts.functionMultiplier(0.0);
+    opts.sizeMultiplier(0.0);
+    opts.geneMultiplier(0.0);
     GeneHistory geneHistory(opts);
     Genotype *genotype1 = new Genotype(opts, geneHistory);
     Genotype *genotype2 = new Genotype(opts, geneHistory);
@@ -899,6 +902,10 @@ TEST(basicStructurSimilarityTest3) {
     opts.allowRecurentConnections(true);
     opts.structureMultiplier(1.0);
     opts.weightMultiplier(0.0);
+    opts.weightMultiplier(0.0);
+    opts.functionMultiplier(0.0);
+    opts.sizeMultiplier(0.0);
+    opts.geneMultiplier(0.0);
     GeneHistory geneHistory(opts);
     Genotype *genotype1 = new Genotype(opts, geneHistory);
     Genotype *genotype2 = new Genotype(opts, geneHistory);
@@ -942,13 +949,13 @@ TEST(basicStructurSimilarityTest3) {
 
     /* can only mutate muscles */
     for (unsigned i = 0; i < 100; i++)
-        genotype1->mutateStructures();
+        genotype1->mutateStructureType();
 
     ASSERT_EQUAL(genotype1->similarity(*genotype3), 2, "Genotypes should be 2 structures apart");
 
     /* can only mutate muscles */
     for (unsigned i = 0; i < 100; i++)
-        genotype3->mutateStructures();
+        genotype3->mutateStructureType();
 
     ASSERT_EQUAL(genotype1->similarity(*genotype3), 0, "Genotypes should be similar");
 
@@ -1039,12 +1046,9 @@ TEST_N(basicSaveLoadTest, 1000) {
         ASSERT_EQUAL(structure1.getID(),                 structure2.getID(),                 "ids not equal");
         ASSERT_EQUAL(structure1.getGeneration(),         structure2.getGeneration(),         "generation not equal");
         ASSERT_EQUAL(structure1.getType(),               structure2.getType(),               "types not equal");
-        ASSERT_EQUAL(structure1.getX(),                  structure2.getX(),                  "x not equal");
-        ASSERT_EQUAL(structure1.getY(),                  structure2.getY(),                  "y not equal");
-        ASSERT_EQUAL(structure1.getZ(),                  structure2.getZ(),                  "z not equal");
-        ASSERT_EQUAL(structure1.getConnections().size(), structure2.getConnections().size(), "getConnections() size not equal");
-        for (unsigned i = 0; i < structure1.getConnections().size(); i++)
-            ASSERT_EQUAL(structure1.getConnections()[i], structure2.getConnections()[i],     "getConnections() %u not equal", i);
+        ASSERT_EQUAL(structure1.getIndex().getX(),                  structure2.getIndex().getX(),                  "x not equal");
+        ASSERT_EQUAL(structure1.getIndex().getY(),                  structure2.getIndex().getY(),                  "y not equal");
+        ASSERT_EQUAL(structure1.getIndex().getZ(),                  structure2.getIndex().getZ(),                  "z not equal");
     }
 
     ASSERT_TRUE(genotype1.similarity(genotype2) == 0.0, "geneotyps sould be similar");
@@ -1134,12 +1138,9 @@ TEST_N(basicSaveLoadTest2, 1000) {
         ASSERT_EQUAL(structure1.getID(),                 structure2.getID(),                 "ids not equal");
         ASSERT_EQUAL(structure1.getGeneration(),         structure2.getGeneration(),         "generation not equal");
         ASSERT_EQUAL(structure1.getType(),               structure2.getType(),               "types not equal");
-        ASSERT_EQUAL(structure1.getX(),                  structure2.getX(),                  "x not equal");
-        ASSERT_EQUAL(structure1.getY(),                  structure2.getY(),                  "y not equal");
-        ASSERT_EQUAL(structure1.getZ(),                  structure2.getZ(),                  "z not equal");
-        ASSERT_EQUAL(structure1.getConnections().size(), structure2.getConnections().size(), "getConnections() size not equal");
-        for (unsigned i = 0; i < structure1.getConnections().size(); i++)
-            ASSERT_EQUAL(structure1.getConnections()[i], structure2.getConnections()[i],     "getConnections() %u not equal", i);
+        ASSERT_EQUAL(structure1.getIndex().getX(),                  structure2.getIndex().getX(),                  "x not equal");
+        ASSERT_EQUAL(structure1.getIndex().getY(),                  structure2.getIndex().getY(),                  "y not equal");
+        ASSERT_EQUAL(structure1.getIndex().getZ(),                  structure2.getIndex().getZ(),                  "z not equal");
     }
 
     ASSERT_TRUE(genotype1.similarity(genotype2) == 0.0, "geneotyps sould be similar");

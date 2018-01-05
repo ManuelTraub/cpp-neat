@@ -33,15 +33,14 @@ TEST(basicTest) {
     Opts opts;
     GeneHistory geneHistory(opts);
 
-    NeuronGene input  = geneHistory.insertNeuron(NeuronType::INPUT, ActivationFunction::SIGMOID, 0);
-    NeuronGene output = geneHistory.insertNeuron(NeuronType::OUTPUT, ActivationFunction::SIGMOID, 0);
+    NeuronGene input  = geneHistory.insertNeuron(NeuronType::INPUT, 0);
+    NeuronGene output = geneHistory.insertNeuron(NeuronType::OUTPUT, 0);
 
     ConnectionGene connection(input, output);
 
-    NeuronGene neuron1 = geneHistory.insertNeuron(connection, ActivationFunction::SIGMOID);
+    NeuronGene neuron1 = geneHistory.insertNeuron(connection);
     NeuronGene neuron2 = geneHistory.insertNeuron(
-        ConnectionGene(connection.getInput(), connection.getOutput()), 
-        ActivationFunction::SIGMOID
+        ConnectionGene(connection.getInput(), connection.getOutput())
     );
     ASSERT_EQUAL(neuron1.getID(), neuron2.getID(), "neuron genes not equal");
 
@@ -55,7 +54,7 @@ TEST(basicTest) {
     for (unsigned i = 0; i < 1000; i++) {
         StructureGene s = geneHistory.insertStructure(structure);
 
-        TOGridIndex index(s.getX(), s.getY(), s.getZ());
+        TOGridIndex index = s.getIndex();
         if (structureMap.count(index)) { 
             ASSERT_EQUAL(structureMap.at(index).getID(), s.getID(), "ids not equal");
         } else

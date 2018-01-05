@@ -1,4 +1,5 @@
 #include "GeneHistory.h"
+#include "Opts.h"
 
 using namespace NEAVC;
 using namespace AI;
@@ -6,50 +7,94 @@ using namespace AI;
 /* global random value */
 rand64_t *GeneHistory::rand = new_rand64_t();
 
+/* creat a new Neuron gene */
+NeuronGene GeneHistory::createNeuron(NeuronType type, uint64_t layerID) {
+
+    /* determin the neuron activation function */
+    ActivationFunction function = opts.netActivationFunction();
+    if (type == NeuronType::OUTPUT && 
+        opts.outputActivationFunction() != ActivationFunction::LENGTH) {
+
+        function = opts.outputActivationFunction();
+    }
+
+    NeuronGene gene(type, function, layerID);
+
+    /* mutate the neurons activation function if not explecit setted */
+    if (opts.randomActivationFunction() && 
+        (opts.outputActivationFunction() == ActivationFunction::LENGTH || 
+         type != NeuronType::OUTPUT)) {
+
+        gene.mutateFunction();
+    }
+
+    return gene;
+}
+
 /* insert a new input, bias or output Neuron
  */
-NeuronGene GeneHistory::insertNeuron(
-    NeuronType const type, 
-    const ActivationFunction function, 
-    uint64_t number
-) {
+NeuronGene GeneHistory::insertNeuron(NeuronType const type, uint64_t number) {
+
     assert(type == NeuronType::INPUT ||
            type == NeuronType::BIAS  ||
            type == NeuronType::OUTPUT);
 
     if (type == NeuronType::INPUT) {
         while (inputs.size() <= number) {
-            inputs.push_back(NeuronGene(NeuronType::INPUT, function, 0));
+            inputs.push_back(createNeuron(NeuronType::INPUT, 0));
             neuronMap.insert({inputs.back().getID(), inputs.back()});
         }
         return inputs[number];
 
     } else if (type == NeuronType::BIAS) {
         while (bias.size() <= number) {
-            bias.push_back(NeuronGene(NeuronType::BIAS, function, 0));
+            bias.push_back(createNeuron(NeuronType::BIAS, 0));
             neuronMap.insert({bias.back().getID(), bias.back()});
         }
         return bias[number];
 
     } else if (type == NeuronType::OUTPUT) {
         while (outputs.size() <= number) {
-            outputs.push_back(NeuronGene(NeuronType::OUTPUT, function, UINT64_MAX));
+            outputs.push_back(createNeuron(NeuronType::OUTPUT, UINT64_MAX));
             neuronMap.insert({outputs.back().getID(), outputs.back()});
         }
         return outputs[number];
     }
     
     assert(false);
-    return NeuronGene(NeuronType::BIAS, ActivationFunction::LENGTH, 0);
+    return createNeuron(NeuronType::BIAS, 0);
+}
+
+/* insert a new input or output neuron associated with a 3D position */
+NeuronGene GeneHistory::insertNeuron(NeuronType const type, const TOGridIndex index) {
+
+    assert(type == NeuronType::INPUT ||
+           type == NeuronType::OUTPUT);
+
+    if (type == NeuronType::INPUT) {
+        if (!inputsGrid.count(index)) {
+            inputsGrid.insert({index, createNeuron(NeuronType::INPUT, 0)});
+            neuronMap.insert({inputsGrid.at(index).getID(), inputsGrid.at(index)});
+        }
+        return inputsGrid.at(index);
+
+    } else if (type == NeuronType::OUTPUT) {
+        if (!outputsGrid.count(index)) {
+            outputsGrid.insert({index, createNeuron(NeuronType::OUTPUT, UINT64_MAX)});
+            neuronMap.insert({outputsGrid.at(index).getID(), outputsGrid.at(index)});
+        }
+        return outputsGrid.at(index);
+    }
+    
+    assert(false);
+    return createNeuron(NeuronType::BIAS, 0);
+
 }
 
 /* insert a new Neuron between the given connection 
  * Note: the gene must be splitable 
  */
-NeuronGene GeneHistory::insertNeuron(
-    const ConnectionGene &gene, 
-    const ActivationFunction function
-) {
+NeuronGene GeneHistory::insertNeuron(const ConnectionGene &gene) {
 
     assert(gene.canBeSplitted());
     
@@ -75,7 +120,11 @@ NeuronGene GeneHistory::insertNeuron(
     }
 
     /* if no connection was found insert a new one */
-    NeuronGene newNeuron = gene.split(function);
+    NeuronGene newNeuron = gene.split(opts.netActivationFunction());
+
+    /* mutate the neurons activation function if not explecit setted */
+    if (opts.randomActivationFunction())
+        newNeuron.mutateFunction();
 
     inputConnections.addOutput(newNeuron.getID());
     outputConnections.addInput(newNeuron.getID());
@@ -115,7 +164,7 @@ ConnectionGene GeneHistory::insertConnection(NeuronGene const &input, NeuronGene
 StructureGene GeneHistory::insertStructure(StructureGene const gene) {
 
     /* create an adjacent structure index */
-    TOGridIndex index(gene.getX(), gene.getY(), gene.getZ());
+    const TOGridIndex index = gene.getIndex();
     TOGridIndex newIndex = index.getAjacent(rand64(rand) % 14);
     
     /* only insert a new StructureGene if there isn't allready one */
@@ -125,7 +174,8 @@ StructureGene GeneHistory::insertStructure(StructureGene const gene) {
             TissueType::TISSUE,
             newIndex.getX(),
             newIndex.getY(),
-            newIndex.getZ()
+            newIndex.getZ(),
+            rand_range_d64(rand, opts.creationSizeRangeStart(), opts.creationSizeRangeEnd())
         );
         structureMap.insert({newIndex, gene});
     }
@@ -146,7 +196,8 @@ StructureGene GeneHistory::insertStructure(TissueType const type) {
                 TissueType::NEURON,
                 index.getX(),
                 index.getY(),
-                index.getZ()
+                index.getZ(),
+                rand_range_d64(rand, opts.creationSizeRangeStart(), opts.creationSizeRangeEnd())
             );
             structureMap.insert({index, gene});
         }

@@ -124,7 +124,7 @@ vector<double> Phenotype::run(vector<double> inputs) {
 /* calculate the output for a given input within a single pass trough the network */
 vector<double> Phenotype::runSinglePass(vector<double> inputs) {
 
-    assert(inputs.size() == neuronLayers[0].size());
+    assert(inputs.size() == neuronLayers[0].size() || inputs.empty());
     vector<double> outputs(this->neuronLayers.back().size());
     
     /* set the input neurons */
@@ -174,7 +174,7 @@ vector<double> Phenotype::runSinglePass(vector<double> inputs) {
 /* calculate the output of a spiking neural network for a given input */
 vector<double> Phenotype::runSpiking(vector<double> inputs) {
 
-    assert(inputs.size() == neuronLayers[0].size());
+    assert(inputs.size() == neuronLayers[0].size() || inputs.empty());
     vector<double> outputs(this->neuronLayers.back().size(), 0.0);
 
     if (opts.spikeOutputEncoding() == Opts::SpikeCoding::FREQUENCY) {

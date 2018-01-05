@@ -41,22 +41,10 @@ TEST_N(basicSaveLoadTest, 10000) {
     ConnectionGene connection(input, output);
     NeuronGene hidden = connection.split(ActivationFunction::RELU);
 
-    StructureGene tissue(TissueType::TISSUE, rand64(args), rand64(args), rand64(args));
-    StructureGene neuron(TissueType::TISSUE, rand64(args), rand64(args), rand64(args));
-    StructureGene sensor(TissueType::TISSUE, rand64(args), rand64(args), rand64(args));
-    StructureGene muscle(TissueType::TISSUE, rand64(args), rand64(args), rand64(args));
-
-    for (unsigned i = 0; i < rand64(args) % 10; i++)
-        tissue.connectToGene(rand64(args));
-
-    for (unsigned i = 0; i < rand64(args) % 10; i++)
-        neuron.connectToGene(rand64(args));
-
-    for (unsigned i = 0; i < rand64(args) % 10; i++)
-        sensor.connectToGene(rand64(args));
-
-    for (unsigned i = 0; i < rand64(args) % 10; i++)
-        muscle.connectToGene(rand64(args));
+    StructureGene tissue(TissueType::TISSUE, rand64(args), rand64(args), rand64(args), rand64(args));
+    StructureGene neuron(TissueType::TISSUE, rand64(args), rand64(args), rand64(args), rand64(args));
+    StructureGene sensor(TissueType::TISSUE, rand64(args), rand64(args), rand64(args), rand64(args));
+    StructureGene muscle(TissueType::TISSUE, rand64(args), rand64(args), rand64(args), rand64(args));
 
     char fname[64];
     sprintf(fname, "temp%lu.gene", rand64(args));
@@ -141,42 +129,30 @@ TEST_N(basicSaveLoadTest, 10000) {
     ASSERT_EQUAL(tissue.getID(),                 tissue2.getID(),                 "ids not equal");
     ASSERT_EQUAL(tissue.getGeneration(),         tissue2.getGeneration(),         "generation not equal");
     ASSERT_EQUAL(tissue.getType(),               tissue2.getType(),               "types not equal");
-    ASSERT_EQUAL(tissue.getX(),                  tissue2.getX(),                  "x not equal");
-    ASSERT_EQUAL(tissue.getY(),                  tissue2.getY(),                  "y not equal");
-    ASSERT_EQUAL(tissue.getZ(),                  tissue2.getZ(),                  "z not equal");
-    ASSERT_EQUAL(tissue.getConnections().size(), tissue2.getConnections().size(), "getConnections() size not equal");
-    for (unsigned i = 0; i < tissue.getConnections().size(); i++)
-        ASSERT_EQUAL(tissue.getConnections()[i], tissue2.getConnections()[i],     "getConnections() %u not equal", i);
+    ASSERT_EQUAL(tissue.getIndex().getX(),                  tissue2.getIndex().getX(),                  "x not equal");
+    ASSERT_EQUAL(tissue.getIndex().getY(),                  tissue2.getIndex().getY(),                  "y not equal");
+    ASSERT_EQUAL(tissue.getIndex().getZ(),                  tissue2.getIndex().getZ(),                  "z not equal");
 
     ASSERT_EQUAL(neuron.getID(),                 neuron2.getID(),                 "ids not equal");
     ASSERT_EQUAL(neuron.getGeneration(),         neuron2.getGeneration(),         "generation not equal");
     ASSERT_EQUAL(neuron.getType(),               neuron2.getType(),               "types not equal");
-    ASSERT_EQUAL(neuron.getX(),                  neuron2.getX(),                  "x not equal");
-    ASSERT_EQUAL(neuron.getY(),                  neuron2.getY(),                  "y not equal");
-    ASSERT_EQUAL(neuron.getZ(),                  neuron2.getZ(),                  "z not equal");
-    ASSERT_EQUAL(neuron.getConnections().size(), neuron2.getConnections().size(), "getConnections() size not equal");
-    for (unsigned i = 0; i < neuron.getConnections().size(); i++)
-        ASSERT_EQUAL(neuron.getConnections()[i], neuron2.getConnections()[i],     "getConnections() %u not equal", i);
+    ASSERT_EQUAL(neuron.getIndex().getX(),                  neuron2.getIndex().getX(),                  "x not equal");
+    ASSERT_EQUAL(neuron.getIndex().getY(),                  neuron2.getIndex().getY(),                  "y not equal");
+    ASSERT_EQUAL(neuron.getIndex().getZ(),                  neuron2.getIndex().getZ(),                  "z not equal");
 
     ASSERT_EQUAL(sensor.getID(),                 sensor2.getID(),                 "ids not equal");
     ASSERT_EQUAL(sensor.getGeneration(),         sensor2.getGeneration(),         "generation not equal");
     ASSERT_EQUAL(sensor.getType(),               sensor2.getType(),               "types not equal");
-    ASSERT_EQUAL(sensor.getX(),                  sensor2.getX(),                  "x not equal");
-    ASSERT_EQUAL(sensor.getY(),                  sensor2.getY(),                  "y not equal");
-    ASSERT_EQUAL(sensor.getZ(),                  sensor2.getZ(),                  "z not equal");
-    ASSERT_EQUAL(sensor.getConnections().size(), sensor2.getConnections().size(), "getConnections() size not equal");
-    for (unsigned i = 0; i < sensor.getConnections().size(); i++)
-        ASSERT_EQUAL(sensor.getConnections()[i], sensor2.getConnections()[i],     "getConnections() %u not equal", i);
+    ASSERT_EQUAL(sensor.getIndex().getX(),                  sensor2.getIndex().getX(),                  "x not equal");
+    ASSERT_EQUAL(sensor.getIndex().getY(),                  sensor2.getIndex().getY(),                  "y not equal");
+    ASSERT_EQUAL(sensor.getIndex().getZ(),                  sensor2.getIndex().getZ(),                  "z not equal");
 
     ASSERT_EQUAL(muscle.getID(),                 muscle2.getID(),                 "ids not equal");
     ASSERT_EQUAL(muscle.getGeneration(),         muscle2.getGeneration(),         "generation not equal");
     ASSERT_EQUAL(muscle.getType(),               muscle2.getType(),               "types not equal");
-    ASSERT_EQUAL(muscle.getX(),                  muscle2.getX(),                  "x not equal");
-    ASSERT_EQUAL(muscle.getY(),                  muscle2.getY(),                  "y not equal");
-    ASSERT_EQUAL(muscle.getZ(),                  muscle2.getZ(),                  "z not equal");
-    ASSERT_EQUAL(muscle.getConnections().size(), muscle2.getConnections().size(), "getConnections() size not equal");
-    for (unsigned i = 0; i < muscle.getConnections().size(); i++)
-        ASSERT_EQUAL(muscle.getConnections()[i], muscle2.getConnections()[i],     "getConnections() %u not equal", i);
+    ASSERT_EQUAL(muscle.getIndex().getX(),                  muscle2.getIndex().getX(),                  "x not equal");
+    ASSERT_EQUAL(muscle.getIndex().getY(),                  muscle2.getIndex().getY(),                  "y not equal");
+    ASSERT_EQUAL(muscle.getIndex().getZ(),                  muscle2.getIndex().getZ(),                  "z not equal");
 
     ASSERT_FALSE(unlink(fname), "failed to delete file");
     return args;

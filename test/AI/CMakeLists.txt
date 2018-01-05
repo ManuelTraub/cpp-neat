@@ -77,6 +77,7 @@ add_executable(PopulationTest
                ../../src/AI/Genotype 
                ../../src/AI/Phenotype 
                ../../src/AI/Gene 
+               ../../src/utils/Threads
                ../../src/AI/GeneHistory 
                ../../src/AI/GenerationCounter
                ../../src/utils/Threads)
