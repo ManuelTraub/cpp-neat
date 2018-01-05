@@ -69,6 +69,8 @@ bool NeuronGene::saveChild(const int fd) const {
         if (write(fd, "t", 1) != 1) return false;
     } else if (function == ActivationFunction::RELU) {
         if (write(fd, "r", 1) != 1) return false;
+    } else if (function == ActivationFunction::SINE) {
+        if (write(fd, "e", 1) != 1) return false;
     } else if (function == ActivationFunction::SPIKING) {
         if (write(fd, "i", 1) != 1) return false;
     } else {
@@ -115,6 +117,8 @@ NeuronGene::NeuronGene(const int fd) {
         function = ActivationFunction::TANH;
     else if (cFunction == 'r')
         function = ActivationFunction::RELU;
+    else if (cFunction == 'e')
+        function = ActivationFunction::SINE;
     else if (cFunction == 'i')
         function = ActivationFunction::SPIKING;
     else 

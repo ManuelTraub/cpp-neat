@@ -36,6 +36,9 @@ namespace NEAVC {
                  * (to handle recurent connections within the same layer)
                  */
                 double weightedInputs;
+                
+                /* temporary value for periodic signals */
+                double periodicValue;
 
                 /* the membran potential for a spiking neuron */
                 double v;
@@ -57,6 +60,12 @@ namespace NEAVC {
                 void calculateReLUOutput() {
                     outputValue = gradient * weightedInputs;
                     if (outputValue < 0) outputValue = 0;
+                }
+
+                /* clalculates a sine signal with perid length dependet on the inputs */
+                void calculateSineOutput() {
+                    periodicValue += PI/(1.0 + exp(-gradient * weightedInputs));
+                    outputValue = sin(periodicValue);
                 }
 
                 /* calculate the output using a spiking neuron */
@@ -110,6 +119,8 @@ namespace NEAVC {
                         this->calculateTanhOutput();
                     else if (function == ActivationFunction::RELU)
                         this->calculateReLUOutput();
+                    else if (function == ActivationFunction::SINE)
+                        this->calculateSineOutput();
                     else if (function == ActivationFunction::SPIKING)
                         this->calculateSpikingOutput();
                     else
@@ -128,6 +139,7 @@ namespace NEAVC {
                     gradient(gradient),
                     outputValue(0.0), 
                     weightedInputs(0.0), 
+                    periodicValue(0.0),
                     v(-65),
                     u(8) { }
 

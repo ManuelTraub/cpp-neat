@@ -87,7 +87,7 @@ namespace NEAVC {
         enum class NeuronType { BIAS = 0, INPUT = 1, HIDDEN = 2, OUTPUT = 3 };
 
         /* the different Netactivation functions possible */
-        enum class ActivationFunction { SIGMOID, TANH, RELU, SPIKING, LENGTH };
+        enum class ActivationFunction { SIGMOID, TANH, RELU, SINE, SPIKING, LENGTH };
 
 
         /**
@@ -178,7 +178,7 @@ namespace NEAVC {
 
                 /* mutates the ActivationFunction of this */
                 void mutateFunction() {
-                    function = ActivationFunction(rand64(rand) % int(ActivationFunction::SPIKING));
+                    function = ActivationFunction(rand64(rand) % int(ActivationFunction::SINE));
                 }
 
                 /* returns the gradient of this */
