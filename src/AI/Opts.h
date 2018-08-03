@@ -62,6 +62,12 @@ namespace NEAVC {
 
                 /* the different spiking econdigns */
                 enum class SpikeCoding { FREQUENCY, TIME, TIMEFREQUENCY };
+
+            /* number of input neurons (if 0 set by using the training data) */
+            addOption(unsigned, numInputNeurons, 0)
+
+            /* number of output neurons (if 0 set by using the training data) */
+            addOption(unsigned, numOutputNeurons, 0)
                 
             /* propability for a mutation only offspring */
             addOption(double, mutationOnlyPropability, 0.25)

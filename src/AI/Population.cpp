@@ -57,11 +57,22 @@ Population::Population(FitnessCalculator *fitnessCalculator, Opts &opts) :
 
     this->species.push_back(make_shared<Species>(this->opts, this->geneHistory));
 
-    for (unsigned i = 0; i < opts.populationSize(); i++) {
-        this->species.back()->add(make_shared<Organism>(
-            this->opts,
-            this->geneHistory
-        ));
+    if (this->opts.numInputNeurons() > 0 && this->opts.numOutputNeurons() > 0) {
+        for (unsigned i = 0; i < opts.populationSize(); i++) {
+            this->species.back()->add(make_shared<Organism>(
+                this->opts.numInputNeurons(),
+                this->opts.numOutputNeurons(),
+                this->opts,
+                this->geneHistory
+            ));
+        }
+    } else {
+        for (unsigned i = 0; i < opts.populationSize(); i++) {
+            this->species.back()->add(make_shared<Organism>(
+                this->opts,
+                this->geneHistory
+            ));
+        }
     }
 }
 
