@@ -37,6 +37,7 @@ add_executable(VirtualCreatureTest
                ../src/Physics/PhysicsSimulation
                ../src/Physics/IcoSphere
                ../src/Physics/RealtimePhysics
+               ../src/Physics/HexagonalPlayboard
                ../src/Graphics/GLWindow
                ../src/Graphics/GLObject
                ../src/Graphics/GLOrbitingCamera
@@ -66,6 +67,7 @@ add_executable(VEPopulationTest
                ../src/Physics/PhysicsSimulation
                ../src/Physics/IcoSphere
                ../src/Physics/RealtimePhysics
+               ../src/Physics/HexagonalPlayboard
                ../src/Graphics/GLWindow
                ../src/Graphics/GLObject
                ../src/Graphics/GLOrbitingCamera
@@ -79,6 +81,8 @@ target_link_libraries(VirtualCreatureTest
     glfw
     GLEW
     pthread
+    png
+    IL
 )
 
 target_link_libraries(VEPopulationTest
@@ -86,6 +90,8 @@ target_link_libraries(VEPopulationTest
     glfw
     GLEW
     pthread
+    png
+    IL
 )
 
 add_test(NAME VirtualCreatureTest COMMAND VirtualCreatureTest)

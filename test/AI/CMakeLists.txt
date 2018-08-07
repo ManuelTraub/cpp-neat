@@ -3,16 +3,16 @@ cmake_minimum_required(VERSION 2.8)
 PROJECT(NEAVC)
 
 if (${WIN32}) 
-  SET (CMAKE_CXX_COMPILER           "/C/mingw64/bin/g++-6")
+  SET (CMAKE_CXX_COMPILER           "/C/mingw64/bin/g++")
   SET (CMAKE_CXX_FLAGS              "-Wall -Wextra -g -O3 -march=native --std=c++14")
 
-  SET (CMAKE_C_COMPILER             "/C/mingw64/bin/gcc-6")
+  SET (CMAKE_C_COMPILER             "/C/mingw64/bin/gcc")
   SET (CMAKE_C_FLAGS                "-Wall -Wextra -g -O3 -march=native")
 else()
-  SET (CMAKE_CXX_COMPILER           "/usr/bin/g++-6")
+  SET (CMAKE_CXX_COMPILER           "/usr/bin/g++")
   SET (CMAKE_CXX_FLAGS              "-Wall -Wextra -g -Wno-unused-result -O3 -march=native --std=c++14")
 
-  SET (CMAKE_C_COMPILER             "/usr/bin/gcc-6")
+  SET (CMAKE_C_COMPILER             "/usr/bin/gcc")
   SET (CMAKE_C_FLAGS                "-Wall -Wextra -g -O3 -march=native")
 endif()
 
@@ -82,7 +82,13 @@ add_executable(PopulationTest
                ../../src/AI/GenerationCounter
                ../../src/utils/Threads)
 
-target_link_libraries(PopulationTest -pthread)
+target_link_libraries(PopulationTest -pthread IL)
+target_link_libraries(GeneTest IL)
+target_link_libraries(GenotypeTest IL)
+target_link_libraries(PhenotypeTest IL)
+target_link_libraries(GeneHistoryTest IL)
+target_link_libraries(OrganismTest IL)
+target_link_libraries(SpeciesTest IL)
 
 add_test(NAME Gene                COMMAND GeneTest)
 add_test(NAME Genotype            COMMAND GenotypeTest)
