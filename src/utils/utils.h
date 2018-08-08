@@ -36,7 +36,7 @@ std::string ftoa(double d, unsigned precision);
 
 #define rand_range64(rand, start, end) (start + (rand64(rand) % (((end) + 1) - (start))))
 #define rand_range_d64(rand, start, end) \
-  (((end - start) * rand64(rand) + start * 18446744073709551616.0) / 18446744073709551616.0)
+  (((double(end) - double(start)) * rand64(rand) + double(start) * 18446744073709551616.0) / 18446744073709551616.0)
 
 /**
  * Returns if the given args conatinig the given arg
@@ -159,6 +159,10 @@ template <typename T> static bool vectorContains(vector<T> v, T e) {
  * returns vector<string> splitted Strings
  */
 std::vector<std::string> split(const string str, const string seperator);
+
+
+/* returns true wether the given string ends with the given substring */
+bool endsWith(std::string str, std::string substr);
 
 /* pi constant */
 #ifndef PI

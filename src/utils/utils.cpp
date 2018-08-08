@@ -214,3 +214,17 @@ vector<string> split(const string str, const string seperator) {
   free(copy);
   return res;
 }
+
+/* returns true wether the given string ends with the given substring */
+bool endsWith(std::string str, std::string substr) {
+    if (str.length() < substr.length()) 
+        return false;
+
+    const int offset = str.length() - substr.length();
+    for (unsigned i = offset; i < str.length(); i++)
+        if (str[i] != substr[i - offset])
+            return false;
+
+    return true;
+}
+
