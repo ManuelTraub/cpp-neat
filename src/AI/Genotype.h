@@ -107,8 +107,8 @@ namespace NEAVC {
 
                 /* create a new Genotype for the given number of input and output neurons */
                 Genotype(
-                    const unsigned inputs, 
-                    const unsigned outputs, 
+                    const unsigned numInputs, 
+                    const unsigned numOutputs, 
                     Opts &opts, 
                     GeneHistory &geneHistory
                 );
@@ -137,6 +137,9 @@ namespace NEAVC {
 
                 /* loads the given Genotype from the given file */
                 Genotype(const int fd, Opts &opts, GeneHistory &geneHistory);
+
+                /* number of enabled connection genes */
+                unsigned numEnabledConnections() const;
 
 #ifdef __DEBUG__ 
                 NeuronGene &addNeuron(const ConnectionGene &gene);

@@ -61,7 +61,7 @@ namespace NEAVC {
                 Opts &freeze() { frozen = true; return *this; }
 
                 /* the different spiking econdigns */
-                enum class SpikeCoding { FREQUENCY, TIME, TIMEFREQUENCY };
+                enum class SpikeCoding { FREQUENCY, TIME, TIME_WINDOW };
 
             /* number of input neurons (if 0 set by using the training data) */
             addOption(unsigned, numInputNeurons, 0)
@@ -210,6 +210,9 @@ namespace NEAVC {
              * Propability = 1/(age + 1) + offset
              */
             addOption(double, ageingPropabilityOffset, 1.0);
+
+            /* indicate that we are want a random value connected to each output */
+            addOption(bool, useRandomBiases, false);
 
             /* indicate that we are alowing insertion of neurons into BIAS neurons */
             addOption(bool, allowNeuronIntoBiasConnectionInsert, false);

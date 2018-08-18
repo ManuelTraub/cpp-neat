@@ -4,9 +4,7 @@ using namespace NEAVC;
 using namespace AI;
 
 /* thread function to override by child class */
-void ParallelWorker::threadFunction(void *args) {
-    
-    (void) args;
+void ParallelWorker::threadFunction(void *) {
 
     while (!this->organisms.empty()) {
         

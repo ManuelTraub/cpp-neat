@@ -78,12 +78,15 @@ namespace NEAVC {
                 vector<NeuronGene> inputs;
                 unordered_map<TOGridIndex, NeuronGene> inputsGrid;
 
-                /* the bias Neuron of this */
+                /* the bias neuron of this */
                 vector<NeuronGene> bias;
 
                 /* the output neurons of this */
                 vector<NeuronGene> outputs;
                 unordered_map<TOGridIndex, NeuronGene> outputsGrid;
+
+                /* the random bias neurons of this */
+                vector<NeuronGene> randbias;
 
                 /* the structure genes of this */
                 unordered_map<TOGridIndex, StructureGene> structureMap;

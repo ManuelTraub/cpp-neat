@@ -3,6 +3,9 @@
 #include <set>
 #include <unordered_map>
 #include "../../lib/simple_svg_1.0.0.hpp"
+#include "../utils/utils.h"
+#include <IL/il.h>
+#include <unistd.h>
 
 using namespace svg;
 using namespace NEAVC;
@@ -12,8 +15,8 @@ using std::unordered_map;
 using std::make_pair;
 
 /* create a new Phenotype out of the given Genotype */
-Phenotype::Phenotype(const Genotype &genome, Opts &opts) : 
-                     opts(opts.freeze()), genome(genome) {
+Phenotype::Phenotype(const Genotype &genome, Opts &opts, bool storeFirings) : 
+                     opts(opts.freeze()), genome(genome), storeFirings(storeFirings) {
 
     unordered_map<uint64_t, NeuronGene> neuronGenes         = genome.getNeurons();
     unordered_map<uint64_t, ConnectionGene> connectionGenes = genome.getConnections();
@@ -49,7 +52,10 @@ Phenotype::Phenotype(const Genotype &genome, Opts &opts) :
         const unsigned layer = layerIndices[e.second.getLayerID()];
         if (e.second.getType() == NeuronType::BIAS)
             this->bias = newNeuron;
-        else
+        else if (e.second.getType() == NeuronType::RAND_BIAS) {
+            this->randomBiases.push_back(newNeuron);
+            this->randomBiasGenerators.push_back(new_rand64_t());
+        } else
             this->neuronLayers[layer].push_back(newNeuron);
 
 #ifdef __DEBUG__
@@ -57,7 +63,8 @@ Phenotype::Phenotype(const Genotype &genome, Opts &opts) :
 
         if (layer == 0 && 
             neuron.getType() != NeuronType::INPUT && 
-            neuron.getType() != NeuronType::BIAS) {
+            neuron.getType() != NeuronType::BIAS  &&
+            neuron.getType() != NeuronType::RAND_BIAS) {
             
             assertf(false, "invalid neuron in first layer: type(%u) id(%lu)\n", 
                     (unsigned) neuron.getType(), neuron.getID());
@@ -130,6 +137,10 @@ vector<double> Phenotype::runSinglePass(vector<double> inputs) {
     /* set the input neurons */
     for (unsigned i = 0; i < inputs.size(); i++)
         this->neuronLayers[0][i]->setValue(inputs[i]);
+
+    /* set random biases */
+    for (unsigned i = 0; i < randomBiases.size(); i++)
+        this->randomBiases[i]->setValue(rand_range_d64(randomBiasGenerators[i], -1.0, 1.0));
     
     if (opts.layeredNetwork()) {
 
@@ -155,14 +166,17 @@ vector<double> Phenotype::runSinglePass(vector<double> inputs) {
         for (unsigned l = 1; l < neuronLayers.size(); l++)
             for (unsigned n = 0; n < neuronLayers[l].size(); n++) 
                 neuronLayers[l][n]->calculateOutput();
+        
+        if (storeFirings) {
+            vector<bool> curFirings;
+
+            for (unsigned l = 1; l < neuronLayers.size(); l++)
+                for (unsigned n = 0; n < neuronLayers[l].size(); n++) 
+                    curFirings.push_back(neuronLayers[l][n]->getValue() > 0.9);
+
+            this->firings.push_back(curFirings);
+        }
     }
-
-    /* collect the output values */
-    for (unsigned i = 0; i < neuronLayers.back().size(); i++)
-        outputs[i] = neuronLayers.back()[i]->getValue();
-
-    return outputs;
-    
 
     /* collect the output values */
     for (unsigned i = 0; i < neuronLayers.back().size(); i++)
@@ -175,7 +189,7 @@ vector<double> Phenotype::runSinglePass(vector<double> inputs) {
 vector<double> Phenotype::runSpiking(vector<double> inputs) {
 
     assert(inputs.size() == neuronLayers[0].size() || inputs.empty());
-    vector<double> outputs(this->neuronLayers.back().size(), 0.0);
+    vector<double> outputs(this->neuronLayers.back().size(), -1.0);
 
     if (opts.spikeOutputEncoding() == Opts::SpikeCoding::FREQUENCY) {
         for (unsigned i = 0; i < opts.spikingNumSimulationStepsPerOutoput(); i++) {
@@ -184,8 +198,10 @@ vector<double> Phenotype::runSpiking(vector<double> inputs) {
                 outputs[n] += cur[n];
         }
 
-        for (unsigned n = 0; n < outputs.size(); n++)
-            outputs[n] /= opts.spikingNumSimulationStepsPerOutoput();
+        for (unsigned n = 0; n < outputs.size(); n++) {
+            outputs[n] /= opts.spikingNumSimulationStepsPerOutoput() / 2;
+            outputs[n] -= 1;
+        }
 
     } else if (opts.spikeOutputEncoding() == Opts::SpikeCoding::TIME) {
 
@@ -195,13 +211,28 @@ vector<double> Phenotype::runSpiking(vector<double> inputs) {
 
             vector<double> cur = this->runSinglePass(inputs);
 
-            double curValue = opts.spikingMaxOutputSiumlationSteps() - i;
+            double curValue = opts.spikingMaxOutputSiumlationSteps() - 2*i;
             curValue /= opts.spikingMaxOutputSiumlationSteps();
 
             for (unsigned n = 0; n < outputs.size(); n++) {
                 if (outputs[n] < curValue && cur[n] > 0.5) {
                     outputs[n] = curValue;
                     setted++;
+                }
+            }
+        }
+    } else if (opts.spikeOutputEncoding() == Opts::SpikeCoding::TIME_WINDOW) {
+
+        for (unsigned i = 0; i < opts.spikingMaxOutputSiumlationSteps(); i++) {
+
+            vector<double> cur = this->runSinglePass(inputs);
+
+            double curValue = opts.spikingMaxOutputSiumlationSteps() - 2*i;
+            curValue /= opts.spikingMaxOutputSiumlationSteps();
+
+            for (unsigned n = 0; n < outputs.size(); n++) {
+                if (outputs[n] < curValue && cur[n] > 0.5) {
+                    outputs[n] = curValue;
                 }
             }
         }
@@ -375,14 +406,60 @@ void Phenotype::saveAsSVG(string fname) {
             neuronFunction = "tanh";
         else if (e.first->getFunction() == ActivationFunction::RELU)
             neuronFunction = "relu";
+        else if (e.first->getFunction() == ActivationFunction::SINE)
+            neuronFunction = "sine";
+        else if (e.first->getFunction() == ActivationFunction::LOG)
+            neuronFunction = "log";
+        else if (e.first->getFunction() == ActivationFunction::SQRT)
+            neuronFunction = "sqrt";
+        else if (e.first->getFunction() == ActivationFunction::ABS)
+            neuronFunction = "abs";
+        else if (e.first->getFunction() == ActivationFunction::POW)
+            neuronFunction = "pow";
+        else if (e.first->getFunction() == ActivationFunction::EXP)
+            neuronFunction = "exp";
+        else if (e.first->getFunction() == ActivationFunction::ADD)
+            neuronFunction = "add";
+        else if (e.first->getFunction() == ActivationFunction::MULT)
+            neuronFunction = "mult";
+        else if (e.first->getFunction() == ActivationFunction::GAUSSIAN)
+            neuronFunction = "gaus";
         else if (e.first->getFunction() == ActivationFunction::SPIKING)
             neuronFunction = "spiking";
 
         Point p(e.second.x - 50, e.second.y);
-        doc << Text(p, neuronFunction, Color::Black, Font(30, "Verdana"));
+        if (opts.randomActivationFunction()) 
+            doc << Text(p, neuronFunction, Color::Black, Font(30, "Verdana"));
     }
 
     doc.save();
+}
+
+/* create an image from a frigin pattern */
+void Phenotype::createFiringPattern(std::string fileName) {
+
+    if (!endsWith(fileName, ".png"))
+        fileName += ".png";
+
+    const unsigned numSimulationSteps = this->firings.size();
+    const unsigned numNeurons         = this->firings[0].size();
+
+    unlink(fileName.c_str());
+    uint8_t *pixels = (uint8_t *) calloc(numNeurons * numSimulationSteps * 3, sizeof(uint8_t));
+
+    for (unsigned t = 0; t < numSimulationSteps; t++) {
+        for (unsigned n = 0; n < numNeurons; n++) {
+            if (firings[t][n]) {
+                pixels[numNeurons * 3 * t + n * 3 + 0] = 0;
+                pixels[numNeurons * 3 * t + n * 3 + 1] = 255;
+                pixels[numNeurons * 3 * t + n * 3 + 2] = 0;
+            }
+        }
+    }
+
+    ilInit();
+    ilTexImage(numNeurons, numSimulationSteps, 0, 3, IL_RGB, IL_UNSIGNED_BYTE, pixels);
+    ilSaveImage(fileName.c_str());
 }
 
 /* prints the weights of this */
@@ -406,4 +483,9 @@ Phenotype::~Phenotype() {
             delete neuron;
 
     delete this->bias;
+
+    for (unsigned i = 0; i < randomBiases.size(); i++) {
+        delete randomBiases[i];
+        free(randomBiasGenerators[i]);
+    }
 }

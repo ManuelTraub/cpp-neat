@@ -35,9 +35,10 @@ NeuronGene GeneHistory::createNeuron(NeuronType type, uint64_t layerID) {
  */
 NeuronGene GeneHistory::insertNeuron(NeuronType const type, uint64_t number) {
 
-    assert(type == NeuronType::INPUT ||
-           type == NeuronType::BIAS  ||
-           type == NeuronType::OUTPUT);
+    assert(type == NeuronType::INPUT  ||
+           type == NeuronType::BIAS   ||
+           type == NeuronType::OUTPUT ||
+           type == NeuronType::RAND_BIAS);
 
     if (type == NeuronType::INPUT) {
         while (inputs.size() <= number) {
@@ -59,6 +60,13 @@ NeuronGene GeneHistory::insertNeuron(NeuronType const type, uint64_t number) {
             neuronMap.insert({outputs.back().getID(), outputs.back()});
         }
         return outputs[number];
+
+    } else if (type == NeuronType::RAND_BIAS) {
+        while (randbias.size() <= number) {
+            randbias.push_back(createNeuron(NeuronType::RAND_BIAS, 0));
+            neuronMap.insert({randbias.back().getID(), randbias.back()});
+        }
+        return randbias[number];
     }
     
     assert(false);

@@ -7,6 +7,8 @@
 #include <memory>
 #include <algorithm>
 
+#define abs(x) (((x) < 0) ? (x) * -1 : (x))
+
 using std::shared_ptr;
 using std::make_shared;
 using std::vector;
@@ -839,10 +841,10 @@ TEST(binaryXORRandomActivationFunctionQualityTest) {
                       species.back(), avgVector(species));
 
             if (r > nRuns / 1.5) {
-                ASSERT_TRUE(avgVector(generations) < 25);
+                ASSERT_TRUE(avgVector(generations) < 15);
                 ASSERT_TRUE(avgVector(nodes) < 7);
-                ASSERT_TRUE(avgVector(connections) < 10);
-                ASSERT_TRUE(avgVector(species) < 16);
+                ASSERT_TRUE(avgVector(connections) < 8);
+                ASSERT_TRUE(avgVector(species) < 10);
             }
         }
 
@@ -877,7 +879,10 @@ class SinusFitnessCalculator: public FitnessCalculator {
             }
 
             error /= 60;
-            return 1.0 / error;
+            if (genome.numEnabledConnections() < 30)
+                return (1.0 / error) / sqrt(31);
+
+            return (1.0 / error) / sqrt(1 + genome.numEnabledConnections());
         }
 
     public:
@@ -940,7 +945,7 @@ TEST(sinusRecurencyTest) {
     vector<unsigned> species;
 
     const unsigned nRuns = 1000;
-    const unsigned nGenerations = 1000;
+    const unsigned nGenerations = 5000;
 
     for (unsigned r = 0; r < nRuns; r++) {
 
@@ -955,18 +960,20 @@ TEST(sinusRecurencyTest) {
             best->calculateFittness(&fitnessCalculator);
             //fitnessCalculator.visualize(best->getGenome(), 100, 150);
             //
-            //unsigned enabledGenes = 0;
-            //for (const auto &c : best->getGenome().getConnections())
-                //if (c.second.isEnabled())
-                    //enabledGenes++;
-            //
-            //TEST_MSGD("[%u] Generation %3u, Nodes %3u, Connections: %3u, Species %3u, Fitness %F", r,
-                      //i, (unsigned) best->getGenome().getNeurons().size(),
-                      //enabledGenes, (unsigned) population.getSpecies().size(),
-                      //1.0 / best->getFitness());
-            //
-            if (1.0 / best->getFitness() < 0.02)
+            unsigned enabledGenes = best->getGenome().numEnabledConnections();
+            double mul = sqrt(31);
+            if (enabledGenes >= 30)
+                mul = sqrt(1 + enabledGenes);
+            
+            TEST_MSGD("[%u] Generation %3u, Nodes %3u, Connections: %3u, Species %3u, Fitness %F", r,
+                      i, (unsigned) best->getGenome().getNeurons().size(),
+                      enabledGenes, (unsigned) population.getSpecies().size(),
+                      1.0 / (best->getFitness() * mul));
+            
+            if (1.0 / (best->getFitness() * mul) < 0.02) {
+                fitnessCalculator.visualize(best->getGenome(), 100, 150);
                 break;
+            }
         }
 
         shared_ptr<Organism> best = population.getBestOrganism();
@@ -995,7 +1002,7 @@ TEST(sinusRecurencyTest) {
                       nodes.back(), avgVector(nodes),
                       connections.back(), avgVector(connections),
                       species.back(), avgVector(species));
-
+// FIXME NOT YET CONFIGURED 
             if (r > nRuns / 1.5) {
                 ASSERT_TRUE(avgVector(generations) < 40);
                 ASSERT_TRUE(avgVector(nodes) < 5);
@@ -1398,7 +1405,8 @@ TEST(basicBinaryXORSpikingTest) {
     // training data
     Opts opts;
     opts.netActivationFunction(ActivationFunction::SPIKING);
-    //opts.recombinateNeurons(false);
+    opts.recombinateNeurons(false);
+    opts.gradientMultiplier(0);
     opts.shuffleTrainingData(true);
     opts.speciesSimilarityThreshold(20);
     opts.resetNetBeforRun(true);

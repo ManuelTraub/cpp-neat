@@ -84,10 +84,10 @@ namespace NEAVC {
         };
 
         /* the different types of neurons (input output or hidden) */
-        enum class NeuronType { BIAS = 0, INPUT = 1, HIDDEN = 2, OUTPUT = 3 };
+        enum class NeuronType { BIAS = 0, INPUT = 1, HIDDEN = 2, OUTPUT = 3, RAND_BIAS = 4 };
 
         /* the different Netactivation functions possible */
-        enum class ActivationFunction { SIGMOID, TANH, RELU, SINE, SPIKING, LENGTH };
+        enum class ActivationFunction { SIGMOID, TANH, RELU, SINE, LOG, SQRT, ABS, POW, EXP, ADD, MULT, GAUSSIAN, SPIKING, VOLTAGE, EXP_SMOOTH, LENGTH };
 
 
         /**
@@ -141,7 +141,8 @@ namespace NEAVC {
 
                     assert(type == NeuronType::INPUT  || 
                            type == NeuronType::OUTPUT ||
-                           type == NeuronType::BIAS);
+                           type == NeuronType::BIAS   ||
+                           type == NeuronType::RAND_BIAS);
                 }
 
                 /* loads the NeuronGene from the given file */
@@ -178,7 +179,7 @@ namespace NEAVC {
 
                 /* mutates the ActivationFunction of this */
                 void mutateFunction() {
-                    function = ActivationFunction(rand64(rand) % int(ActivationFunction::SINE));
+                    function = ActivationFunction(rand64(rand) % int(ActivationFunction::SPIKING));
                 }
 
                 /* returns the gradient of this */

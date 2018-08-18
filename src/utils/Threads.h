@@ -54,6 +54,9 @@ namespace NEAVC {
             /* handles execution to an other thread */
             static void yield();
 
+            /* constructor */
+            Thread();
+
             /* destructor */
             virtual ~Thread() { }
 

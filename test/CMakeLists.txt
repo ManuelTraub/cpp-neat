@@ -22,7 +22,7 @@ else()
   SET (CMAKE_C_FLAGS                "-Wall -Wextra -g -O3 -march=native")
 endif()
 
-add_executable(HexagonalEnvironmentTest
+add_executable(HexagonalEnvironmentBaseTest
                HexagonalEnvironmentTest
                ../src/HexagonalEnvironment
                ../src/Physics/HexagonalPlayboard
@@ -119,7 +119,7 @@ add_executable(VEPopulationTest
                ../src/Graphics/loadShaders
                ../src/utils/utils)
 
-target_link_libraries(HexagonalEnvironmentTest
+target_link_libraries(HexagonalEnvironmentBaseTest
     ${OPENGL_LIBRARY}
     glfw
     GLEW
@@ -155,7 +155,7 @@ target_link_libraries(VEPopulationTest
     IL
 )
 
-add_test(NAME HexagonalEnvironmentTest COMMAND HexagonalEnvironmentTest)
+add_test(NAME HexagonalEnvironmentBaseTest COMMAND HexagonalEnvironmentBaseTest)
 add_test(NAME HexagonalPlayboardTest COMMAND HexagonalPlayboardTest)
 add_test(NAME VirtualCreatureTest COMMAND VirtualCreatureTest)
 add_test(NAME VEPopulationTest COMMAND VEPopulationTest)

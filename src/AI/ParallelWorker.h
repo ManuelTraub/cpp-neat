@@ -28,7 +28,7 @@ namespace NEAVC {
             public:
 
                 /* thread function to override by child class */
-                virtual void threadFunction(void *args);
+                virtual void threadFunction(void *);
 
                 /* constructor */
                 ParallelWorker(

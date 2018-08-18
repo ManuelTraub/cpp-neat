@@ -36,8 +36,20 @@ namespace NEAVC {
                 /* the bias neuron */
                 Neuron *bias;
 
+                /* the random bias neurons */
+                vector<Neuron *> randomBiases;
+
+                /* random generators for the random bias neurons */
+                vector<rand64_t *> randomBiasGenerators;
+
                 /* the genotype of this */
                 const Genotype &genome;
+
+                /* indicates taht a firing pattern should be saved (spiking neurons) */
+                const bool storeFirings;
+
+                /* the stored firings */
+                vector<vector<bool>> firings;
 
             public:
 
@@ -48,7 +60,7 @@ namespace NEAVC {
                 unordered_map<uint64_t, Neuron *> getIDMap() const { return neuronMap; }
 
                 /* create a new Phenotype out of the given Genotype */
-                Phenotype(const Genotype &genome, Opts &opts); 
+                Phenotype(const Genotype &genome, Opts &opts, bool storeFirings = false); 
 
                 /* resets the network and intorduces random dynamics */
                 void initNet(unsigned cycles = 200);
@@ -73,6 +85,9 @@ namespace NEAVC {
 
                 /* export this as an svg image */
                 void saveAsSVG(string fname);
+
+                /* create an image from a frigin pattern */
+                void createFiringPattern(std::string fileName);
 
                 /* prints the weights of this */
                 void printWeights();

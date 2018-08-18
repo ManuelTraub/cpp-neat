@@ -96,7 +96,8 @@ bool Genotype::mutateInsertConnection() {
 
     /* the output neuron cant be an input or bias */
     if (outputNeuron.getType() == NeuronType::INPUT ||
-        outputNeuron.getType() == NeuronType::BIAS)
+        outputNeuron.getType() == NeuronType::BIAS  ||
+        outputNeuron.getType() == NeuronType::RAND_BIAS)
         return false;
 
     /* stop if its a recurent connection and we arent allowet to create one */
@@ -415,14 +416,24 @@ Genotype::Genotype(Opts &opts, GeneHistory &geneHistory) :
     geneLinks.push_back(SEGeneLink(muscleTS, SensorEffector::TOUCH_SENSOR, muscleIndex));
     geneLinks.push_back(SEGeneLink(brainTS, SensorEffector::TOUCH_SENSOR, brain.getIndex()));
 
-    /* fully connect all inputs with all outputs */
-    this->createInitialConnections(true);
+    if (opts.netActivationFunction() == ActivationFunction::SPIKING) {
+
+        /* set the bias for or output neurons in the range 0 to 20 */
+        ConnectionGene biasConnection = geneHistory.insertConnection(bias, muscleNeuron);
+        biasConnection.mutateSet({0.0, 20.0});
+        connections.insert({biasConnection.getID(), biasConnection});
+
+    } else {
+
+        /* fully connect all inputs with all outputs */
+        this->createInitialConnections(true);
+    }
 }
 
 /* create a new Genotype for the given number of input and output neurons */
 Genotype::Genotype(
-    const unsigned inputs, 
-    const unsigned outputs, 
+    const unsigned numInputs, 
+    const unsigned numOutputs, 
     Opts &opts,
     GeneHistory &geneHistory
 ) : 
@@ -431,7 +442,7 @@ Genotype::Genotype(
     generation(GenerationCounter::get()) {
 
     /* create the input neurons */
-    for (unsigned i = 0; i < inputs; i++) {
+    for (unsigned i = 0; i < numInputs; i++) {
         NeuronGene neuron = geneHistory.insertNeuron(NeuronType::INPUT, i);
         neurons.insert({neuron.getID(), neuron});
     }
@@ -440,11 +451,40 @@ Genotype::Genotype(
     NeuronGene neuron = geneHistory.insertNeuron(NeuronType::BIAS, 0);
     neurons.insert({neuron.getID(), neuron});
 
+    /* create a random bias for each output if wanted output neurons */
+    vector<NeuronGene> randomBiases;
+    if (opts.useRandomBiases()) {
+        for (unsigned i = 0; i < numOutputs; i++) {
+            NeuronGene neuron = geneHistory.insertNeuron(NeuronType::RAND_BIAS, i);
+            neurons.insert({neuron.getID(), neuron});
+            randomBiases.push_back(neuron);
+        }
+    }
+
     /* create the output neurons */
-    for (unsigned i = 0; i < outputs; i++) {
+    vector<NeuronGene> outputs;
+    for (unsigned i = 0; i < numOutputs; i++) {
         NeuronGene neuron = geneHistory.insertNeuron(NeuronType::OUTPUT, i);
         neurons.insert({neuron.getID(), neuron});
+        outputs.push_back(neuron);
     }
+
+    /* connect each random bias to one output */
+    if (opts.useRandomBiases()) {
+        for (unsigned i = 0; i < numOutputs; i++) {
+            
+            const ConnectionGene connection = geneHistory.insertConnection(randomBiases[i], outputs[i]);
+
+            if (connections.count(connection.getID()) == 0) 
+                connections.insert({connection.getID(), connection});
+
+            if (generation < connections.at(connection.getID()).getGeneration())
+                generation = connections.at(connection.getID()).getGeneration();
+
+            connections.at(connection.getID()).setWeight(1);
+        }
+    }
+
 }
 
 /* recombinate using the weight of similar genes from a random parrent */
@@ -651,8 +691,9 @@ double Genotype::similarity(const Genotype &other) const {
     double gradientSimilarity = 0.0;
     double functionSimilarity = 0.0;
     for (const auto &e : this->neurons) {
-        if (e.second.getType() != NeuronType::INPUT && 
-            e.second.getType() != NeuronType::BIAS  &&
+        if (e.second.getType() != NeuronType::INPUT     && 
+            e.second.getType() != NeuronType::BIAS      &&
+            e.second.getType() != NeuronType::RAND_BIAS &&
             other.neurons.count(e.first)) {
 
             gradientSimilarity += absDiff(
@@ -751,8 +792,28 @@ void Genotype::createInitialConnections(bool connectBias) {
     }
 }
 
+/* connects the bias to the the given (new) output */
+void Genotype::connectToBias(NeuronGene o) {
+
+    for (const auto &e : neurons) {
+        if (e.second.getType() == NeuronType::BIAS) {
+
+            const NeuronGene bias = e.second;
+
+            ConnectionGene biasConnection = geneHistory.insertConnection(bias, o);
+            biasConnection.mutateSet({0.0, 20.0});
+            connections.insert({biasConnection.getID(), biasConnection});
+        }
+    }
+}
+
 /* connects all inputs to the the given (new) output */
 void Genotype::connectOutput(NeuronGene o, bool connectBias) {
+
+    if (opts.useRandomBiases()) {
+        printf("implement rand bias for new outputs!!!\nyou need to create a random bias and connect it to the new output with a weight of 1.0 (or other for spicing)\n");
+        exit(EXIT_FAILURE);
+    }
 
 
     /* sort the Neurons by input and output connections */
@@ -884,6 +945,17 @@ Genotype::Genotype(const int fd, Opts &opts, GeneHistory &geneHistory) :
         const StructureGene structure(fd);
         structures.insert({structure.getID(), structure});
     }
+}
+
+/* number of enabled connection genes */
+unsigned Genotype::numEnabledConnections() const {
+
+    unsigned enabledConnections = 0;
+    for (const auto &c : this->connections)
+        if (c.second.isEnabled())
+            enabledConnections++;
+
+    return enabledConnections;
 }
 
 #ifdef __DEBUG__ 

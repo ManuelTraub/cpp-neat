@@ -119,9 +119,58 @@ vector<shared_ptr<Organism>> Population::prepareGenerationChange() {
     for (auto i: this->speciesInspectors)
         i->during(this->species);
 
+//#define PAPER_FITNES_SHARING
+// NOT WORKING!! fitness sharing wassnt actually used only described within the paper
+#ifdef PAPER_FITNES_SHARING
+    
+    vector<shared_ptr<Organism>> organisms;
+    vector<double> fitness;
+    for (auto &s : this->species) {
+        vector<shared_ptr<Organism>> currentOrganisms = s->getOrganisms();
+
+        for (auto &o: currentOrganisms) {
+            fitness.push_back(o->getFitness() / s->size());
+            organisms.push_back(o);
+        }
+    }
+
+    for (unsigned i = organisms.size() - 1; i > 0; i--) {
+        for (unsigned n = 0; n < i; n++) {
+            if (fitness[n] > fitness[n + 1]) {
+                double tmpFitness                = fitness[n];
+                shared_ptr<Organism> tmpOrganism = organisms[n];
+
+                fitness[n]   = fitness[n + 1];
+                organisms[n] = organisms[n + 1];
+
+                fitness[n + 1]   = tmpFitness;
+                organisms[n + 1] = tmpOrganism;
+            }
+        }
+    }
+
+    for (unsigned n = 0; n < organisms.size() * (1 - opts.survivalRate()); n++) 
+        organisms[n]->kill();
+
+    for (auto &s : this->species)
+        s->removeDeaths();
+
+    /* remove ectinct species */
+    for (int i = 0; i < (int) this->species.size(); i++) {
+        if (this->species[i]->size() == 0) {
+            this->species.erase(this->species.begin() + i);
+            i--;
+        }
+    }
+
+
+#else
+
     /* kill the Organisms with the worst fitness */
     for (auto &s : this->species)
         s->killWorst();
+
+#endif
 
     /* sort species by their best fitness */
     std::sort(this->species.begin(), this->species.end(), orderSpecies);
@@ -137,7 +186,11 @@ vector<shared_ptr<Organism>> Population::prepareGenerationChange() {
     } 
         
     /* collect all survived Organisms for reproduction */
+#ifdef PAPER_FITNES_SHARING
+    organisms.clear();
+#else
     vector<shared_ptr<Organism>> organisms;
+#endif
     for (auto &s : this->species) {
         vector<shared_ptr<Organism>> currentOrganisms = s->getOrganisms();
         organisms.insert(organisms.end(), currentOrganisms.begin(), currentOrganisms.end());
@@ -150,6 +203,25 @@ vector<shared_ptr<Organism>> Population::prepareGenerationChange() {
 
 /* calculate the ofsprings per species */
 vector<unsigned> Population::calculateOffspringsPerSpecies(unsigned nOffsprings) {
+
+#define SOFTMAX_PROPABILITY
+#ifdef SOFTMAX_PROPABILITY
+    /* create a vector of propability distribution for each fittness */
+    vector<double> propabilityDistribution;
+    double expSum = 0;
+
+    for (const auto &s : this->species) {
+        propabilityDistribution.push_back(s->getAverageFitness());
+        expSum += exp(propabilityDistribution.back());
+    }
+
+    for (int i = 0; i < propabilityDistribution.size(); i++)
+        propabilityDistribution[i] = exp(propabilityDistribution[i]) / expSum;
+
+    for (unsigned i = 1; i < propabilityDistribution.size(); i++)
+        propabilityDistribution[i] += propabilityDistribution[i - 1];
+
+#else
     
     /* create a vector of propability distribution for each fittness */
     vector<double> propabilityDistribution;
@@ -160,21 +232,19 @@ vector<unsigned> Population::calculateOffspringsPerSpecies(unsigned nOffsprings)
         overallAverageFitness += propabilityDistribution.back();
     }
 
-    double propabilitySum = 0;
-    for (auto &p : propabilityDistribution) {
+    for (auto &p : propabilityDistribution)
         p /= overallAverageFitness;
-        propabilitySum += p;
-    }
 
     for (unsigned i = 1; i < propabilityDistribution.size(); i++)
         propabilityDistribution[i] += propabilityDistribution[i - 1];
+#endif
 
     /* distribute the Organisms of the new generation 
      * based on the average fitness of each Species
      */
     vector<unsigned> offspringsPerSpecies(this->species.size(), 0);
     for (unsigned i = 0; i < nOffsprings; i++) {
-        const double randValue = rand_range_d64(rand, 0.0, propabilitySum);
+        const double randValue = rand_range_d64(rand, 0.0, propabilityDistribution.back());
         
         for (unsigned p = 0; p < this->species.size(); p++) {
             if (propabilityDistribution[p] > randValue) {

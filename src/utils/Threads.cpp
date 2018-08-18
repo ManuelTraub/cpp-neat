@@ -104,3 +104,11 @@ void Mutex::unlock() {
 #endif
 }
 
+/* constructor */
+Thread::Thread() : args(NULL) {
+#ifdef _WIN32
+    thread = nullptr;
+#else
+    thread = pthread_t();
+#endif
+}
