@@ -215,7 +215,7 @@ vector<unsigned> Population::calculateOffspringsPerSpecies(unsigned nOffsprings)
         expSum += exp(propabilityDistribution.back());
     }
 
-    for (int i = 0; i < propabilityDistribution.size(); i++)
+    for (unsigned i = 0; i < propabilityDistribution.size(); i++)
         propabilityDistribution[i] = exp(propabilityDistribution[i]) / expSum;
 
     for (unsigned i = 1; i < propabilityDistribution.size(); i++)
