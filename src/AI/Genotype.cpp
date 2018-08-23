@@ -295,6 +295,8 @@ void Genotype::mutateNeurons() {
         e.second.mutateGradient();
 
         if (rand_range_d64(rand, 0.0, 1.0) < opts.mutateFunctionPropability())
+            if (e.second.getType() != NeuronType::OUTPUT || 
+                opts.outputActivationFunction() == ActivationFunction::LENGTH)
             e.second.mutateFunction();
     }
 
