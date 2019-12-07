@@ -367,7 +367,7 @@ namespace NEAVC {
         };
 
         /* the sensor effector types of this */
-        enum class SensorEffector { ENERGY_SENSOR, TOUCH_SENSOR, MUSCLE_EFFECTOR };
+        enum class SensorEffector { ENERGY_SENSOR, TOUCH_SENSOR, VISION_SENSOR, MUSCLE_EFFECTOR };
 
         /* linking an sensor / effector (NeuronGene) */
         class SEGeneLink {

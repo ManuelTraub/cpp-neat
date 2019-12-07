@@ -250,6 +250,12 @@ namespace NEAVC {
             /* the desired number of stuctures */
             addOption(unsigned, wantedNumberOfStructures, 30);
 
+            /* the minimum possible fittness */
+            addOption(double, minFitness, 0.00000001);
+
+            /* the size of one hexagon on the energy field */
+            addOption(double, energyFieldSize, 30);
+
         };
     }
 }

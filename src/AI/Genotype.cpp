@@ -153,7 +153,8 @@ bool Genotype::mutateInsertStructure() {
     geneLinks.push_back(SEGeneLink(ts, SensorEffector::TOUCH_SENSOR, newStructure.getIndex()));
 
     /* connect the touch sensor to all outputNeurons */
-    this->connectInput(ts);
+    if (opts.netActivationFunction() != ActivationFunction::SPIKING)
+        this->connectInput(ts);
     
     /* add a new output Neuron for the new muscle if needed */
     if (newStructure.getType() == TissueType::MUSCLE) {
@@ -170,8 +171,11 @@ bool Genotype::mutateInsertStructure() {
             newStructure.getIndex()
         ));
 
-        /* connect all inputNeurons to the new muscle */
-        this->connectOutput(muscleEffector);
+        /* connect the output to a bias to produce a regular spike */
+        if (opts.netActivationFunction() == ActivationFunction::SPIKING)
+            this->connectToBias(muscleEffector);
+        else /* connect all inputNeurons to the new muscle */
+            this->connectOutput(muscleEffector);
     }
 
     /* store the new structure */
@@ -333,8 +337,11 @@ void Genotype::mutateStructureType() {
                 gene.getIndex()
             ));
 
-            /* connect all inputNeurons to the new muscle */
-            this->connectOutput(muscleEffector);
+            /* connect the output to a bias to produce a regular spike */
+            if (opts.netActivationFunction() == ActivationFunction::SPIKING)
+                this->connectToBias(muscleEffector);
+            else /* connect all inputNeurons to the new muscle */
+                this->connectOutput(muscleEffector);
         }
     }
 
@@ -377,10 +384,6 @@ Genotype::Genotype(Opts &opts, GeneHistory &geneHistory) :
 
     assert(opts.allowRecurentConnections());
     
-    /* add one output neuron */
-    NeuronGene neuron = geneHistory.insertNeuron(NeuronType::OUTPUT, 0);
-    neurons.insert({neuron.getID(), neuron});
-
     /* Add one Bias neuron to the inputs */
     NeuronGene bias = geneHistory.insertNeuron(NeuronType::BIAS, 0);
     neurons.insert({bias.getID(), bias});
@@ -395,6 +398,13 @@ Genotype::Genotype(Opts &opts, GeneHistory &geneHistory) :
     geneLinks.push_back(SEGeneLink(energyInput1, SensorEffector::ENERGY_SENSOR));
     geneLinks.push_back(SEGeneLink(energyInput2, SensorEffector::ENERGY_SENSOR));
     geneLinks.push_back(SEGeneLink(energyInput2, SensorEffector::ENERGY_SENSOR));
+
+    /* add 11 vision sensors */
+    for (int i = 0; i < 11; i++) {
+        NeuronGene visionInput = geneHistory.insertNeuron(NeuronType::INPUT, i + 3);
+        neurons.insert({visionInput.getID(), visionInput});
+        geneLinks.push_back(SEGeneLink(visionInput, SensorEffector::VISION_SENSOR));
+    }
 
     /* the minimal structure consists of a single musce tissue atached to the brain */
     StructureGene brain  = geneHistory.insertStructure(TissueType::NEURON);
