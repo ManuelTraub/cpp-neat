@@ -5,16 +5,16 @@ PROJECT(NEAVC)
 find_package(OpenGL REQUIRED)
 
 if (${WIN32}) 
-  SET (CMAKE_CXX_COMPILER           "/C/mingw64/bin/g++-6")
+  SET (CMAKE_CXX_COMPILER           "/C/mingw64/bin/g++")
   SET (CMAKE_CXX_FLAGS              "-Wall -Wextra -g -std=c++14")
 
-  SET (CMAKE_C_COMPILER             "/C/mingw64/bin/gcc-6")
+  SET (CMAKE_C_COMPILER             "/C/mingw64/bin/gc")
   SET (CMAKE_C_FLAGS                "-Wall -Wextra -g")
 else()
-  SET (CMAKE_CXX_COMPILER           "/usr/bin/g++-6")
+  SET (CMAKE_CXX_COMPILER           "/usr/bin/g++")
   SET (CMAKE_CXX_FLAGS              "-Wall -Wextra -g -std=c++14")
 
-  SET (CMAKE_C_COMPILER             "/usr/bin/gcc-6")
+  SET (CMAKE_C_COMPILER             "/usr/bin/gcc")
   SET (CMAKE_C_FLAGS                "-Wall -Wextra -g")
 endif()
 
@@ -40,6 +40,7 @@ set(ALL_LIBS
     glfw
     GLEW
     pthread
+    png
 )
 
 target_link_libraries(neavc
