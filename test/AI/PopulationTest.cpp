@@ -7,8 +7,6 @@
 #include <memory>
 #include <algorithm>
 
-#define abs(x) (((x) < 0) ? (x) * -1 : (x))
-
 using std::shared_ptr;
 using std::make_shared;
 using std::vector;
@@ -1043,7 +1041,7 @@ class ParityFitnessCalculator: public FitnessCalculator {
                                       ((input >  0 && lastOutput <= 0) ?  1.0 :
                                       ((input <= 0 && lastOutput  > 0) ?  1.0 :
                                       ((input >  0 && lastOutput  > 0) ? -1.0 : 0.0/0.0))));
-                error += abs(output - target);
+                error += std::abs(output - target);
                 lastOutput = output;
             }
 
@@ -1073,21 +1071,21 @@ class ParityFitnessCalculator: public FitnessCalculator {
 
                 lastOutput = output;
 
-                if (abs(target - output) < 0.25)
+                if (std::abs(target - output) < 0.25)
                     printf(" ");
-                else if (abs(target - output) < 0.5)
+                else if (std::abs(target - output) < 0.5)
                     printf("_");
-                else if (abs(target - output) < 0.75)
+                else if (std::abs(target - output) < 0.75)
                     printf("-");
-                else if (abs(target - output) < 1.0)
+                else if (std::abs(target - output) < 1.0)
                     printf("~");
-                else if (abs(target - output) < 1.25)
+                else if (std::abs(target - output) < 1.25)
                     printf("+");
-                else if (abs(target - output) < 1.5)
+                else if (std::abs(target - output) < 1.5)
                     printf("*");
-                else if (abs(target - output) < 1.75)
+                else if (std::abs(target - output) < 1.75)
                     printf("$");
-                else if (abs(target - output) < 2.0)
+                else if (std::abs(target - output) < 2.0)
                     printf("%%");
                 else
                     printf("#");
@@ -1236,7 +1234,7 @@ class MemoryFitnessCalculator: public FitnessCalculator {
                 error += pow(signes - output, 2);
 
                 if (last > -1000)
-                    dist += abs(last - output);
+                    dist += std::abs(last - output);
 
                 last = output;
             }
@@ -1267,7 +1265,7 @@ class MemoryFitnessCalculator: public FitnessCalculator {
                 for (unsigned i = 0; i < signalLength; i++)
                     phenotype.run(vector<double>(1, 0.0));
 
-                if (abs(signes - phenotype.run(vector<double>(1, type * signes)).at(0)) >= 1)
+                if (std::abs(signes - phenotype.run(vector<double>(1, type * signes)).at(0)) >= 1)
                     return false;
             }
 
@@ -2012,10 +2010,10 @@ class ParitySpikingFitnessCalculator: public FitnessCalculator {
                 if (sameOutputCounter > 30)
                     error += 1;
 
-                if (abs(output - target) >= 0.5)
+                if (std::abs(output - target) >= 0.5)
                     learned = false;
 
-                error += abs(output - target) * (300 - i);
+                error += std::abs(output - target) * (300 - i);
                 lastOutput = (output <= 0.5) ? 0 : 1;
 
             }
@@ -2047,7 +2045,7 @@ class ParitySpikingFitnessCalculator: public FitnessCalculator {
                                       ((input <= 0 && lastOutput  > 0) ? 1.0 :
                                       ((input >  0 && lastOutput  > 0) ? 0.0 : 0.0/0.0))));
 
-                if (abs(output - target) >= 0.5)
+                if (std::abs(output - target) >= 0.5)
                     return false;
 
                 lastOutput = (output <= 0.5) ? 0 : 1;
@@ -2123,21 +2121,21 @@ class ParitySpikingFitnessCalculator: public FitnessCalculator {
 
             printf("\nErr: ");
             for (unsigned i = 0; i < timeSteps; i++) {
-                if (abs(targets[i] - outputs[i]) < 0.125)
+                if (std::abs(targets[i] - outputs[i]) < 0.125)
                     printf(" ");
-                else if (abs(targets[i] - outputs[i]) < 0.25)
+                else if (std::abs(targets[i] - outputs[i]) < 0.25)
                     printf("_");
-                else if (abs(targets[i] - outputs[i]) < 0.375)
+                else if (std::abs(targets[i] - outputs[i]) < 0.375)
                     printf("-");
-                else if (abs(targets[i] - outputs[i]) < 0.5)
+                else if (std::abs(targets[i] - outputs[i]) < 0.5)
                     printf("~");
-                else if (abs(targets[i] - outputs[i]) < 0.625)
+                else if (std::abs(targets[i] - outputs[i]) < 0.625)
                     printf("+");
-                else if (abs(targets[i] - outputs[i]) < 0.75)
+                else if (std::abs(targets[i] - outputs[i]) < 0.75)
                     printf("*");
-                else if (abs(targets[i] - outputs[i]) < 0.875)
+                else if (std::abs(targets[i] - outputs[i]) < 0.875)
                     printf("$");
-                else if (abs(targets[i] - outputs[i]) < 1.0)
+                else if (std::abs(targets[i] - outputs[i]) < 1.0)
                     printf("%%");
                 else
                     printf("#");
@@ -2297,7 +2295,7 @@ class SpikingMemoryFitnessCalculator: public FitnessCalculator {
                 outputs[n] = output;
 
                 if (last > -1000)
-                    dist += abs(last - output);
+                    dist += std::abs(last - output);
 
                 last = output;
             }
@@ -2309,7 +2307,7 @@ class SpikingMemoryFitnessCalculator: public FitnessCalculator {
             avg[1] /= nRuns / 2;
             for (unsigned n = 0; n < nRuns; n++) {
                 error += pow(avg[n % 2] - outputs[n], 2);
-                double err[2] = { abs(outputs[n] - avg[0]), abs(outputs[n] - avg[1]) };
+                double err[2] = { std::abs(outputs[n] - avg[0]), std::abs(outputs[n] - avg[1]) };
 
                 if (err[n % 2] >= err[(n + 1) % 2])
                     error += pow(err[0] - err[1], 2);
@@ -2348,7 +2346,7 @@ class SpikingMemoryFitnessCalculator: public FitnessCalculator {
             avg[0] /= nRuns / 2;
             avg[1] /= nRuns / 2;
             for (unsigned n = 0; n < nRuns; n++) {
-                double err[2] = { abs(outputs[n] - avg[0]), abs(outputs[n] - avg[1]) };
+                double err[2] = { std::abs(outputs[n] - avg[0]), std::abs(outputs[n] - avg[1]) };
 
                 if (err[n % 2] >= err[(n + 1) % 2])
                     return false;
@@ -2567,7 +2565,7 @@ class BinaryClassificationFitnessCalculator: public FitnessCalculator {
                     x += stepsize;
                 }
                 curAVG /= signalLength;
-                double err[2] = { abs(curAVG - avg[0]), abs(curAVG - avg[1]) };
+                double err[2] = { std::abs(curAVG - avg[0]), std::abs(curAVG - avg[1]) };
 
                 if (err[n % 2] >= err[(n + 1) % 2])
                     error += 1;
@@ -2873,10 +2871,10 @@ class FourSignalsClassificationFitnessCalculator: public FitnessCalculator {
                 }
                 curAVG /= signalLength;
                 double err[4] = { 
-                    abs(curAVG - avg[0]), 
-                    abs(curAVG - avg[1]), 
-                    abs(curAVG - avg[2]), 
-                    abs(curAVG - avg[3]) 
+                    std::abs(curAVG - avg[0]), 
+                    std::abs(curAVG - avg[1]), 
+                    std::abs(curAVG - avg[2]), 
+                    std::abs(curAVG - avg[3]) 
                 };
 
                 if (err[n % 4] >= err[(n + 1) % 4] || 
@@ -3150,8 +3148,8 @@ class ArtificialSpikingFitnessCalculator: public FitnessCalculator {
                     
                     int minDistance = INT32_MAX;
                     for (auto &spikeIndex: spikeIndices)
-                        if (minDistance > abs(i - spikeIndex))
-                            minDistance = abs(i - spikeIndex);
+                        if (minDistance > std::abs(i - spikeIndex))
+                            minDistance = std::abs(i - spikeIndex);
                     
                     spikeError += minDistance;
                 }
@@ -3180,7 +3178,7 @@ class ArtificialSpikingFitnessCalculator: public FitnessCalculator {
                 
                 spikeError += (forwardLength < backwardLength) ? forwardLength : backwardLength;
             }
-//            spikeError += abs(numOutputSpikes - spikeIndices.size());
+//            spikeError += std::abs(numOutputSpikes - spikeIndices.size());
 
             return 1.0 / (sqrt(nullError / signalLength) + spikeError + 0.000000000001);
         }
@@ -3356,8 +3354,8 @@ class OscillatorFitnessCalculator: public FitnessCalculator {
                 for (unsigned n = 0; n < 12; n++)
                     cur += sin(f[n]*i);
 
-                if (max < abs(cur))
-                    max = abs(cur);
+                if (max < std::abs(cur))
+                    max = std::abs(cur);
                 this->target.push_back(cur);
             }
 
@@ -3386,7 +3384,7 @@ class OscillatorFitnessCalculator: public FitnessCalculator {
                     else
                         printf(" ");
                 }
-                printf("| %f\n", abs(target[i+1] - output));
+                printf("| %f\n", std::abs(target[i+1] - output));
             }
         }
 
@@ -3527,8 +3525,8 @@ class SpikingOscillatorFitnessCalculator: public FitnessCalculator {
                 for (unsigned n = 0; n < 2; n++)
                     cur += sin(f[n]*i + offset);
 
-                if (max < abs(cur))
-                    max = abs(cur);
+                if (max < std::abs(cur))
+                    max = std::abs(cur);
                 this->target.push_back(cur);
             }
 
@@ -3586,8 +3584,8 @@ class SpikingOscillatorFitnessCalculator: public FitnessCalculator {
                 for (unsigned n = 0; n < 2; n++)
                     cur += sin(f[n]*i + offset);
 
-                if (max < abs(cur))
-                    max = abs(cur);
+                if (max < std::abs(cur))
+                    max = std::abs(cur);
                 this->target.push_back(cur);
             }
 
@@ -3613,7 +3611,7 @@ class SpikingOscillatorFitnessCalculator: public FitnessCalculator {
                     else
                         printf(" ");
                 }
-                printf("| %f\n", abs(target[i+1] - output));
+                printf("| %f\n", std::abs(target[i+1] - output));
             }
         }
 

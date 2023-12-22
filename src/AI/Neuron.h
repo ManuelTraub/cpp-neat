@@ -9,10 +9,6 @@
 
 using std::vector;
 
-#ifndef abs
-#define abs(x) (((x) < 0) ? (x) * -1 : (x))
-#endif
-
 namespace NEAVC {
 
     namespace AI {
@@ -92,7 +88,7 @@ namespace NEAVC {
 
                 /* calculate the output value using a abs activation */
                 void calculateAbsOutput() {
-                    outputValue = abs(gradient * weightedInputs);
+                    outputValue = std::abs(gradient * weightedInputs);
                 }
 
                 /* calculate the output value using a pow 2 activation */

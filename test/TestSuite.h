@@ -5,6 +5,7 @@
 #define __TEST_H__
 
 #include "dynamic-array.h"
+#include "../src/utils/utils.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
