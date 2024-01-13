@@ -2,7 +2,17 @@ cmake_minimum_required(VERSION 2.8)
 
 PROJECT(NEAVC)
 
+# Get compiler and linker flags for IlmBase
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(ILMBASE REQUIRED IlmBase)
+include_directories(${ILMBASE_INCLUDE_DIRS})
+link_directories(${ILMBASE_LIBRARY_DIRS})
+
 find_package(OpenGL REQUIRED)
+find_package(Alembic REQUIRED)
+set(ALEMBIC_LIBRARIES "/usr/local/lib/libAlembic.so")
+
+include_directories(${ALEMBIC_INCLUDE_DIRS})
 
 add_subdirectory("./AI")
 add_subdirectory("./Physics")
@@ -76,6 +86,7 @@ add_executable(VEPopulationTest
 
 target_link_libraries(VirtualCreatureTest
     ${OPENGL_LIBRARY}
+    ${ALEMBIC_LIBRARY}
     glfw
     GLEW
     pthread
@@ -85,6 +96,7 @@ target_link_libraries(VirtualCreatureTest
 
 target_link_libraries(VEPopulationTest
     ${OPENGL_LIBRARY}
+    ${ALEMBIC_LIBRARIES}
     glfw
     GLEW
     pthread
