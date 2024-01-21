@@ -1000,7 +1000,7 @@ TEST_N(basicSaveLoadTest, 1000) {
     ASSERT_EQUAL(genotype1.getNeurons().size(),     genotype2.getNeurons().size(),     "neuron size not equal");
     ASSERT_EQUAL(genotype1.getConnections().size(), genotype2.getConnections().size(), "neuron size not equal");
     ASSERT_EQUAL(genotype1.getStructures().size(),  genotype2.getStructures().size(),  "neuron size not equal");
-    ASSERT_EQUAL(genotype1.genomeAge(),             genotype2.genomeAge(),           "genome age not equal");
+    ASSERT_EQUAL(genotype1.genomeAge(),             genotype2.genomeAge(),             "genome age not equal");
 
     for (const auto &e: genotype1.getNeurons()) {
         ASSERT_TRUE(genotype2.getNeurons().count(e.first), "neuron not found in genotype2");
@@ -1046,9 +1046,22 @@ TEST_N(basicSaveLoadTest, 1000) {
         ASSERT_EQUAL(structure1.getID(),                 structure2.getID(),                 "ids not equal");
         ASSERT_EQUAL(structure1.getGeneration(),         structure2.getGeneration(),         "generation not equal");
         ASSERT_EQUAL(structure1.getType(),               structure2.getType(),               "types not equal");
-        ASSERT_EQUAL(structure1.getIndex().getX(),                  structure2.getIndex().getX(),                  "x not equal");
-        ASSERT_EQUAL(structure1.getIndex().getY(),                  structure2.getIndex().getY(),                  "y not equal");
-        ASSERT_EQUAL(structure1.getIndex().getZ(),                  structure2.getIndex().getZ(),                  "z not equal");
+        ASSERT_EQUAL(structure1.getIndex().getX(),       structure2.getIndex().getX(),       "x not equal");
+        ASSERT_EQUAL(structure1.getIndex().getY(),       structure2.getIndex().getY(),       "y not equal");
+        ASSERT_EQUAL(structure1.getIndex().getZ(),       structure2.getIndex().getZ(),       "z not equal");
+        ASSERT_EQUAL(structure1.getSize(),               structure2.getSize(),               "size not equal");
+    }
+
+    for (unsigned i = 0; i < genotype1.getSELinks().size(); i++) {
+        ASSERT_EQUAL(genotype1.getSELinks()[i].getNeuron().getID(),         genotype2.getSELinks()[i].getNeuron().getID(),         "ids not equal");
+        ASSERT_EQUAL(genotype1.getSELinks()[i].getNeuron().getGeneration(), genotype2.getSELinks()[i].getNeuron().getGeneration(), "generation not equal");
+        ASSERT_EQUAL(genotype1.getSELinks()[i].getNeuron().getType(),       genotype2.getSELinks()[i].getNeuron().getType(),       "types not equal");
+        ASSERT_EQUAL(genotype1.getSELinks()[i].getNeuron().getLayerID(),    genotype2.getSELinks()[i].getNeuron().getLayerID(),    "layerIDs not equal");
+        ASSERT_EQUAL(genotype1.getSELinks()[i].getNeuron().getGradient(),   genotype2.getSELinks()[i].getNeuron().getGradient(),   "gradients not equal");
+        ASSERT_EQUAL(genotype1.getSELinks()[i].getIndex().getX(),           genotype2.getSELinks()[i].getIndex().getX(),           "x not equal");
+        ASSERT_EQUAL(genotype1.getSELinks()[i].getIndex().getY(),           genotype2.getSELinks()[i].getIndex().getY(),           "y not equal");
+        ASSERT_EQUAL(genotype1.getSELinks()[i].getIndex().getZ(),           genotype2.getSELinks()[i].getIndex().getZ(),           "z not equal");
+        ASSERT_EQUAL(genotype1.getSELinks()[i].getIndex().getN(),           genotype2.getSELinks()[i].getIndex().getN(),           "n not equal");
     }
 
     ASSERT_TRUE(genotype1.similarity(genotype2) == 0.0, "geneotyps sould be similar");
@@ -1141,6 +1154,18 @@ TEST_N(basicSaveLoadTest2, 1000) {
         ASSERT_EQUAL(structure1.getIndex().getX(),                  structure2.getIndex().getX(),                  "x not equal");
         ASSERT_EQUAL(structure1.getIndex().getY(),                  structure2.getIndex().getY(),                  "y not equal");
         ASSERT_EQUAL(structure1.getIndex().getZ(),                  structure2.getIndex().getZ(),                  "z not equal");
+    }
+
+    for (unsigned i = 0; i < genotype1.getSELinks().size(); i++) {
+        ASSERT_EQUAL(genotype1.getSELinks()[i].getNeuron().getID(),         genotype2.getSELinks()[i].getNeuron().getID(),         "ids not equal");
+        ASSERT_EQUAL(genotype1.getSELinks()[i].getNeuron().getGeneration(), genotype2.getSELinks()[i].getNeuron().getGeneration(), "generation not equal");
+        ASSERT_EQUAL(genotype1.getSELinks()[i].getNeuron().getType(),       genotype2.getSELinks()[i].getNeuron().getType(),       "types not equal");
+        ASSERT_EQUAL(genotype1.getSELinks()[i].getNeuron().getLayerID(),    genotype2.getSELinks()[i].getNeuron().getLayerID(),    "layerIDs not equal");
+        ASSERT_EQUAL(genotype1.getSELinks()[i].getNeuron().getGradient(),   genotype2.getSELinks()[i].getNeuron().getGradient(),   "gradients not equal");
+        ASSERT_EQUAL(genotype1.getSELinks()[i].getIndex().getX(),           genotype2.getSELinks()[i].getIndex().getX(),           "x not equal");
+        ASSERT_EQUAL(genotype1.getSELinks()[i].getIndex().getY(),           genotype2.getSELinks()[i].getIndex().getY(),           "y not equal");
+        ASSERT_EQUAL(genotype1.getSELinks()[i].getIndex().getZ(),           genotype2.getSELinks()[i].getIndex().getZ(),           "z not equal");
+        ASSERT_EQUAL(genotype1.getSELinks()[i].getIndex().getN(),           genotype2.getSELinks()[i].getIndex().getN(),           "n not equal");
     }
 
     ASSERT_TRUE(genotype1.similarity(genotype2) == 0.0, "geneotyps sould be similar");

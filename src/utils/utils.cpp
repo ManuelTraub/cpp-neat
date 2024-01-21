@@ -5,6 +5,10 @@
 #include <string>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <iostream>
+#include <chrono>
+#include <iomanip>
+#include <sstream>
 using std::string;
 
 /* returns the current milliseconds time */
@@ -17,6 +21,26 @@ uint64_t gettime_usec() {
 
     return ((uint64_t) time.tv_sec) * ((uint64_t) 1000000) + 
            ((uint64_t) time.tv_usec);
+}
+
+/* converts a given time to a string */
+std::string formatTimestamp(uint64_t time_usec) {
+    // Convert microseconds to system clock time point
+    std::chrono::system_clock::time_point tp = std::chrono::system_clock::time_point(std::chrono::microseconds(time_usec));
+
+    // Convert system clock time point to time_t for breaking down into components
+    std::time_t tt = std::chrono::system_clock::to_time_t(tp);
+    std::tm* gmt = std::gmtime(&tt);  // Convert time_t to tm struct as UTC time
+
+    // Extracting milliseconds from input (microseconds)
+    int milliseconds = (time_usec % 1000000) / 1000;
+
+    // Formatting the string
+    std::stringstream ss;
+    ss << std::put_time(gmt, "%Y-%m-%d-%H-%M-%S");  // Format date and time
+    ss << "-" << std::setfill('0') << std::setw(3) << milliseconds;  // Format milliseconds
+
+    return ss.str();
 }
 
 uint32_t rand32(uint32_t *x) {

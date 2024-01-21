@@ -919,6 +919,14 @@ bool Genotype::save(const int fd) const {
         if (!e.second.save(fd))
             return false;
 
+    const uint64_t geneLinksSize = geneLinks.size();
+    if (write(fd, &geneLinksSize, sizeof(uint64_t)) != sizeof(uint64_t))
+        return false;
+
+    for (const auto &e : geneLinks)
+        if (!e.save(fd))
+            return false;
+
     return true;
 }
 
@@ -956,6 +964,15 @@ Genotype::Genotype(const int fd, Opts &opts, GeneHistory &geneHistory) :
     for (unsigned i = 0; i < structuresSize; i++) {
         const StructureGene structure(fd);
         structures.insert({structure.getID(), structure});
+    }
+
+    uint64_t geneLinksSize = 0;
+    if (read(fd, &geneLinksSize, sizeof(uint64_t)) != sizeof(uint64_t))
+        throw "IO Exception";
+
+    for (unsigned i = 0; i < geneLinksSize; i++) {
+        const SEGeneLink geneLink(fd);
+        geneLinks.push_back({geneLink});
     }
 }
 

@@ -397,6 +397,9 @@ namespace NEAVC {
                 /* returns teh index of this */
                 const TOGridIndex getIndex() const { return TOGridIndex(x, y, z, n); }
 
+                /* saves this */
+                bool save(const int fd) const;
+
                 /* constructor */
                 SEGeneLink(
                     const NeuronGene &neuron, 
@@ -414,6 +417,9 @@ namespace NEAVC {
                            neuron.getType() == NeuronType::OUTPUT);
 
                 }
+
+                /* loads the SEGeneLink from the given file */
+                SEGeneLink(const int fd);
         };
     }
 }

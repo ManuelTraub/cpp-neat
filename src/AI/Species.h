@@ -109,7 +109,7 @@ namespace NEAVC {
                 void reset() {
                     this->organisms.clear();
                     this->bestFitness            = std::nan("Species");
-                    this->averageFitness = std::nan("Species");
+                    this->averageFitness         = std::nan("Species");
                     this->birthGeneration        = GenerationCounter::get();
                     this->lastImproveGeneration  = GenerationCounter::get();
                 }

@@ -86,7 +86,7 @@ add_executable(VEPopulationTest
 
 target_link_libraries(VirtualCreatureTest
     ${OPENGL_LIBRARY}
-    ${ALEMBIC_LIBRARY}
+    ${ALEMBIC_LIBRARIES}
     glfw
     GLEW
     pthread

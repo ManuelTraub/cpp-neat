@@ -15,6 +15,9 @@ using std::vector;
 /* returns the current milliseconds time */
 uint64_t gettime_usec();
 
+/* converts a given time to a string */
+std::string formatTimestamp(uint64_t time_usec);
+
 uint32_t rand32(uint32_t *x);
 
 /* random value */
