@@ -256,6 +256,33 @@ namespace NEAVC {
             /* the size of one hexagon on the energy field */
             addOption(double, energyFieldSize, 30);
 
+            /* terrain scale controls the frequency of the noise */
+            addOption(double, terrainScale, 0.4)
+
+            /* terrain amplitude controls the height variation */
+            addOption(double, terrainAmplitude, 1.0)
+
+            /* terrain seed for random generation */
+            addOption(int, terrainSeed, 42)
+
+            /* number of octaves for fBm */
+            addOption(int, terrainOctaves, 4)
+
+            /* persistence controls how much each octave contributes */
+            addOption(double, terrainPersistence, 0.5)
+
+            /* lacunarity controls frequency increase with each octave */
+            addOption(double, terrainLacunarity, 2.0)
+
+            /* base height of the terrain */
+            addOption(double, terrainBaseHeight, 0.0)
+
+            /* flatness of the terrain */
+            addOption(double, terrainFlatness, 1.1)
+
+            /* small-scale bumpiness */
+            addOption(double, terrainBumpiness, 0.1)
+
         };
     }
 }
