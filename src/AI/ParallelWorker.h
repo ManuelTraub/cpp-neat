@@ -5,6 +5,10 @@
 #include "Organism.h"
 
 #include <deque>
+#include <atomic>
+#include <chrono>
+#include <thread>
+#include <sstream>
 
 using std::deque;
 
@@ -25,6 +29,9 @@ namespace NEAVC {
                 /* the FitnessCalculator of this */
                 FitnessCalculator *fitnessCalculator;
 
+                /* progress tracking */
+                std::atomic<unsigned> &processedCount;
+
             public:
 
                 /* thread function to override by child class */
@@ -34,10 +41,12 @@ namespace NEAVC {
                 ParallelWorker(
                     deque<shared_ptr<Organism>> &organisms,
                     Mutex &mutex,
-                    FitnessCalculator *fitnessCalculator
+                    FitnessCalculator *fitnessCalculator,
+                    std::atomic<unsigned> &processedCount
                 ) : organisms(organisms), 
                     mutex(mutex), 
-                    fitnessCalculator(fitnessCalculator) { }
+                    fitnessCalculator(fitnessCalculator),
+                    processedCount(processedCount) { }
 
         };
 
@@ -57,6 +66,26 @@ namespace NEAVC {
                 /* the worker threads of this */
                 vector<ParallelWorker> worker;
 
+                /* progress tracking */
+                unsigned totalOrganisms;
+                std::atomic<unsigned> processedCount;
+                unsigned lastPrintedPercent;
+                bool progressBarEnabled;
+                std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
+                
+                /* progress bar display state */
+                unsigned lastLineLength;
+                
+                /* monitor thread */
+                std::thread monitorThread;
+                std::atomic<bool> isComplete;
+
+                /* render progress bar */
+                void renderProgressBar(unsigned width = 50);
+                
+                /* progress monitor function */
+                void monitorProgress(void*);
+
             public:
 
                 /* adds the given vector of Organisms */
@@ -67,6 +96,15 @@ namespace NEAVC {
 
                 /* start the worker of this */
                 void start();
+
+                /* enable/disable progress bar display */
+                void enableProgressBar(bool enable = true) { progressBarEnabled = enable; }
+
+                /* reset the progress counter */
+                void resetProgress();
+                
+                /* clear the progress bar from the terminal */
+                void clearProgressBar();
 
                 /* constructor */
                 ParallelProcessor(const unsigned numThreads, FitnessCalculator *fitnessCalculator);
