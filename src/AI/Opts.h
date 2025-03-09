@@ -263,7 +263,7 @@ namespace NEAVC {
             addOption(double, terrainAmplitude, 1.0)
 
             /* terrain seed for random generation */
-            addOption(int, terrainSeed, 42)
+            addOption(int, terrainSeed, -1)
 
             /* number of octaves for fBm */
             addOption(int, terrainOctaves, 4)
