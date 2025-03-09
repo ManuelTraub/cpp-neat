@@ -73,6 +73,7 @@ add_executable(VEPopulationTest
                ../src/Physics/3DBase
                ../src/Physics/MassSpring
                ../src/Physics/TOSoftBody
+               ../src/Physics/Terrain
                ../src/Physics/PhysicsSimulation
                ../src/Physics/IcoSphere
                ../src/Physics/RealtimePhysics
