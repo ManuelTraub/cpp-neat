@@ -16,80 +16,21 @@ else()
   SET (CMAKE_C_FLAGS                "-Wall -Wextra -g -O3 -march=native")
 endif()
 
-add_executable(GeneTest 
-               GeneTest 
-               ../../src/utils/utils 
-               ../../src/AI/Gene
-               ../../src/AI/GenerationCounter)
+add_executable(GeneTest GeneTest.cpp)
+add_executable(GenotypeTest GenotypeTest.cpp)
+add_executable(PhenotypeTest PhenotypeTest.cpp)
+add_executable(GeneHistoryTest GeneHistoryTest.cpp)
+add_executable(OrganismTest OrganismTest.cpp)
+add_executable(SpeciesTest SpeciesTest.cpp)
+add_executable(PopulationTest PopulationTest.cpp)
 
-add_executable(GenotypeTest 
-               GenotypeTest 
-               ../../src/utils/utils 
-               ../../src/AI/Genotype 
-               ../../src/AI/Gene 
-               ../../src/AI/GeneHistory 
-               ../../src/AI/GenerationCounter)
-
-add_executable(PhenotypeTest 
-               PhenotypeTest 
-               ../../src/utils/utils 
-               ../../src/AI/Genotype 
-               ../../src/AI/Phenotype 
-               ../../src/AI/Gene 
-               ../../src/AI/GeneHistory 
-               ../../src/AI/GenerationCounter)
-
-add_executable(GeneHistoryTest 
-               GeneHistoryTest 
-               ../../src/AI/GeneHistory 
-               ../../src/utils/utils 
-               ../../src/AI/Gene 
-               ../../src/AI/GenerationCounter)
-
-add_executable(OrganismTest
-               OrganismTest
-               ../../src/AI/Organism
-               ../../src/utils/utils 
-               ../../src/AI/Genotype 
-               ../../src/AI/Phenotype 
-               ../../src/AI/Gene 
-               ../../src/AI/GeneHistory 
-               ../../src/AI/GenerationCounter)
-
-add_executable(SpeciesTest
-               SpeciesTest
-               ../../src/AI/Species
-               ../../src/AI/Organism
-               ../../src/utils/utils 
-               ../../src/AI/Genotype 
-               ../../src/AI/Phenotype 
-               ../../src/AI/Gene 
-               ../../src/AI/GeneHistory 
-               ../../src/AI/GenerationCounter)
-
-add_executable(PopulationTest
-               PopulationTest
-               ../../src/AI/Population
-               ../../src/AI/ParallelWorker
-               ../../src/AI/Species
-               ../../src/AI/Organism
-               ../../src/utils/utils 
-               ../../src/AI/Genotype 
-               ../../src/AI/Phenotype 
-               ../../src/AI/Gene 
-               ../../src/utils/Threads
-               ../../src/AI/GeneHistory 
-               ../../src/AI/GenerationCounter
-               ../../src/utils/Threads)
-
-
-target_link_libraries(PopulationTest -pthread IL)
-target_link_libraries(GeneTest IL)
-target_link_libraries(GenotypeTest IL)
-target_link_libraries(PhenotypeTest IL)
-target_link_libraries(GeneHistoryTest IL)
-target_link_libraries(OrganismTest IL)
-target_link_libraries(SpeciesTest IL)
+target_link_libraries(PopulationTest neat)
+target_link_libraries(GeneTest neat)
+target_link_libraries(GenotypeTest neat)
+target_link_libraries(PhenotypeTest neat)
+target_link_libraries(GeneHistoryTest neat)
+target_link_libraries(OrganismTest neat)
+target_link_libraries(SpeciesTest neat)
 
 add_test(NAME Gene                 COMMAND GeneTest)
 add_test(NAME Genotype             COMMAND GenotypeTest)

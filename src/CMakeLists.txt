@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 2.8)
 
 PROJECT(NEAVC)
 
-find_package(OpenGL REQUIRED)
-
 if (${WIN32}) 
   SET (CMAKE_CXX_COMPILER           "/C/mingw64/bin/g++")
   SET (CMAKE_CXX_FLAGS              "-Wall -Wextra -g -std=c++14")
@@ -18,31 +16,25 @@ else()
   SET (CMAKE_C_FLAGS                "-Wall -Wextra -g")
 endif()
 
-add_executable(neavc
-    main
-    Graphics/loadShaders
-    utils/utils
-    Graphics/GLWindow
-    Graphics/GLObject
-    Graphics/GLOrbitingCamera
-    Physics/TOSoftBody
-    Physics/IcoSphere
-    Graphics/GPConverter
-    Physics/3DBase
-    Physics/MassSpring
-    Physics/PhysicsSimulation
-    Physics/RealtimePhysics
-    utils/Threads
+find_package(Threads REQUIRED)
+
+add_library(neat STATIC
+    AI/Gene.cpp
+    AI/GeneHistory.cpp
+    AI/GenerationCounter.cpp
+    AI/Genotype.cpp
+    AI/Phenotype.cpp
+    AI/Organism.cpp
+    AI/Species.cpp
+    AI/Population.cpp
+    AI/ParallelWorker.cpp
+    utils/utils.cpp
+    utils/Threads.cpp
 )
 
-set(ALL_LIBS
-    ${OPENGL_LIBRARY}
-    glfw
-    GLEW
-    pthread
-    png
-)
+target_include_directories(neat PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(neavc
-    ${ALL_LIBS}
+target_link_libraries(neat PUBLIC
+    Threads::Threads
+    IL
 )
