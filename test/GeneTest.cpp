@@ -35,7 +35,7 @@ TEST_N(basicSaveLoadTest, 10000) {
 
     NeuronGene input(NeuronType::INPUT, ActivationFunction::SIGMOID, rand64(args));
     NeuronGene output(NeuronType::OUTPUT, ActivationFunction::TANH, rand64(args));
-    NeuronGene bias(NeuronType::BIAS, ActivationFunction::SPIKING, rand64(args));
+    NeuronGene bias(NeuronType::BIAS, ActivationFunction::SINE, rand64(args));
 
     ConnectionGene connection(input, output);
     NeuronGene hidden = connection.split(ActivationFunction::RELU);

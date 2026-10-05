@@ -36,5 +36,4 @@ target_include_directories(neat PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(neat PUBLIC
     Threads::Threads
-    IL
 )

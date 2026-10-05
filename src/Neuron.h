@@ -27,9 +27,6 @@ namespace NEAT {
                 /* the weights for each input connection */
                 vector<double> weights;
 
-                /* a spike time counter for all inputs */
-                vector<unsigned> intervallCounter;
-
                 /* the output value of this */
                 double outputValue;
 
@@ -40,12 +37,6 @@ namespace NEAT {
                 
                 /* temporary value for periodic signals */
                 double periodicValue;
-
-                /* the membran potential for a spiking neuron */
-                double v;
-
-                /* membran recovery variable for a spiking neuron */
-                double u;
 
                 /* calculate the output value using a sigmoid activation */
                 void calculateSigmoidOutput() {
@@ -113,25 +104,6 @@ namespace NEAT {
                     outputValue *= exp(pow(weightedInputs, 2) / (-2 * pow(gradient, 2)));
                 }
 
-                /* calculate the output using a spiking neuron */
-                void calculateSpikingOutput() {
-                    outputValue = 0.0;
-
-                    if (v >= 30) {
-                        u += 8;
-                        v  = -65;
-                        outputValue = 1.0;
-                    }
-                    v += 0.5 * (0.04 * v * v + 5 * v + 140 - u + weightedInputs);
-                    v += 0.5 * (0.04 * v * v + 5 * v + 140 - u + weightedInputs);
-                    u += 0.02 * (0.2 * v - u);
-                }
-
-                /* calculate an exponential smoothing over the weighted inputs */
-                void calculateIntervallOutput() {
-                    outputValue = gradient * outputValue + (1 - gradient) * weightedInputs;
-                }
-
             public:
 
                 /* returns the inputs of this */
@@ -155,26 +127,7 @@ namespace NEAT {
                 /* calculates the weighted input sum */
                 void calculateWeightedInputs() {
 
-                    if (function == ActivationFunction::VOLTAGE) {
-
-                        weightedInputs = 0.0;
-                        for (unsigned i = 0; i < inputs.size(); i++)
-                            weightedInputs += weights[i] * inputs[i]->getVoltage();
-
-                    } else if (function == ActivationFunction::EXP_SMOOTH) {
-
-                        for (unsigned i = 0; i < intervallCounter.size(); i++)
-                            intervallCounter[i]++;
-
-                        weightedInputs = 0.0;
-                        for (unsigned i = 0; i < inputs.size(); i++) {
-                            if (inputs[i]->getValue() > 0.9) {
-                                weightedInputs += 1.0 / intervallCounter[i];
-                                intervallCounter[i] = 0;
-                            }
-                        }
-
-                    } else if (function == ActivationFunction::MULT) {
+                    if (function == ActivationFunction::MULT) {
 
                         weightedInputs = 1.0;
                         for (unsigned i = 0; i < inputs.size(); i++)
@@ -215,12 +168,6 @@ namespace NEAT {
                         this->calculateIdentityOutput();
                     else if (function == ActivationFunction::GAUSSIAN)
                         this->calculateGaussianOutput();
-                    else if (function == ActivationFunction::SPIKING)
-                        this->calculateSpikingOutput();
-                    else if (function == ActivationFunction::VOLTAGE)
-                        this->calculateTanhOutput();
-                    else if (function == ActivationFunction::EXP_SMOOTH)
-                        this->calculateIntervallOutput();
                     else
                         assert(false);
                 }
@@ -229,7 +176,6 @@ namespace NEAT {
                 void addInput(Neuron *input, double weight) {
                     this->inputs.push_back(input);
                     this->weights.push_back(weight);
-                    this->intervallCounter.push_back(0);
                 }
 
                 /* creats a new Neuron */
@@ -238,23 +184,14 @@ namespace NEAT {
                     gradient(gradient),
                     outputValue(0.0), 
                     weightedInputs(0.0), 
-                    periodicValue(0.0),
-                    v(-65),
-                    u(8) { }
+                    periodicValue(0.0) { }
 
                 /* resets this to zero */
                 void reset() {
                     this->outputValue    = 0.0;
                     this->weightedInputs = 0.0;
-                    this->v = -65;
-                    this->u = 8;
                 }
 
-                /* returns the voltage of this (for spiking neurons) */
-                double getVoltage() { return v; }
-
-                double getV() { return v; }
-                double getU() { return u; }
                 void setWeightedInputs(double inputs) { weightedInputs = inputs; }
 
         };

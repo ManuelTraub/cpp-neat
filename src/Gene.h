@@ -85,7 +85,7 @@ namespace NEAT {
         enum class NeuronType { BIAS = 0, INPUT = 1, HIDDEN = 2, OUTPUT = 3, RAND_BIAS = 4 };
 
         /* the different Netactivation functions possible */
-        enum class ActivationFunction { SIGMOID, TANH, RELU, SINE, LOG, SQRT, ABS, POW, EXP, ADD, MULT, GAUSSIAN, SPIKING, VOLTAGE, EXP_SMOOTH, LENGTH };
+        enum class ActivationFunction { SIGMOID, TANH, RELU, SINE, LOG, SQRT, ABS, POW, EXP, ADD, MULT, GAUSSIAN, LENGTH };
 
 
         /**
@@ -177,7 +177,7 @@ namespace NEAT {
 
                 /* mutates the ActivationFunction of this */
                 void mutateFunction() {
-                    function = ActivationFunction(rand64(rand) % int(ActivationFunction::SPIKING));
+                    function = ActivationFunction(rand64(rand) % int(ActivationFunction::LENGTH));
                 }
 
                 /* returns the gradient of this */

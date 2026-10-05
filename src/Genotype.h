@@ -53,9 +53,6 @@ namespace NEAT {
                 /* removes hidden neurons without connections */
                 void cleanupNeuorns();
 
-                /* connects the bias to the the given (new) output */
-                void connectToBias(NeuronGene o);
-
                 /* connects all inputs to the the given (new) output */
                 void connectOutput(NeuronGene o, bool connectBias = true);
    

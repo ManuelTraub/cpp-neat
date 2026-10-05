@@ -4,8 +4,6 @@
 #include <unordered_map>
 #include "../lib/simple_svg_1.0.0.hpp"
 #include "utils/utils.h"
-#include <IL/il.h>
-#include <unistd.h>
 
 using namespace svg;
 using namespace NEAT;
@@ -14,8 +12,8 @@ using std::unordered_map;
 using std::make_pair;
 
 /* create a new Phenotype out of the given Genotype */
-Phenotype::Phenotype(const Genotype &genome, Opts &opts, bool storeFirings) : 
-                     opts(opts.freeze()), genome(genome), storeFirings(storeFirings) {
+Phenotype::Phenotype(const Genotype &genome, Opts &opts) :
+                     opts(opts.freeze()), genome(genome) {
 
     unordered_map<uint64_t, NeuronGene> neuronGenes         = genome.getNeurons();
     unordered_map<uint64_t, ConnectionGene> connectionGenes = genome.getConnections();
@@ -108,9 +106,6 @@ void Phenotype::initNet(unsigned cycles) {
             neuron->reset();
     
     for (unsigned i = 0; i < cycles; i++) {
-        if (opts.netActivationFunction() == ActivationFunction::SPIKING) 
-            this->runSpiking(vector<double>(this->neuronLayers[0].size(), 0.0));
-
         this->runSinglePass(vector<double>(this->neuronLayers[0].size(), 0.0));
     }
 }
@@ -120,9 +115,6 @@ vector<double> Phenotype::run(vector<double> inputs) {
 
     if (opts.resetNetBeforRun())
         this->initNet();
-
-    if (opts.netActivationFunction() == ActivationFunction::SPIKING) 
-        return this->runSpiking(inputs);
 
     return this->runSinglePass(inputs);
 }
@@ -165,16 +157,6 @@ vector<double> Phenotype::runSinglePass(vector<double> inputs) {
         for (unsigned l = 1; l < neuronLayers.size(); l++)
             for (unsigned n = 0; n < neuronLayers[l].size(); n++) 
                 neuronLayers[l][n]->calculateOutput();
-        
-        if (storeFirings) {
-            vector<bool> curFirings;
-
-            for (unsigned l = 1; l < neuronLayers.size(); l++)
-                for (unsigned n = 0; n < neuronLayers[l].size(); n++) 
-                    curFirings.push_back(neuronLayers[l][n]->getValue() > 0.9);
-
-            this->firings.push_back(curFirings);
-        }
     }
 
     /* collect the output values */
@@ -183,64 +165,6 @@ vector<double> Phenotype::runSinglePass(vector<double> inputs) {
 
     return outputs;
 }
-
-/* calculate the output of a spiking neural network for a given input */
-vector<double> Phenotype::runSpiking(vector<double> inputs) {
-
-    assert(inputs.size() == neuronLayers[0].size() || inputs.empty());
-    vector<double> outputs(this->neuronLayers.back().size(), -1.0);
-
-    if (opts.spikeOutputEncoding() == Opts::SpikeCoding::FREQUENCY) {
-        for (unsigned i = 0; i < opts.spikingNumSimulationStepsPerOutoput(); i++) {
-            vector<double> cur = this->runSinglePass(inputs);
-            for (unsigned n = 0; n < outputs.size(); n++)
-                outputs[n] += cur[n];
-        }
-
-        for (unsigned n = 0; n < outputs.size(); n++) {
-            outputs[n] /= opts.spikingNumSimulationStepsPerOutoput() / 2;
-            outputs[n] -= 1;
-        }
-
-    } else if (opts.spikeOutputEncoding() == Opts::SpikeCoding::TIME) {
-
-        for (unsigned i = 0, setted = 0; 
-             setted < outputs.size() && i < opts.spikingMaxOutputSiumlationSteps(); 
-             i++) {
-
-            vector<double> cur = this->runSinglePass(inputs);
-
-            double curValue = opts.spikingMaxOutputSiumlationSteps() - 2*i;
-            curValue /= opts.spikingMaxOutputSiumlationSteps();
-
-            for (unsigned n = 0; n < outputs.size(); n++) {
-                if (outputs[n] < curValue && cur[n] > 0.5) {
-                    outputs[n] = curValue;
-                    setted++;
-                }
-            }
-        }
-    } else if (opts.spikeOutputEncoding() == Opts::SpikeCoding::TIME_WINDOW) {
-
-        for (unsigned i = 0; i < opts.spikingMaxOutputSiumlationSteps(); i++) {
-
-            vector<double> cur = this->runSinglePass(inputs);
-
-            double curValue = opts.spikingMaxOutputSiumlationSteps() - 2*i;
-            curValue /= opts.spikingMaxOutputSiumlationSteps();
-
-            for (unsigned n = 0; n < outputs.size(); n++) {
-                if (outputs[n] < curValue && cur[n] > 0.5) {
-                    outputs[n] = curValue;
-                }
-            }
-        }
-    }
-
-    return outputs;
-}
-
-
 
 /* returns the index of the output with tha higest value */
 unsigned Phenotype::maxOutput(vector<double> inputs) {
@@ -423,8 +347,6 @@ void Phenotype::saveAsSVG(string fname) {
             neuronFunction = "mult";
         else if (e.first->getFunction() == ActivationFunction::GAUSSIAN)
             neuronFunction = "gaus";
-        else if (e.first->getFunction() == ActivationFunction::SPIKING)
-            neuronFunction = "spiking";
 
         Point p(e.second.x - 50, e.second.y);
         if (opts.randomActivationFunction()) 
@@ -432,33 +354,6 @@ void Phenotype::saveAsSVG(string fname) {
     }
 
     doc.save();
-}
-
-/* create an image from a frigin pattern */
-void Phenotype::createFiringPattern(std::string fileName) {
-
-    if (!endsWith(fileName, ".png"))
-        fileName += ".png";
-
-    const unsigned numSimulationSteps = this->firings.size();
-    const unsigned numNeurons         = this->firings[0].size();
-
-    unlink(fileName.c_str());
-    uint8_t *pixels = (uint8_t *) calloc(numNeurons * numSimulationSteps * 3, sizeof(uint8_t));
-
-    for (unsigned t = 0; t < numSimulationSteps; t++) {
-        for (unsigned n = 0; n < numNeurons; n++) {
-            if (firings[t][n]) {
-                pixels[numNeurons * 3 * t + n * 3 + 0] = 0;
-                pixels[numNeurons * 3 * t + n * 3 + 1] = 255;
-                pixels[numNeurons * 3 * t + n * 3 + 2] = 0;
-            }
-        }
-    }
-
-    ilInit();
-    ilTexImage(numNeurons, numSimulationSteps, 0, 3, IL_RGB, IL_UNSIGNED_BYTE, pixels);
-    ilSaveImage(fileName.c_str());
 }
 
 /* prints the weights of this */

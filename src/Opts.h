@@ -59,9 +59,6 @@ namespace NEAT {
                 /* freezes this so its values can not longer be changed */
                 Opts &freeze() { frozen = true; return *this; }
 
-                /* the different spiking econdigns */
-                enum class SpikeCoding { FREQUENCY, TIME, TIME_WINDOW };
-
             /* number of input neurons (if 0 set by using the training data) */
             addOption(unsigned, numInputNeurons, 0)
 
@@ -173,17 +170,7 @@ namespace NEAT {
             /* the activation function for output neurons (LENGTH => use netActivationFunction) */
             addOption(ActivationFunction, outputActivationFunction, ActivationFunction::LENGTH);
 
-            /* the number of simulation steps which are neccessary 
-             * to compute on output in a spiking neural network */
-            addOption(unsigned, spikingNumSimulationStepsPerOutoput, 8);
-
-            /* the maxium nmber of simulation steps to wait for an spike to occour */
-            addOption(unsigned, spikingMaxOutputSiumlationSteps, 128);
-
-            /* the spike encoding */
-            addOption(SpikeCoding, spikeOutputEncoding, SpikeCoding::FREQUENCY);
-
-            /* indicates that a (spinking/reccurent) neuronal network 
+            /* indicates that a neuronal network
              * should be reset bevor each run */
             addOption(bool, resetNetBeforRun, false);
 

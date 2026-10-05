@@ -44,12 +44,6 @@ namespace NEAT {
                 /* the genotype of this */
                 const Genotype &genome;
 
-                /* indicates taht a firing pattern should be saved (spiking neurons) */
-                const bool storeFirings;
-
-                /* the stored firings */
-                vector<vector<bool>> firings;
-
             public:
 
                 /* returns the neuronLayers of this */
@@ -59,7 +53,7 @@ namespace NEAT {
                 unordered_map<uint64_t, Neuron *> getIDMap() const { return neuronMap; }
 
                 /* create a new Phenotype out of the given Genotype */
-                Phenotype(const Genotype &genome, Opts &opts, bool storeFirings = false); 
+                Phenotype(const Genotype &genome, Opts &opts);
 
                 /* resets the network and intorduces random dynamics */
                 void initNet(unsigned cycles = 200);
@@ -69,9 +63,6 @@ namespace NEAT {
 
                 /* calculate the output for a given input within a single pass trough the network */
                 vector<double> runSinglePass(vector<double> inputs);
-
-                /* calculate the output of a spiking neural network for a given input */
-                vector<double> runSpiking(vector<double> inputs);
 
                 /* returns the index of the output with tha higest value */
                 unsigned maxOutput(vector<double> inputs);
@@ -84,9 +75,6 @@ namespace NEAT {
 
                 /* export this as an svg image */
                 void saveAsSVG(string fname);
-
-                /* create an image from a frigin pattern */
-                void createFiringPattern(std::string fileName);
 
                 /* prints the weights of this */
                 void printWeights();

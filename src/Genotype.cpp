@@ -62,9 +62,6 @@ bool Genotype::mutateInsertNeuron() {
     connection1.setWeight(1.0);
     connection2.setWeight(mutatingGene.getWeight());
 
-    if (neuron.getFunction() == ActivationFunction::SPIKING)
-        connection1.setWeight(145);
-
     /* store the new genes */
     if (connections.count(connection1.getID()) == 0)
         connections.insert({connection1.getID(), connection1});
@@ -152,8 +149,7 @@ bool Genotype::mutateInsertStructure() {
     geneLinks.push_back(SEGeneLink(ts, SensorEffector::TOUCH_SENSOR, newStructure.getIndex()));
 
     /* connect the touch sensor to all outputNeurons */
-    if (opts.netActivationFunction() != ActivationFunction::SPIKING)
-        this->connectInput(ts);
+    this->connectInput(ts);
     
     /* add a new output Neuron for the new muscle if needed */
     if (newStructure.getType() == TissueType::MUSCLE) {
@@ -170,11 +166,8 @@ bool Genotype::mutateInsertStructure() {
             newStructure.getIndex()
         ));
 
-        /* connect the output to a bias to produce a regular spike */
-        if (opts.netActivationFunction() == ActivationFunction::SPIKING)
-            this->connectToBias(muscleEffector);
-        else /* connect all inputNeurons to the new muscle */
-            this->connectOutput(muscleEffector);
+        /* connect all inputNeurons to the new muscle */
+        this->connectOutput(muscleEffector);
     }
 
     /* store the new structure */
@@ -336,11 +329,8 @@ void Genotype::mutateStructureType() {
                 gene.getIndex()
             ));
 
-            /* connect the output to a bias to produce a regular spike */
-            if (opts.netActivationFunction() == ActivationFunction::SPIKING)
-                this->connectToBias(muscleEffector);
-            else /* connect all inputNeurons to the new muscle */
-                this->connectOutput(muscleEffector);
+            /* connect all inputNeurons to the new muscle */
+            this->connectOutput(muscleEffector);
         }
     }
 
@@ -427,18 +417,8 @@ Genotype::Genotype(Opts &opts, GeneHistory &geneHistory) :
     geneLinks.push_back(SEGeneLink(muscleTS, SensorEffector::TOUCH_SENSOR, muscleIndex));
     geneLinks.push_back(SEGeneLink(brainTS, SensorEffector::TOUCH_SENSOR, brain.getIndex()));
 
-    if (opts.netActivationFunction() == ActivationFunction::SPIKING) {
-
-        /* set the bias for or output neurons in the range 0 to 20 */
-        ConnectionGene biasConnection = geneHistory.insertConnection(bias, muscleNeuron);
-        biasConnection.mutateSet({0.0, 20.0});
-        connections.insert({biasConnection.getID(), biasConnection});
-
-    } else {
-
-        /* fully connect all inputs with all outputs */
-        this->createInitialConnections(true);
-    }
+    /* fully connect all inputs with all outputs */
+    this->createInitialConnections(true);
 }
 
 /* create a new Genotype for the given number of input and output neurons */
@@ -799,21 +779,6 @@ void Genotype::createInitialConnections(bool connectBias) {
                 generation = connections.at(connection.getID()).getGeneration();
 
             connections.at(connection.getID()).mutateSet({wStart, wEnd});
-        }
-    }
-}
-
-/* connects the bias to the the given (new) output */
-void Genotype::connectToBias(NeuronGene o) {
-
-    for (const auto &e : neurons) {
-        if (e.second.getType() == NeuronType::BIAS) {
-
-            const NeuronGene bias = e.second;
-
-            ConnectionGene biasConnection = geneHistory.insertConnection(bias, o);
-            biasConnection.mutateSet({0.0, 20.0});
-            connections.insert({biasConnection.getID(), biasConnection});
         }
     }
 }
