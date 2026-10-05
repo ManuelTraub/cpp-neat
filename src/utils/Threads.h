@@ -13,7 +13,7 @@
 
 #include <inttypes.h>
 
-namespace NEAVC {
+namespace NEAT {
 
     /* abstract thread class to override */
     class Thread {

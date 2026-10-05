@@ -6,7 +6,7 @@
 #define __GENE_HISTORY_H__
 
 #include "Gene.h"
-#include "../utils/TOGrid.h"
+#include "utils/TOGrid.h"
 #include "Opts.h"
 #include <vector>
 #include <unordered_map>
@@ -15,9 +15,8 @@ using std::vector;
 using std::unordered_map;
 using std::make_pair;
 
-namespace NEAVC {
+namespace NEAT {
 
-    namespace AI {
         
         /* Connections of a NeuronGene */
         class NeuronGeneConnections {
@@ -123,7 +122,6 @@ namespace NEAVC {
                 void clear();
 
         };
-    }
 }
 
 #endif /* __GENE_HISTORY_H__ */

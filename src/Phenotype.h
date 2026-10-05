@@ -1,5 +1,5 @@
 /**
- * Abstract Phenotype encoding a Individual within NEAVC
+ * Abstract Phenotype encoding a Individual within NEAT
  */
 #ifndef __PHENOTYPE_H__
 #define __PHENOTYPE_H__
@@ -12,12 +12,11 @@
 using std::vector;
 using std::string;
 
-namespace NEAVC {
+namespace NEAT {
     
-    namespace AI {
         
         /**
-         * Represennst a Neural network within NEAVC
+         * Represennst a Neural network within NEAT
          */
         class Phenotype {
             
@@ -101,7 +100,6 @@ namespace NEAVC {
                 /* destructor */
                 ~Phenotype();
         };
-    }
 }
 
 #endif /* __PHENOTYPE_H__ */

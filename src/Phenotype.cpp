@@ -2,14 +2,13 @@
 #include <assert.h>
 #include <set>
 #include <unordered_map>
-#include "../../lib/simple_svg_1.0.0.hpp"
-#include "../utils/utils.h"
+#include "../lib/simple_svg_1.0.0.hpp"
+#include "utils/utils.h"
 #include <IL/il.h>
 #include <unistd.h>
 
 using namespace svg;
-using namespace NEAVC;
-using namespace AI;
+using namespace NEAT;
 using std::set;
 using std::unordered_map;
 using std::make_pair;

@@ -4,8 +4,7 @@
 #include <chrono>
 #include <thread>
 
-using namespace NEAVC;
-using namespace AI;
+using namespace NEAT;
 
 /* thread function to override by child class */
 void ParallelWorker::threadFunction(void *) {

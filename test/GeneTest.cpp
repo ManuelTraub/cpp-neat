@@ -1,4 +1,4 @@
-#include "../../src/AI/Gene.h"
+#include "../src/Gene.h"
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -7,12 +7,11 @@
 #include <vector>
 
 using std::vector;
-using namespace NEAVC;
-using namespace AI;
+using namespace NEAT;
 
 #define static_t rand64_t
 #define test_t rand64_t
-#include "../TestSuite.h"
+#include "TestSuite.h"
 
 
 BEVOR_ALL() {

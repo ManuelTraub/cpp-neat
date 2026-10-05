@@ -1,5 +1,5 @@
 /**
- * encapsulation of the population of NEAVC which consists out of several species
+ * encapsulation of the population of NEAT which consists out of several species
  */
 #ifndef __POPULATION_H__
 #define __POPULATION_H__
@@ -11,9 +11,7 @@
 using std::shared_ptr;
 using std::vector;
 
-namespace NEAVC {
-
-    namespace AI {
+namespace NEAT {
 
         /* foreard declarations */
         struct FitnessCalculator;
@@ -137,7 +135,6 @@ namespace NEAVC {
                 vector<shared_ptr<Species>> &getSpecies() { return this->species; }
 #endif 
         };
-    }
 }
 
 

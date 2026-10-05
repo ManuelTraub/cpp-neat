@@ -9,9 +9,7 @@
 
 using std::vector;
 
-namespace NEAVC {
-
-    namespace AI {
+namespace NEAT {
 
         class Neuron {
             
@@ -260,7 +258,6 @@ namespace NEAVC {
                 void setWeightedInputs(double inputs) { weightedInputs = inputs; }
 
         };
-    }
 };
 
 #endif /* __NEURON_H__ */

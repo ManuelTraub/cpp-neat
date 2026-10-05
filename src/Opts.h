@@ -1,5 +1,5 @@
 /**
- * global NEAVC options
+ * global NEAT options
  */
 #ifndef __OPTS_H__
 #define __OPTS_H__
@@ -35,9 +35,8 @@ using std::make_pair;
         }                                              
                                                       
 
-namespace NEAVC {
+namespace NEAT {
 
-    namespace AI {
         
         class Opts {
 
@@ -284,7 +283,6 @@ namespace NEAVC {
             addOption(double, terrainBumpiness, 0.1)
 
         };
-    }
 }
 
 #undef addOption

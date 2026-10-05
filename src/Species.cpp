@@ -2,8 +2,7 @@
 #include "Organism.h"
 #include <algorithm>
 
-using namespace NEAVC;
-using namespace AI;
+using namespace NEAT;
 using std::make_shared;
 
 /* global random value */
@@ -150,13 +149,10 @@ void Species::killWorst() {
     this->averageFitness /= this->organisms.size();
 }
 
-namespace NEAVC {
-
-    namespace AI {
+namespace NEAT {
 
         /* compares two Species based on theyr best fittness */
         bool orderSpecies(const shared_ptr<Species> &a, const shared_ptr<Species> &b) {
             return a->getBestFitness() > b->getBestFitness();
         }
-    }
 }

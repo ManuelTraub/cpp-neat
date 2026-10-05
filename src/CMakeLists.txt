@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-PROJECT(NEAVC)
+PROJECT(NEAT)
 
 if (${WIN32}) 
   SET (CMAKE_CXX_COMPILER           "/C/mingw64/bin/g++")
@@ -19,15 +19,15 @@ endif()
 find_package(Threads REQUIRED)
 
 add_library(neat STATIC
-    AI/Gene.cpp
-    AI/GeneHistory.cpp
-    AI/GenerationCounter.cpp
-    AI/Genotype.cpp
-    AI/Phenotype.cpp
-    AI/Organism.cpp
-    AI/Species.cpp
-    AI/Population.cpp
-    AI/ParallelWorker.cpp
+    Gene.cpp
+    GeneHistory.cpp
+    GenerationCounter.cpp
+    Genotype.cpp
+    Phenotype.cpp
+    Organism.cpp
+    Species.cpp
+    Population.cpp
+    ParallelWorker.cpp
     utils/utils.cpp
     utils/Threads.cpp
 )

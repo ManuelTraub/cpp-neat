@@ -1,7 +1,7 @@
 #ifndef __PARALLEL_WORKER_H__
 #define __PARALLEL_WORKER_H__
 
-#include "../utils/Threads.h"
+#include "utils/Threads.h"
 #include "Organism.h"
 
 #include <deque>
@@ -12,9 +12,8 @@
 
 using std::deque;
 
-namespace NEAVC {
+namespace NEAT {
 
-    namespace AI {
     
         class ParallelWorker: public Thread {
             
@@ -110,7 +109,6 @@ namespace NEAVC {
                 ParallelProcessor(const unsigned numThreads, FitnessCalculator *fitnessCalculator);
 
         };
-    }
 };
 
 #endif /* __PARALLEL_WORKER_H__ */

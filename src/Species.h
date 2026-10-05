@@ -5,16 +5,14 @@
 #define __SPECIES_H__
 
 #include <memory>
-#include "../utils/utils.h"
+#include "utils/utils.h"
 #include "Genotype.h"
 #include "Organism.h"
 #include "Opts.h"
 
 using std::shared_ptr;
 
-namespace NEAVC {
-
-    namespace AI {
+namespace NEAT {
 
         class Species {
             
@@ -131,7 +129,6 @@ namespace NEAVC {
         /* compares two Species based on theyr best fittness */
         bool orderSpecies(const shared_ptr<Species> &a, const shared_ptr<Species> &b);
 
-    }
 }
 
 #endif /* __SPECIES_H__ */

@@ -1,8 +1,7 @@
 #include "GeneHistory.h"
 #include "Opts.h"
 
-using namespace NEAVC;
-using namespace AI;
+using namespace NEAT;
 
 /* global random value */
 rand64_t *GeneHistory::rand = new_rand64_t();

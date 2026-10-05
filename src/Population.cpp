@@ -7,8 +7,7 @@
 
 using std::shared_ptr;
 using std::make_shared;
-using namespace NEAVC;
-using namespace AI;
+using namespace NEAT;
 
 /* abstract destructor */
 SpeciesInspector::~SpeciesInspector() { };

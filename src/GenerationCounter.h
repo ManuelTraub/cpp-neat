@@ -6,9 +6,7 @@
 
 #include <inttypes.h>
 
-namespace NEAVC {
-
-    namespace AI {
+namespace NEAT {
 
         /* forward declaration */
         class Population;
@@ -46,7 +44,6 @@ namespace NEAVC {
 #endif
 
         };
-    }
 }
 
 #endif /* __GENERATION_COUNTER_H__ */

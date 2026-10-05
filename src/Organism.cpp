@@ -1,8 +1,7 @@
 #include "Organism.h"
 #include "Opts.h"
 
-using namespace NEAVC;
-using namespace AI;
+using namespace NEAT;
 
 #define fitterGenome(o1, o2) ((o1.fitness > o2.fitness) ? o1.genome : o2.genome)
 #define weakerGenome(o1, o2) ((o1.fitness > o2.fitness) ? o2.genome : o1.genome)
@@ -146,13 +145,10 @@ void Organism::mutate() {
         this->genome.mutateStructureSize();
 }
 
-namespace NEAVC {
-
-    namespace AI {
+namespace NEAT {
 
         /* compares two Organism based on theyr adjustedFitness fittness */
         bool orderOrganisms(const shared_ptr<Organism> &a, const shared_ptr<Organism> &b) {
             return a->getFitness() > b->getFitness();
         }
-    }
 }

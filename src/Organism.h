@@ -12,9 +12,7 @@
 
 using std::shared_ptr;
 
-namespace NEAVC {
-
-    namespace AI {
+namespace NEAT {
 
         /* abstract interface to calculate the fittness of a given Genome */
         struct FitnessCalculator {
@@ -135,7 +133,6 @@ namespace NEAVC {
         /* compares two Organism based on theyr adjustedFitness fittness */
         bool orderOrganisms(const shared_ptr<Organism> &a, const shared_ptr<Organism> &b);
 
-    }
 }
 
 #endif /* __INDIVIDUUM_H__ */

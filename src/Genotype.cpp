@@ -4,8 +4,7 @@
 #include <assert.h>
 #include <unistd.h>
 
-using namespace NEAVC;
-using namespace AI;
+using namespace NEAT;
 
 /* global random value to mutate this */
 rand64_t *Genotype::rand = new_rand64_t();

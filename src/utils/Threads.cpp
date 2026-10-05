@@ -1,5 +1,5 @@
 #include "Threads.h"
-using namespace NEAVC;
+using namespace NEAT;
 
 #include <algorithm>
 #include <memory.h>

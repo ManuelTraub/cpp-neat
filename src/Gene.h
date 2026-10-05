@@ -1,5 +1,5 @@
 /**
- * Abstract Gene representation within NEAVC
+ * Abstract Gene representation within NEAT
  * each Gene has an historical id to track back
  * its origin
  */
@@ -10,15 +10,13 @@
 #include <pthread.h>
 #include <assert.h>
 #include <vector>
-#include "../utils/utils.h"
-#include "../utils/TOGrid.h"
+#include "utils/utils.h"
+#include "utils/TOGrid.h"
 #include "GenerationCounter.h"
 
 using std::vector;
 
-namespace NEAVC {
-
-    namespace AI {
+namespace NEAT {
 
         /* An abstract Gene which has an historical id so as an generation number 
          * naming the generation it was invented or mutated.
@@ -421,7 +419,6 @@ namespace NEAVC {
                 /* loads the SEGeneLink from the given file */
                 SEGeneLink(const int fd);
         };
-    }
 }
 
 #endif /* __GENE_H__ */

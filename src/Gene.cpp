@@ -1,8 +1,7 @@
 #include "Gene.h"
 #include <unistd.h>
 
-using namespace NEAVC;
-using namespace AI;
+using namespace NEAT;
 
 /* the global id counter */
 uint64_t Gene::idCounter = 0; 

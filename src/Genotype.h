@@ -1,21 +1,20 @@
 /**
- * Abstract Genotype encoding a Individual within NEAVC
+ * Abstract Genotype encoding a Individual within NEAT
  */
 #ifndef __GENOTYPE_H__
 #define __GENOTYPE_H__
 
 #include <vector>
 #include <unordered_map>
-#include "../utils/utils.h"
+#include "utils/utils.h"
 #include "Gene.h"
 #include "GeneHistory.h"
 #include "Opts.h"
 
 using std::unordered_map;
 
-namespace NEAVC {
+namespace NEAT {
 
-    namespace AI {
         
         class Genotype {
             
@@ -149,7 +148,6 @@ namespace NEAVC {
                 ConnectionGene &addConnection(const NeuronGene &gene1, const NeuronGene &gene2);
 #endif
         };
-    }
 }
 
 #endif /* __GENOTYPE_H__ */

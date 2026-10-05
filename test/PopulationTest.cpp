@@ -1,7 +1,7 @@
-#include "../../src/utils/utils.h"
-#include "../../src/AI/Species.h"
-#include "../../src/AI/Population.h"
-#include "../../src/AI/Opts.h"
+#include "../src/utils/utils.h"
+#include "../src/Species.h"
+#include "../src/Population.h"
+#include "../src/Opts.h"
 
 #include <vector>
 #include <memory>
@@ -10,8 +10,7 @@
 using std::shared_ptr;
 using std::make_shared;
 using std::vector;
-using namespace NEAVC;
-using namespace AI;
+using namespace NEAT;
 
 double avgVector(vector<unsigned> v) {
     double avg = 0;
@@ -23,7 +22,7 @@ double avgVector(vector<unsigned> v) {
 
 #define static_t rand64_t
 #define test_t rand64_t
-#include "../TestSuite.h"
+#include "TestSuite.h"
 
 BEVOR_ALL() {
     return new_rand64_t();
