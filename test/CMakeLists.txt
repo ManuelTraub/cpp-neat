@@ -1,41 +1,41 @@
-cmake_minimum_required(VERSION 2.8)
+foreach(component Gene Genotype Phenotype GeneHistory Organism Species Population)
+    add_executable(${component}Test ${component}Test.cpp)
+    target_link_libraries(${component}Test PRIVATE neat)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(${component}Test PRIVATE -Wall -Wextra -Wno-unused-result)
+    endif()
+endforeach()
 
-PROJECT(NEAT)
+function(add_neat_test name target)
+    set(work_dir "${CMAKE_CURRENT_BINARY_DIR}/work/${name}")
+    file(MAKE_DIRECTORY "${work_dir}")
+    add_test(NAME ${name} COMMAND ${target} ${ARGN})
+    set_tests_properties(${name} PROPERTIES
+        WORKING_DIRECTORY "${work_dir}"
+        ENVIRONMENT "NEAT_SEED=${NEAT_TEST_SEED}"
+    )
+endfunction()
 
-if (${WIN32})
-  SET (CMAKE_CXX_COMPILER           "/C/mingw64/bin/g++")
-  SET (CMAKE_CXX_FLAGS              "-Wall -Wextra -g -O3 -march=native --std=c++14")
+foreach(component Gene Genotype Phenotype GeneHistory Organism Species)
+    add_neat_test(${component} ${component}Test)
+endforeach()
 
-  SET (CMAKE_C_COMPILER             "/C/mingw64/bin/gcc")
-  SET (CMAKE_C_FLAGS                "-Wall -Wextra -g -O3 -march=native")
-else()
-  SET (CMAKE_CXX_COMPILER           "/usr/bin/g++")
-  SET (CMAKE_CXX_FLAGS              "-Wall -Wextra -g -Wno-unused-result -O3 -march=native --std=c++14")
+set(population_tests
+    basicOrganismSpeedTest
+    basicSpeciesSpeedTest
+    advancedSpeciesSpeedTest
+    basicGenerationChangeSpeedTest
+    basicBinaryXORTest
+    binaryXORQualityTest
+    binaryXORZeroStartConectionsQualityTest
+    basicRecurencyTest
+    binaryXORQualityTanhTest
+    binaryXORZeroStartConectionsQualityTanhTest
+    finiteFitnessSelectionTest
+    customFitnessDimensionsTest
+    parallelEvaluationTest
+)
 
-  SET (CMAKE_C_COMPILER             "/usr/bin/gcc")
-  SET (CMAKE_C_FLAGS                "-Wall -Wextra -g -O3 -march=native")
-endif()
-
-add_executable(GeneTest GeneTest.cpp)
-add_executable(GenotypeTest GenotypeTest.cpp)
-add_executable(PhenotypeTest PhenotypeTest.cpp)
-add_executable(GeneHistoryTest GeneHistoryTest.cpp)
-add_executable(OrganismTest OrganismTest.cpp)
-add_executable(SpeciesTest SpeciesTest.cpp)
-add_executable(PopulationTest PopulationTest.cpp)
-
-target_link_libraries(PopulationTest neat)
-target_link_libraries(GeneTest neat)
-target_link_libraries(GenotypeTest neat)
-target_link_libraries(PhenotypeTest neat)
-target_link_libraries(GeneHistoryTest neat)
-target_link_libraries(OrganismTest neat)
-target_link_libraries(SpeciesTest neat)
-
-add_test(NAME Gene                 COMMAND GeneTest)
-add_test(NAME Genotype             COMMAND GenotypeTest)
-add_test(NAME Phenotype            COMMAND PhenotypeTest)
-add_test(NAME GeneHistory          COMMAND GeneHistoryTest)
-add_test(NAME Organism             COMMAND OrganismTest)
-add_test(NAME Species              COMMAND SpeciesTest)
-add_test(NAME Population           COMMAND PopulationTest)
+foreach(test_name IN LISTS population_tests)
+    add_neat_test(Population.${test_name} PopulationTest -t ${test_name})
+endforeach()

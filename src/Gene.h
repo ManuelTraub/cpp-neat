@@ -11,7 +11,6 @@
 #include <assert.h>
 #include <vector>
 #include "utils/utils.h"
-#include "utils/TOGrid.h"
 #include "GenerationCounter.h"
 
 using std::vector;
@@ -82,10 +81,10 @@ namespace NEAT {
         };
 
         /* the different types of neurons (input output or hidden) */
-        enum class NeuronType { BIAS = 0, INPUT = 1, HIDDEN = 2, OUTPUT = 3, RAND_BIAS = 4 };
+        enum class NeuronType { BIAS = 0, INPUT = 1, HIDDEN = 2, OUTPUT = 3 };
 
         /* the different Netactivation functions possible */
-        enum class ActivationFunction { SIGMOID, TANH, RELU, SINE, LOG, SQRT, ABS, POW, EXP, ADD, MULT, GAUSSIAN, LENGTH };
+        enum class ActivationFunction { SIGMOID, TANH, RELU, LENGTH };
 
 
         /**
@@ -121,11 +120,6 @@ namespace NEAT {
                 /* returns the ActivationFunction of this */
                 ActivationFunction getFunction() const { return function; }
 
-                /* set the ActivationFunction of this */
-                void setFunction(const ActivationFunction function) {
-                    this->function = function;
-                }
-
                 /* returns the layer if of this */
                 uint64_t getLayerID() const { return layerID; }
 
@@ -139,8 +133,7 @@ namespace NEAT {
 
                     assert(type == NeuronType::INPUT  || 
                            type == NeuronType::OUTPUT ||
-                           type == NeuronType::BIAS   ||
-                           type == NeuronType::RAND_BIAS);
+                           type == NeuronType::BIAS);
                 }
 
                 /* loads the NeuronGene from the given file */
@@ -173,11 +166,6 @@ namespace NEAT {
                 void mutateGradient() {
                     assert(gradient >= 0);
                     gradient *= rand_range_d64(rand, 0.0, 2.0);
-                }
-
-                /* mutates the ActivationFunction of this */
-                void mutateFunction() {
-                    function = ActivationFunction(rand64(rand) % int(ActivationFunction::LENGTH));
                 }
 
                 /* returns the gradient of this */
@@ -288,137 +276,6 @@ namespace NEAT {
                 }
         };
 
-        /* the different types of cellular tissues */
-        enum class TissueType { TISSUE, NEURON, SENSOR, MUSCLE };
-
-        /**
-         * A StructureGene encodes for a specific cellular tissue 
-         * at a specific possition in 3D space
-         */
-        class StructureGene : public Gene {
-            
-            private:
-
-                /* the tissue type of this gene */
-                TissueType type;
-
-                /* the possition in 3D space */
-                int64_t x, y, z;
-
-                /* the size of this */
-                double size;
-
-                /* should save the child of this */
-                virtual bool saveChild(const int fd) const;
-
-            public:
-
-                /* getter method for the type of this */
-                TissueType getType() const { return type; }
-
-                /* sets the tissues type of this */
-                void setType(const TissueType type) { 
-                    this->type = type; 
-                    generation = GenerationCounter::get();
-                }
-
-                /* returns the possition in 3D space of this */
-                TOGridIndex getIndex() const { return TOGridIndex(x, y, z); }
-
-                /* returns the size of this */
-                double getSize() const { return size; }
-
-                /* sets the size of this */
-                void setSize(const double size) { this->size = size; }
-
-                /* resets the size of this to a random value */
-                void mutateSet(const vector<double> sizeRange) { 
-                    size = rand_range_d64(rand, sizeRange[0], sizeRange[1]); 
-                    generation = GenerationCounter::get();
-                }
-
-                /* uniformly perturbe the weight of this */
-                void mutatePertube(const vector<double> sizeRange,
-                                   const vector<double> maxSizeRange) {
-
-                    size += rand_range_d64(rand, sizeRange[0], sizeRange[1]); 
-
-                    if (size < maxSizeRange[0]) size = maxSizeRange[0];
-                    if (size > maxSizeRange[1]) size = maxSizeRange[1];
-
-                    generation = GenerationCounter::get();
-                }
-                
-
-                /* constructor of this */
-                StructureGene(
-                    const TissueType type, 
-                    const int64_t x,
-                    const int64_t y,
-                    const int64_t z,
-                    const double size
-                ) : type(type), x(x), y(y), z(z), size(size)  { }
-
-                /* loads the StructureGene from the given file */
-                StructureGene(const int fd);
-
-        };
-
-        /* the sensor effector types of this */
-        enum class SensorEffector { ENERGY_SENSOR, TOUCH_SENSOR, VISION_SENSOR, MUSCLE_EFFECTOR };
-
-        /* linking an sensor / effector (NeuronGene) */
-        class SEGeneLink {
-
-            private:
-
-                /* the NeuronGene of this */
-                NeuronGene neuron;
-
-                /* the SensorEffector type of this */
-                SensorEffector type;
-
-                /* the structural possition this belongs to */
-                int64_t x, y, z;
-
-                /* extra dimensional index */
-                uint64_t n;
-
-            public:
-
-                /* returns the neuron of this */
-                NeuronGene getNeuron() const { return neuron; }
-
-                /* returns the type of this */
-                SensorEffector getType() const {  return type; }
-
-                /* returns teh index of this */
-                const TOGridIndex getIndex() const { return TOGridIndex(x, y, z, n); }
-
-                /* saves this */
-                bool save(const int fd) const;
-
-                /* constructor */
-                SEGeneLink(
-                    const NeuronGene &neuron, 
-                    const SensorEffector type, 
-                    const TOGridIndex index = TOGridIndex()
-                ) :
-                    neuron(neuron), 
-                    type(type),
-                    x(index.getX()),
-                    y(index.getY()),
-                    z(index.getZ()),
-                    n(index.getN()) { 
-
-                    assert(neuron.getType() == NeuronType::INPUT || 
-                           neuron.getType() == NeuronType::OUTPUT);
-
-                }
-
-                /* loads the SEGeneLink from the given file */
-                SEGeneLink(const int fd);
-        };
 }
 
 #endif /* __GENE_H__ */

@@ -89,20 +89,11 @@ namespace NEAT {
             /* propability of adding a new Connection between two Neurons during mutation */
             addOption(double, addConnectionMutationPropability, 0.05)
 
-            /* propability of removing a Neuron during mutation */
-            addOption(double, removeNeuronMutationPropability, 0)
-
-            /* propability of removing a new Connection between two Neurons during mutation */
-            addOption(double, removeConnectionMutationPropability, 0)
-
             /* the propability of mutating the weights of a Genome during mutation */
             addOption(double, mutateWeightsPropability, 0.9)
 
             /* the propability of mutating the neurons of a Genome during mutation */
             addOption(double, mutateNeuronsPropability, 0.5)
-
-            /* the propability of mutating the function of a genome during mutating */
-            addOption(double, mutateFunctionPropability, 0);
 
             /* indicates whether the gradient shoud be recombinated or choosen from the fitter */
             addOption(bool, recombinateNeurons, true);
@@ -115,15 +106,6 @@ namespace NEAT {
 
             /* avg gradient difference multiplier when calculating the similarity */
             addOption(double, gradientMultiplier, 0.1)
-
-            /* avg function difference multiplier when calculating the similarity */
-            addOption(double, functionMultiplier, 1.0)
-
-            /* the structure multiplayer for calculating similarity */
-            addOption(double, structureMultiplier, 1.0);
-
-            /* avg gradient difference multiplier when calculating the similarity */
-            addOption(double, sizeMultiplier, 0.5)
 
             /* the perturbe weight range start and end */
             addOption(double, perturbeWeightRangeStart, -2.5)
@@ -164,9 +146,6 @@ namespace NEAT {
             /* the net activation function used in the neurons */
             addOption(ActivationFunction, netActivationFunction, ActivationFunction::SIGMOID);
 
-            /* indicates wheter to randomly coose the activation function */
-            addOption(bool, randomActivationFunction, false);
-
             /* the activation function for output neurons (LENGTH => use netActivationFunction) */
             addOption(ActivationFunction, outputActivationFunction, ActivationFunction::LENGTH);
 
@@ -174,31 +153,10 @@ namespace NEAT {
              * should be reset bevor each run */
             addOption(bool, resetNetBeforRun, false);
 
-            /* the propability of evolving a muscle structure gene */
-            addOption(double, muscleTissuePropability, 0.1);
-
-            /* the propability of evolving a sensor structure gene */
-            addOption(double, sensorTissuePropability, 0.05);
-
-            /* the propability of adding structure during mutation */
-            addOption(double, addStructureMutationPropability, 0.01);
-
-            /* the propability of removing structure during mutation */
-            addOption(double, removeStructureMutationPropability, 0.005);
-
-            /* the propability of mutating structure type during mutation */
-            addOption(double, mutateStructureTypePropability, 0.02);
-
-            /* the propability of mutating structure size during mutation */
-            addOption(double, mutateStructureSizePropability, 0.9);
-
             /* the offset to the agin propability for mutating a certain connection
              * Propability = 1/(age + 1) + offset
              */
             addOption(double, ageingPropabilityOffset, 1.0);
-
-            /* indicate that we are want a random value connected to each output */
-            addOption(bool, useRandomBiases, false);
 
             /* indicate that we are alowing insertion of neurons into BIAS neurons */
             addOption(bool, allowNeuronIntoBiasConnectionInsert, false);
@@ -211,63 +169,6 @@ namespace NEAT {
 
             /* number of threads */
             addOption(unsigned, numThreads, 1);
-
-            /* the perturbe size range start and end */
-            addOption(double, perturbeSizeRangeStart, -0.1)
-            addOption(double, perturbeSizeRangeEnd, 0.1)
-
-            /* the size range for seting sizes during mutation */
-            addOption(double, mutationSetSizeRangeStart, 0.0)
-            addOption(double, mutationSetSizeRangeEnd, 6.283185307179586l)
-
-            /* the size range for creating a ConnectionGene */
-            addOption(double, creationSizeRangeStart, 0.0) 
-            addOption(double, creationSizeRangeEnd, 6.283185307179586)
-
-            /* the max size range for pertubing size during mutation */
-            addOption(double, mutationMaxPertubeSizeRangeStart, 0.0) 
-            addOption(double, mutationMaxPertubeSizeRangeEnd, 6.283185307179586)
-
-            /* the propability of setting a structure size to 
-             * a new random value during mutation 
-             */
-            addOption(double, hardMutationPropabilitySize, 0.1)
-
-            /* the desired number of stuctures */
-            addOption(unsigned, wantedNumberOfStructures, 30);
-
-            /* the minimum possible fittness */
-            addOption(double, minFitness, 0.00000001);
-
-            /* the size of one hexagon on the energy field */
-            addOption(double, energyFieldSize, 30);
-
-            /* terrain scale controls the frequency of the noise */
-            addOption(double, terrainScale, 0.4)
-
-            /* terrain amplitude controls the height variation */
-            addOption(double, terrainAmplitude, 1.0)
-
-            /* terrain seed for random generation */
-            addOption(int, terrainSeed, -1)
-
-            /* number of octaves for fBm */
-            addOption(int, terrainOctaves, 4)
-
-            /* persistence controls how much each octave contributes */
-            addOption(double, terrainPersistence, 0.5)
-
-            /* lacunarity controls frequency increase with each octave */
-            addOption(double, terrainLacunarity, 2.0)
-
-            /* base height of the terrain */
-            addOption(double, terrainBaseHeight, 0.0)
-
-            /* flatness of the terrain */
-            addOption(double, terrainFlatness, 1.1)
-
-            /* small-scale bumpiness */
-            addOption(double, terrainBumpiness, 0.1)
 
         };
 }

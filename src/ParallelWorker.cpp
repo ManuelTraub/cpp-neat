@@ -8,15 +8,16 @@ using namespace NEAT;
 
 /* thread function to override by child class */
 void ParallelWorker::threadFunction(void *) {
-    while (!this->organisms.empty()) {
-        shared_ptr<Organism> organism;
+    while (true) {
         mutex.lock();
 
-        if (!this->organisms.empty()) {
-            organism = this->organisms.front();
-            this->organisms.pop_front();
+        if (this->organisms.empty()) {
+            mutex.unlock();
+            break;
         }
 
+        shared_ptr<Organism> organism = this->organisms.front();
+        this->organisms.pop_front();
         mutex.unlock();
 
         if (organism != nullptr) {
@@ -97,7 +98,6 @@ void ParallelProcessor::monitorProgress(void*) {
 /* reset progress */
 void ParallelProcessor::resetProgress() {
     processedCount = 0;
-    lastPrintedPercent = 0;
     startTime = std::chrono::high_resolution_clock::now();
     isComplete = false;
 }
@@ -153,7 +153,6 @@ ParallelProcessor::ParallelProcessor(
 ) : fitnessCalculator(fitnessCalculator), 
     totalOrganisms(0), 
     processedCount(0),
-    lastPrintedPercent(0),
     progressBarEnabled(true),
     lastLineLength(0),
     isComplete(false) {

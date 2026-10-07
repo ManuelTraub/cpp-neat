@@ -31,6 +31,39 @@ AFTER() {
     (void) args;
 }
 
+TEST(survivalBoundaryTest) {
+
+    const unsigned sizes[] = {1, 2, 5, 10, 25};
+    const unsigned defaultSurvivors[] = {1, 1, 2, 3, 6};
+
+    for (const bool allSurvive : {false, true}) {
+        for (unsigned n = 0; n < 5; n++) {
+            Opts opts;
+            if (allSurvive)
+                opts.survivalRate(1.0);
+            GeneHistory geneHistory(opts);
+            Species species(opts, geneHistory);
+            vector<shared_ptr<Organism>> organisms;
+
+            for (unsigned i = 0; i < sizes[n]; i++) {
+                organisms.push_back(make_shared<Organism>(1, 1, opts, geneHistory));
+                organisms.back()->setFitness(sizes[n] - i);
+                species.add(organisms.back());
+            }
+            species.update();
+            species.killWorst();
+
+            const unsigned survivors = allSurvive ? sizes[n] : defaultSurvivors[n];
+            ASSERT_EQUAL(species.size(), survivors);
+            for (unsigned i = 0; i < organisms.size(); i++)
+                ASSERT_EQUAL(organisms[i]->isAlive(), i < survivors);
+            ASSERT_EQUAL(species.getAverageFitness(), (2.0 * sizes[n] - survivors + 1) / 2);
+        }
+    }
+
+    return args;
+}
+
 
 TEST(basicSortingTest) {
 

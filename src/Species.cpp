@@ -134,6 +134,7 @@ shared_ptr<Organism> Species::createOffspring(Species &other) {
 void Species::killWorst() {
     
     unsigned killStart = this->organisms.size() * opts.survivalRate() + 1;
+    killStart = std::min(killStart, this->size());
 
     for (unsigned i = killStart; i < this->organisms.size(); i++)
         organisms[i]->kill();

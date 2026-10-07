@@ -30,20 +30,52 @@ AFTER() {
     (void) args;
 }
 
+class LoadableGene : public Gene {
+    public:
+        using Gene::loadBase;
+};
+
+TEST(truncatedHeaderTest) {
+
+    const uint64_t header[] = {0, GenerationCounter::get()};
+    char fname[64];
+    sprintf(fname, "temp%lu.gene", rand64(args));
+
+    for (unsigned length = 0; length < sizeof(header); length++) {
+        const int fd = open(fname, O_RDWR|O_CREAT|O_TRUNC, 00777);
+        ASSERT_TRUE(fd >= 0, "failed to open file");
+        ASSERT_EQUAL(write(fd, header, length), length, "failed to write truncated header");
+        ASSERT_EQUAL(lseek(fd, 0, SEEK_SET), 0, "failed to rewind file");
+
+        LoadableGene gene;
+        const bool loaded = gene.loadBase(fd);
+        ASSERT_EQUAL(lseek(fd, 0, SEEK_SET), 0, "failed to rewind file");
+
+        bool rejected = false;
+        try {
+            NeuronGene neuron(fd);
+        } catch (const char *) {
+            rejected = true;
+        }
+
+        ASSERT_FALSE(close(fd), "failed to close file");
+        ASSERT_FALSE(loaded, "truncated header accepted at %u bytes", length);
+        ASSERT_TRUE(rejected, "truncated neuron header accepted at %u bytes", length);
+    }
+
+    ASSERT_FALSE(unlink(fname), "failed to delete file");
+    return args;
+}
+
 TEST_N(basicSaveLoadTest, 10000) {
     
 
     NeuronGene input(NeuronType::INPUT, ActivationFunction::SIGMOID, rand64(args));
     NeuronGene output(NeuronType::OUTPUT, ActivationFunction::TANH, rand64(args));
-    NeuronGene bias(NeuronType::BIAS, ActivationFunction::SINE, rand64(args));
+    NeuronGene bias(NeuronType::BIAS, ActivationFunction::SIGMOID, rand64(args));
 
     ConnectionGene connection(input, output);
     NeuronGene hidden = connection.split(ActivationFunction::RELU);
-
-    StructureGene tissue(TissueType::TISSUE, rand64(args), rand64(args), rand64(args), rand64(args));
-    StructureGene neuron(TissueType::TISSUE, rand64(args), rand64(args), rand64(args), rand64(args));
-    StructureGene sensor(TissueType::TISSUE, rand64(args), rand64(args), rand64(args), rand64(args));
-    StructureGene muscle(TissueType::TISSUE, rand64(args), rand64(args), rand64(args), rand64(args));
 
     char fname[64];
     sprintf(fname, "temp%lu.gene", rand64(args));
@@ -56,11 +88,6 @@ TEST_N(basicSaveLoadTest, 10000) {
     ASSERT_TRUE(bias.save(fd), "failed to write gene");
     ASSERT_TRUE(connection.save(fd), "failed to write gene");
     ASSERT_TRUE(hidden.save(fd), "failed to write gene");
-    ASSERT_TRUE(tissue.save(fd), "failed to write gene");
-    ASSERT_TRUE(neuron.save(fd), "failed to write gene");
-    ASSERT_TRUE(sensor.save(fd), "failed to write gene");
-    ASSERT_TRUE(muscle.save(fd), "failed to write gene");
-
     ASSERT_FALSE(close(fd), "failed to close file");
 
     const int fd2 = open(fname, O_RDONLY);
@@ -74,11 +101,6 @@ TEST_N(basicSaveLoadTest, 10000) {
 
     ConnectionGene connection2(fd2);
     NeuronGene hidden2(fd2);
-
-    StructureGene tissue2(fd2);
-    StructureGene neuron2(fd2);
-    StructureGene sensor2(fd2);
-    StructureGene muscle2(fd2);
 
     ASSERT_FALSE(close(fd2), "failed to close file");
 
@@ -124,34 +146,6 @@ TEST_N(basicSaveLoadTest, 10000) {
     ASSERT_EQUAL(connection.getOutput().getGradient(),   connection2.getOutput().getGradient(),   "gradients not equal");
     ASSERT_EQUAL(connection.getWeight(),                 connection2.getWeight(),                 "weights not equal");
     ASSERT_EQUAL(connection.isEnabled(),                 connection2.isEnabled(),                 "enabled not equal");
-
-    ASSERT_EQUAL(tissue.getID(),                 tissue2.getID(),                 "ids not equal");
-    ASSERT_EQUAL(tissue.getGeneration(),         tissue2.getGeneration(),         "generation not equal");
-    ASSERT_EQUAL(tissue.getType(),               tissue2.getType(),               "types not equal");
-    ASSERT_EQUAL(tissue.getIndex().getX(),                  tissue2.getIndex().getX(),                  "x not equal");
-    ASSERT_EQUAL(tissue.getIndex().getY(),                  tissue2.getIndex().getY(),                  "y not equal");
-    ASSERT_EQUAL(tissue.getIndex().getZ(),                  tissue2.getIndex().getZ(),                  "z not equal");
-
-    ASSERT_EQUAL(neuron.getID(),                 neuron2.getID(),                 "ids not equal");
-    ASSERT_EQUAL(neuron.getGeneration(),         neuron2.getGeneration(),         "generation not equal");
-    ASSERT_EQUAL(neuron.getType(),               neuron2.getType(),               "types not equal");
-    ASSERT_EQUAL(neuron.getIndex().getX(),                  neuron2.getIndex().getX(),                  "x not equal");
-    ASSERT_EQUAL(neuron.getIndex().getY(),                  neuron2.getIndex().getY(),                  "y not equal");
-    ASSERT_EQUAL(neuron.getIndex().getZ(),                  neuron2.getIndex().getZ(),                  "z not equal");
-
-    ASSERT_EQUAL(sensor.getID(),                 sensor2.getID(),                 "ids not equal");
-    ASSERT_EQUAL(sensor.getGeneration(),         sensor2.getGeneration(),         "generation not equal");
-    ASSERT_EQUAL(sensor.getType(),               sensor2.getType(),               "types not equal");
-    ASSERT_EQUAL(sensor.getIndex().getX(),                  sensor2.getIndex().getX(),                  "x not equal");
-    ASSERT_EQUAL(sensor.getIndex().getY(),                  sensor2.getIndex().getY(),                  "y not equal");
-    ASSERT_EQUAL(sensor.getIndex().getZ(),                  sensor2.getIndex().getZ(),                  "z not equal");
-
-    ASSERT_EQUAL(muscle.getID(),                 muscle2.getID(),                 "ids not equal");
-    ASSERT_EQUAL(muscle.getGeneration(),         muscle2.getGeneration(),         "generation not equal");
-    ASSERT_EQUAL(muscle.getType(),               muscle2.getType(),               "types not equal");
-    ASSERT_EQUAL(muscle.getIndex().getX(),                  muscle2.getIndex().getX(),                  "x not equal");
-    ASSERT_EQUAL(muscle.getIndex().getY(),                  muscle2.getIndex().getY(),                  "y not equal");
-    ASSERT_EQUAL(muscle.getIndex().getZ(),                  muscle2.getIndex().getZ(),                  "z not equal");
 
     ASSERT_FALSE(unlink(fname), "failed to delete file");
     return args;

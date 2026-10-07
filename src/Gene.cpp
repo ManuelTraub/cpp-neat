@@ -36,10 +36,10 @@ bool Gene::save(const int fd) const {
 bool Gene::loadBase(const int fd) {
     
     if (read(fd, &id, sizeof(uint64_t)) != sizeof(uint64_t))
-        return true;
+        return false;
 
     if (read(fd, &generation, sizeof(uint64_t)) != sizeof(uint64_t))
-        return true;
+        return false;
 
     if (id >= idCounter)
         idCounter = id + 1;
@@ -68,8 +68,6 @@ bool NeuronGene::saveChild(const int fd) const {
         if (write(fd, "t", 1) != 1) return false;
     } else if (function == ActivationFunction::RELU) {
         if (write(fd, "r", 1) != 1) return false;
-    } else if (function == ActivationFunction::SINE) {
-        if (write(fd, "e", 1) != 1) return false;
     } else {
         if (write(fd, "E", 1) != 1) return false;
     }
@@ -114,8 +112,6 @@ NeuronGene::NeuronGene(const int fd) {
         function = ActivationFunction::TANH;
     else if (cFunction == 'r')
         function = ActivationFunction::RELU;
-    else if (cFunction == 'e')
-        function = ActivationFunction::SINE;
     else 
         throw "IO Exception";
 
@@ -162,138 +158,3 @@ ConnectionGene::ConnectionGene(const int fd) :
     if (read(fd, &enabled, sizeof(bool)) != sizeof(bool))
         throw "IO Exception";
 }
-
-/* should save the child of this */
-bool StructureGene::saveChild(const int fd) const {
-
-    if (type == TissueType::TISSUE) {
-        if (write(fd, "t", 1) != 1) return false;
-    } else if (type == TissueType::NEURON) {
-        if (write(fd, "n", 1) != 1) return false;
-    } else if (type == TissueType::SENSOR) {
-        if (write(fd, "s", 1) != 1) return false;
-    } else if (type == TissueType::MUSCLE) {
-        if (write(fd, "m", 1) != 1) return false;
-    } else {
-        if (write(fd, "E", 1) != 1) return false;
-    }
-
-    if (write(fd, &x, sizeof(int64_t)) != sizeof(int64_t))
-        return false;
-
-    if (write(fd, &y, sizeof(int64_t)) != sizeof(int64_t))
-        return false;
-
-    if (write(fd, &z, sizeof(int64_t)) != sizeof(int64_t))
-        return false;
-
-    if (write(fd, &size, sizeof(double)) != sizeof(double))
-        return false;
-
-    return true;
-}
-
-
-/* loads the StructureGene from the given file */
-StructureGene::StructureGene(const int fd) {
-
-    if (!this->loadBase(fd))
-        throw "IO Exception";
-
-    char cType = '\0';
-    if (read(fd, &cType, 1) != 1)
-        throw "IO Exception";
-
-    if (cType == 't')
-        type = TissueType::TISSUE;
-    else if (cType == 'n')
-        type = TissueType::NEURON;
-    else if (cType == 's')
-        type = TissueType::SENSOR;
-    else if (cType == 'm')
-        type = TissueType::MUSCLE;
-    else 
-        throw "IO Exception";
-
-    if (read(fd, &x, sizeof(int64_t)) != sizeof(int64_t))
-        throw "IO Exception";
-
-    if (read(fd, &y, sizeof(int64_t)) != sizeof(int64_t))
-        throw "IO Exception";
-
-    if (read(fd, &z, sizeof(int64_t)) != sizeof(int64_t))
-        throw "IO Exception";
-
-    if (read(fd, &size, sizeof(double)) != sizeof(double))
-        throw "IO Exception";
-}
-
-/* saves this */
-bool SEGeneLink::save(const int fd) const {
-
-    if (!neuron.save(fd)) 
-        return false;
-
-    if (type == SensorEffector::ENERGY_SENSOR) {
-        if (write(fd, "e", 1) != 1) return false;
-    } else if (type == SensorEffector::TOUCH_SENSOR) {
-        if (write(fd, "t", 1) != 1) return false;
-    } else if (type == SensorEffector::VISION_SENSOR) {
-        if (write(fd, "v", 1) != 1) return false;
-    } else if (type == SensorEffector::MUSCLE_EFFECTOR) {
-        if (write(fd, "m", 1) != 1) return false;
-    } else {
-        if (write(fd, "E", 1) != 1) return false;
-    }
-
-    if (write(fd, &x, sizeof(int64_t)) != sizeof(int64_t))
-        return false;
-
-    if (write(fd, &y, sizeof(int64_t)) != sizeof(int64_t))
-        return false;
-
-    if (write(fd, &z, sizeof(int64_t)) != sizeof(int64_t))
-        return false;
-
-    if (write(fd, &n, sizeof(int64_t)) != sizeof(int64_t))
-        return false;
-    
-    return true;
-}
-
-/* loads the SEGeneLink from the given file */
-SEGeneLink::SEGeneLink(const int fd): 
-    neuron(NeuronType::INPUT, ActivationFunction::SIGMOID, 0)
-{
-    
-    neuron = NeuronGene(fd);
-
-    char cType = '\0';
-    if (read(fd, &cType, 1) != 1)
-        throw "IO Exception";
-
-    if (cType == 'e')
-        type = SensorEffector::ENERGY_SENSOR;
-    else if (cType == 't')
-        type = SensorEffector::TOUCH_SENSOR;
-    else if (cType == 'v')
-        type = SensorEffector::VISION_SENSOR;
-    else if (cType == 'm')
-        type = SensorEffector::MUSCLE_EFFECTOR;
-    else 
-        throw "IO Exception";
-
-    if (read(fd, &x, sizeof(int64_t)) != sizeof(int64_t))
-        throw "IO Exception";
-
-    if (read(fd, &y, sizeof(int64_t)) != sizeof(int64_t))
-        throw "IO Exception";
-
-    if (read(fd, &z, sizeof(int64_t)) != sizeof(int64_t))
-        throw "IO Exception";
-
-    if (read(fd, &n, sizeof(int64_t)) != sizeof(int64_t))
-        throw "IO Exception";
-
-}
-

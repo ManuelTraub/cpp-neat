@@ -11,8 +11,6 @@
 #include <pthread.h>
 #endif
 
-#include <inttypes.h>
-
 namespace NEAT {
 
     /* abstract thread class to override */
@@ -47,13 +45,6 @@ namespace NEAT {
 
             /* wait for thread execution to finish */
             void join();
-            
-            /* return an unqie thread identifier */
-            static uint64_t id();
-
-            /* handles execution to an other thread */
-            static void yield();
-
             /* constructor */
             Thread();
 
@@ -84,9 +75,6 @@ namespace NEAT {
 
             /* lock the mutex */
             void lock();
-
-            /* try locking the mutex */
-            bool trylock();
 
             /* unlock the mutex */
             void unlock();

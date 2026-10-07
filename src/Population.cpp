@@ -4,6 +4,7 @@
 #include "ParallelWorker.h"
 #include <memory>
 #include <algorithm>
+#include <limits>
 
 using std::shared_ptr;
 using std::make_shared;
@@ -28,8 +29,6 @@ Population::Population(
 
     this->inputs  = inputs;
     this->outputs = outputs;
-    this->bestFitness = 0;
-    this->lastImproveGeneration = GenerationCounter::get();
 
     this->species.push_back(make_shared<Species>(this->opts, this->geneHistory));
 
@@ -49,29 +48,22 @@ Population::Population(FitnessCalculator *fitnessCalculator, Opts &opts) :
     geneHistory(opts),
     fitnessCalculator(fitnessCalculator) {
 
+    assert(this->opts.numOutputNeurons() > 0);
+    assert(this->opts.populationSize() > 0);
+    assert(fitnessCalculator != NULL);
+
     this->inputs  = vector<vector<double>>();
     this->outputs = vector<vector<double>>();
-    this->bestFitness = 0;
-    this->lastImproveGeneration = GenerationCounter::get();
 
     this->species.push_back(make_shared<Species>(this->opts, this->geneHistory));
 
-    if (this->opts.numInputNeurons() > 0 && this->opts.numOutputNeurons() > 0) {
-        for (unsigned i = 0; i < opts.populationSize(); i++) {
-            this->species.back()->add(make_shared<Organism>(
-                this->opts.numInputNeurons(),
-                this->opts.numOutputNeurons(),
-                this->opts,
-                this->geneHistory
-            ));
-        }
-    } else {
-        for (unsigned i = 0; i < opts.populationSize(); i++) {
-            this->species.back()->add(make_shared<Organism>(
-                this->opts,
-                this->geneHistory
-            ));
-        }
+    for (unsigned i = 0; i < opts.populationSize(); i++) {
+        this->species.back()->add(make_shared<Organism>(
+            this->opts.numInputNeurons(),
+            this->opts.numOutputNeurons(),
+            this->opts,
+            this->geneHistory
+        ));
     }
 }
 
@@ -118,58 +110,9 @@ vector<shared_ptr<Organism>> Population::prepareGenerationChange() {
     for (auto i: this->speciesInspectors)
         i->during(this->species);
 
-//#define PAPER_FITNES_SHARING
-// NOT WORKING!! fitness sharing wassnt actually used only described within the paper
-#ifdef PAPER_FITNES_SHARING
-    
-    vector<shared_ptr<Organism>> organisms;
-    vector<double> fitness;
-    for (auto &s : this->species) {
-        vector<shared_ptr<Organism>> currentOrganisms = s->getOrganisms();
-
-        for (auto &o: currentOrganisms) {
-            fitness.push_back(o->getFitness() / s->size());
-            organisms.push_back(o);
-        }
-    }
-
-    for (unsigned i = organisms.size() - 1; i > 0; i--) {
-        for (unsigned n = 0; n < i; n++) {
-            if (fitness[n] > fitness[n + 1]) {
-                double tmpFitness                = fitness[n];
-                shared_ptr<Organism> tmpOrganism = organisms[n];
-
-                fitness[n]   = fitness[n + 1];
-                organisms[n] = organisms[n + 1];
-
-                fitness[n + 1]   = tmpFitness;
-                organisms[n + 1] = tmpOrganism;
-            }
-        }
-    }
-
-    for (unsigned n = 0; n < organisms.size() * (1 - opts.survivalRate()); n++) 
-        organisms[n]->kill();
-
-    for (auto &s : this->species)
-        s->removeDeaths();
-
-    /* remove ectinct species */
-    for (int i = 0; i < (int) this->species.size(); i++) {
-        if (this->species[i]->size() == 0) {
-            this->species.erase(this->species.begin() + i);
-            i--;
-        }
-    }
-
-
-#else
-
     /* kill the Organisms with the worst fitness */
     for (auto &s : this->species)
         s->killWorst();
-
-#endif
 
     /* sort species by their best fitness */
     std::sort(this->species.begin(), this->species.end(), orderSpecies);
@@ -178,18 +121,8 @@ vector<shared_ptr<Organism>> Population::prepareGenerationChange() {
     for (auto i: this->speciesInspectors)
         i->after(this->species);
 
-    /* check if we found a new best fitness */
-    if (this->species[0]->getBestFitness() > this->bestFitness) {
-        this->bestFitness = this->species[0]->getBestFitness();
-        this->lastImproveGeneration = GenerationCounter::get();
-    } 
-        
     /* collect all survived Organisms for reproduction */
-#ifdef PAPER_FITNES_SHARING
-    organisms.clear();
-#else
     vector<shared_ptr<Organism>> organisms;
-#endif
     for (auto &s : this->species) {
         vector<shared_ptr<Organism>> currentOrganisms = s->getOrganisms();
         organisms.insert(organisms.end(), currentOrganisms.begin(), currentOrganisms.end());
@@ -203,40 +136,27 @@ vector<shared_ptr<Organism>> Population::prepareGenerationChange() {
 /* calculate the ofsprings per species */
 vector<unsigned> Population::calculateOffspringsPerSpecies(unsigned nOffsprings) {
 
-#define SOFTMAX_PROPABILITY
-#ifdef SOFTMAX_PROPABILITY
     /* create a vector of propability distribution for each fittness */
     vector<double> propabilityDistribution;
+    double maxFitness = -std::numeric_limits<double>::infinity();
     double expSum = 0;
 
     for (const auto &s : this->species) {
         propabilityDistribution.push_back(s->getAverageFitness());
-        expSum += exp(propabilityDistribution.back());
+        maxFitness = std::max(maxFitness, propabilityDistribution.back());
+    }
+
+    for (auto &p : propabilityDistribution) {
+        p = exp(p - maxFitness);
+        expSum += p;
     }
 
     for (unsigned i = 0; i < propabilityDistribution.size(); i++)
-        propabilityDistribution[i] = exp(propabilityDistribution[i]) / expSum;
+        propabilityDistribution[i] /= expSum;
 
     for (unsigned i = 1; i < propabilityDistribution.size(); i++)
         propabilityDistribution[i] += propabilityDistribution[i - 1];
 
-#else
-    
-    /* create a vector of propability distribution for each fittness */
-    vector<double> propabilityDistribution;
-    double overallAverageFitness = 0;
-
-    for (const auto &s : this->species) {
-        propabilityDistribution.push_back(s->getAverageFitness());
-        overallAverageFitness += propabilityDistribution.back();
-    }
-
-    for (auto &p : propabilityDistribution)
-        p /= overallAverageFitness;
-
-    for (unsigned i = 1; i < propabilityDistribution.size(); i++)
-        propabilityDistribution[i] += propabilityDistribution[i - 1];
-#endif
 
     /* distribute the Organisms of the new generation 
      * based on the average fitness of each Species
@@ -410,7 +330,7 @@ shared_ptr<Organism> Population::getBestOrganism() {
         organisms.insert(organisms.end(), currentOrganisms.begin(), currentOrganisms.end());
     }
 
-    double bestFitness = 0;
+    double bestFitness = -std::numeric_limits<double>::infinity();
     shared_ptr<Organism> bestOrganism;
 
     for (const auto &o : organisms) {

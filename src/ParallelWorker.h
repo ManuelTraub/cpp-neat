@@ -68,7 +68,6 @@ namespace NEAT {
                 /* progress tracking */
                 unsigned totalOrganisms;
                 std::atomic<unsigned> processedCount;
-                unsigned lastPrintedPercent;
                 bool progressBarEnabled;
                 std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
                 

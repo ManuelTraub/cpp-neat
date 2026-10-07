@@ -35,29 +35,14 @@ namespace NEAT {
                 /* the ConnectionGenes of this */
                 unordered_map<uint64_t, ConnectionGene> connections;
 
-                /* the StructureGenes of this */
-                unordered_map<uint64_t, StructureGene> structures;
-
                 /* the latest gene generation number */
                 uint64_t generation;
-
-                /* the sensor / effector links of this */
-                vector<SEGeneLink> geneLinks;
 
                 /* recombinate using the weight of similar genes from a random parrent */
                 void recombinateRandomChoose(const Genotype &fitter, const Genotype &other);
 
                 /* recombinate averaging the weights of similar genes */
                 void recombinateAverage(const Genotype &fitter, const Genotype &other);
-
-                /* removes hidden neurons without connections */
-                void cleanupNeuorns();
-
-                /* connects all inputs to the the given (new) output */
-                void connectOutput(NeuronGene o, bool connectBias = true);
-   
-                /* conects the given (new) input to all outputs */
-                void connectInput(NeuronGene i, bool connectBias = true);
 
             public:
 
@@ -67,42 +52,17 @@ namespace NEAT {
                 /* returns the connections of this */
                 const unordered_map<uint64_t, ConnectionGene> &getConnections() const { return connections; }
 
-                /* returns the structures of this */
-                const unordered_map<uint64_t, StructureGene> &getStructures() const { return structures; }
-
-                /* returns the sensor / effector links of this */
-                const vector<SEGeneLink> &getSELinks() const { return geneLinks; }
-                
                 /* mutate this by inserting a new hidden neuron */
                 bool mutateInsertNeuron();
 
                 /* mutate this by creating a new connection */
                 bool mutateInsertConnection();
 
-                /* mutate this by creating a new structure */
-                bool mutateInsertStructure();
-
-                /* mutate this by deleting a new hidden neuron */
-                bool mutateDeleteNeuron();
-
-                /* mutate this by creating a new connection */
-                bool mutateDeleteConnection();
-
-                /* mutate this by creating a new structure */
-                bool mutateDeleteStructure();
-
                 /* mutate a given percentage of connections */
                 void mutateConnections();
 
                 /* mutate a given percentage of the neurons of this */
                 void mutateNeurons();
-
-                /* mutate the structures of this */
-                void mutateStructureType();
-                void mutateStructureSize();
-
-                /* create a new Genotype with minimal structure */
-                Genotype(Opts &opts, GeneHistory &geneHistory);
 
                 /* create a new Genotype for the given number of input and output neurons */
                 Genotype(

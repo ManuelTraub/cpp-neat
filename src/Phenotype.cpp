@@ -1,5 +1,6 @@
 #include "Phenotype.h"
 #include <assert.h>
+#include <map>
 #include <set>
 #include <unordered_map>
 #include "../lib/simple_svg_1.0.0.hpp"
@@ -7,6 +8,7 @@
 
 using namespace svg;
 using namespace NEAT;
+using std::map;
 using std::set;
 using std::unordered_map;
 using std::make_pair;
@@ -15,7 +17,7 @@ using std::make_pair;
 Phenotype::Phenotype(const Genotype &genome, Opts &opts) :
                      opts(opts.freeze()), genome(genome) {
 
-    unordered_map<uint64_t, NeuronGene> neuronGenes         = genome.getNeurons();
+    map<uint64_t, NeuronGene> neuronGenes(genome.getNeurons().begin(), genome.getNeurons().end());
     unordered_map<uint64_t, ConnectionGene> connectionGenes = genome.getConnections();
 
     /* create a sorted list of layer ids from all 
@@ -49,10 +51,7 @@ Phenotype::Phenotype(const Genotype &genome, Opts &opts) :
         const unsigned layer = layerIndices[e.second.getLayerID()];
         if (e.second.getType() == NeuronType::BIAS)
             this->bias = newNeuron;
-        else if (e.second.getType() == NeuronType::RAND_BIAS) {
-            this->randomBiases.push_back(newNeuron);
-            this->randomBiasGenerators.push_back(new_rand64_t());
-        } else
+        else
             this->neuronLayers[layer].push_back(newNeuron);
 
 #ifdef __DEBUG__
@@ -60,8 +59,7 @@ Phenotype::Phenotype(const Genotype &genome, Opts &opts) :
 
         if (layer == 0 && 
             neuron.getType() != NeuronType::INPUT && 
-            neuron.getType() != NeuronType::BIAS  &&
-            neuron.getType() != NeuronType::RAND_BIAS) {
+            neuron.getType() != NeuronType::BIAS) {
             
             assertf(false, "invalid neuron in first layer: type(%u) id(%lu)\n", 
                     (unsigned) neuron.getType(), neuron.getID());
@@ -129,10 +127,6 @@ vector<double> Phenotype::runSinglePass(vector<double> inputs) {
     for (unsigned i = 0; i < inputs.size(); i++)
         this->neuronLayers[0][i]->setValue(inputs[i]);
 
-    /* set random biases */
-    for (unsigned i = 0; i < randomBiases.size(); i++)
-        this->randomBiases[i]->setValue(rand_range_d64(randomBiasGenerators[i], -1.0, 1.0));
-    
     if (opts.layeredNetwork()) {
 
         /* calculate the output for each layer (except the input layers)
@@ -164,23 +158,6 @@ vector<double> Phenotype::runSinglePass(vector<double> inputs) {
         outputs[i] = neuronLayers.back()[i]->getValue();
 
     return outputs;
-}
-
-/* returns the index of the output with tha higest value */
-unsigned Phenotype::maxOutput(vector<double> inputs) {
-
-    double maxOutput  = 0;
-    unsigned maxIndex = (unsigned) -1;
-    const vector<double> outputs = this->run(inputs);
-
-    for (unsigned i = 0; i < outputs.size(); i++) {
-        if (outputs[i] > maxOutput) {
-            maxOutput = outputs[i];
-            maxIndex  = i;
-        }
-    }
-
-    return maxIndex;
 }
 
 /* calculaes the quadratic error for the given data set */
@@ -322,51 +299,9 @@ void Phenotype::saveAsSVG(string fname) {
                       colorsBias[e.first], 
                       Stroke(circleStroke, colorsRecurent[e.first]));
 
-        string neuronFunction = "Error";
-        if (e.first->getFunction() == ActivationFunction::SIGMOID)
-            neuronFunction = "sigmoid";
-        else if (e.first->getFunction() == ActivationFunction::TANH)
-            neuronFunction = "tanh";
-        else if (e.first->getFunction() == ActivationFunction::RELU)
-            neuronFunction = "relu";
-        else if (e.first->getFunction() == ActivationFunction::SINE)
-            neuronFunction = "sine";
-        else if (e.first->getFunction() == ActivationFunction::LOG)
-            neuronFunction = "log";
-        else if (e.first->getFunction() == ActivationFunction::SQRT)
-            neuronFunction = "sqrt";
-        else if (e.first->getFunction() == ActivationFunction::ABS)
-            neuronFunction = "abs";
-        else if (e.first->getFunction() == ActivationFunction::POW)
-            neuronFunction = "pow";
-        else if (e.first->getFunction() == ActivationFunction::EXP)
-            neuronFunction = "exp";
-        else if (e.first->getFunction() == ActivationFunction::ADD)
-            neuronFunction = "add";
-        else if (e.first->getFunction() == ActivationFunction::MULT)
-            neuronFunction = "mult";
-        else if (e.first->getFunction() == ActivationFunction::GAUSSIAN)
-            neuronFunction = "gaus";
-
-        Point p(e.second.x - 50, e.second.y);
-        if (opts.randomActivationFunction()) 
-            doc << Text(p, neuronFunction, Color::Black, Font(30, "Verdana"));
     }
 
     doc.save();
-}
-
-/* prints the weights of this */
-void Phenotype::printWeights() {
-    for (auto &layer: neuronLayers) {
-        for (auto &neuron: layer) {
-            for (auto &w: neuron->getWeights())
-                printf("%F ", w);
-
-            printf("\n");
-        }
-        printf("\n");
-    }
 }
 
 /* destructor */
@@ -377,9 +312,4 @@ Phenotype::~Phenotype() {
             delete neuron;
 
     delete this->bias;
-
-    for (unsigned i = 0; i < randomBiases.size(); i++) {
-        delete randomBiases[i];
-        free(randomBiasGenerators[i]);
-    }
 }

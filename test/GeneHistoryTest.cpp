@@ -48,19 +48,5 @@ TEST(basicTest) {
 
     ASSERT_EQUAL(connection1.getID(), connection2.getID(), "ids should be equal");
     
-    StructureGene structure = geneHistory.insertStructure(TissueType::NEURON);
-    unordered_map<TOGridIndex, StructureGene> structureMap;
-    for (unsigned i = 0; i < 1000; i++) {
-        StructureGene s = geneHistory.insertStructure(structure);
-
-        TOGridIndex index = s.getIndex();
-        if (structureMap.count(index)) { 
-            ASSERT_EQUAL(structureMap.at(index).getID(), s.getID(), "ids not equal");
-        } else
-            structureMap.insert({index, s});
-    }
-
-    ASSERT_EQUAL(structureMap.size(), 14, "there should be 14 adjacent structures");
-
     return args;
 }

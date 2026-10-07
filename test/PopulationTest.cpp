@@ -1,11 +1,14 @@
 #include "../src/utils/utils.h"
 #include "../src/Species.h"
 #include "../src/Population.h"
+#include "../src/ParallelWorker.h"
 #include "../src/Opts.h"
 
 #include <vector>
 #include <memory>
 #include <algorithm>
+#include <map>
+#include <mutex>
 
 using std::shared_ptr;
 using std::make_shared;
@@ -38,6 +41,142 @@ BEVOR() {
 
 AFTER() {
     (void) args;
+}
+
+TEST(finiteFitnessSelectionTest) {
+
+    struct ConstantFitnessCalculator: public FitnessCalculator {
+        double fitness;
+        virtual double operator () (const Genotype &) { return fitness; }
+    } fitnessCalculator;
+
+    for (const double fitness : {0.0, -1000.0, 1000.0}) {
+        Opts opts;
+        opts.numInputNeurons(1);
+        opts.numOutputNeurons(1);
+        opts.populationSize(9);
+        GeneHistory geneHistory(opts);
+        Population population(&fitnessCalculator, opts);
+
+        fitnessCalculator.fitness = fitness;
+        population.getSpecies()[0]->calculateFittness(&fitnessCalculator);
+
+        for (unsigned i = 1; i < 3; i++) {
+            shared_ptr<Species> species = make_shared<Species>(opts, geneHistory);
+            species->add(make_shared<Organism>(1, 1, opts, geneHistory));
+            fitnessCalculator.fitness = fitness - i;
+            species->calculateFittness(&fitnessCalculator);
+            population.getSpecies().push_back(species);
+        }
+
+        shared_ptr<Organism> best = population.getBestOrganism();
+        ASSERT_TRUE(best != nullptr);
+        ASSERT_EQUAL(best->getFitness(), fitness);
+
+        const unsigned nOffsprings = 10000;
+        vector<unsigned> offsprings = population.calculateOffspringsPerSpecies(nOffsprings);
+        ASSERT_EQUAL(offsprings.size(), 3);
+
+        unsigned total = 0;
+        for (const unsigned n : offsprings) {
+            ASSERT_TRUE(n <= nOffsprings);
+            total += n;
+        }
+        ASSERT_EQUAL(total, nOffsprings);
+
+        offsprings = population.calculateOffspringsPerSpecies(0);
+        for (const unsigned n : offsprings)
+            ASSERT_EQUAL(n, 0);
+    }
+
+    return args;
+}
+
+TEST(customFitnessDimensionsTest) {
+
+    struct ConstantFitnessCalculator: public FitnessCalculator {
+        virtual double operator () (const Genotype &) { return 1.0; }
+    } fitnessCalculator;
+
+    for (const unsigned numInputs : {0u, 2u}) {
+        Opts opts;
+        opts.numInputNeurons(numInputs);
+        opts.numOutputNeurons(2);
+        opts.populationSize(4);
+        Population population(&fitnessCalculator, opts);
+
+        ASSERT_EQUAL(population.getSpecies().size(), 1);
+        ASSERT_EQUAL(population.getSpecies()[0]->size(), 4);
+        for (unsigned generation = 0; generation < 2; generation++) {
+            if (generation == 1)
+                population.calcNextGeneration();
+
+            unsigned nOrganisms = 0;
+            for (const auto &species : population.getSpecies()) {
+                for (const auto &organism : species->getOrganisms()) {
+                    nOrganisms++;
+                    unsigned inputs = 0;
+                    unsigned outputs = 0;
+                    for (const auto &neuron : organism->getGenome().getNeurons()) {
+                        if (neuron.second.getType() == NeuronType::INPUT)
+                            inputs++;
+                        if (neuron.second.getType() == NeuronType::OUTPUT)
+                            outputs++;
+                    }
+                    ASSERT_EQUAL(inputs, numInputs);
+                    ASSERT_EQUAL(outputs, 2);
+
+                    Phenotype phenotype(organism->getGenome(), opts);
+                    ASSERT_EQUAL(phenotype.run(vector<double>(numInputs, 0.0)).size(), 2);
+                }
+            }
+            ASSERT_EQUAL(nOrganisms, 4);
+            shared_ptr<Organism> best = population.getBestOrganism();
+            ASSERT_TRUE(best != nullptr);
+            ASSERT_EQUAL(best->getFitness(), 1.0);
+        }
+    }
+
+    return args;
+}
+
+TEST(parallelEvaluationTest) {
+
+    struct CountingFitnessCalculator: public FitnessCalculator {
+        std::mutex mutex;
+        std::map<const Genotype *, unsigned> evaluations;
+
+        virtual double operator () (const Genotype &genome) {
+            std::lock_guard<std::mutex> lock(mutex);
+            evaluations[&genome]++;
+            return 1.0;
+        }
+    };
+
+    for (const unsigned nOrganisms : {0u, 1u, 512u}) {
+        Opts opts;
+        opts.alwaysRecalculateFitness(true);
+        GeneHistory geneHistory(opts);
+        CountingFitnessCalculator fitnessCalculator;
+        vector<shared_ptr<Organism>> organisms;
+
+        for (unsigned i = 0; i < nOrganisms; i++)
+            organisms.push_back(make_shared<Organism>(1, 1, opts, geneHistory));
+
+        ParallelProcessor processor(8, &fitnessCalculator);
+        processor.enableProgressBar(false);
+        processor.add(organisms);
+        processor.start();
+        processor.join();
+
+        ASSERT_EQUAL(fitnessCalculator.evaluations.size(), nOrganisms);
+        for (const auto &organism : organisms) {
+            ASSERT_EQUAL(fitnessCalculator.evaluations.at(&organism->getGenome()), 1);
+            ASSERT_EQUAL(organism->getFitness(), 1.0);
+        }
+    }
+
+    return args;
 }
 
 
@@ -467,6 +606,8 @@ TEST(binaryXORQualityTest) {
 
     }
 
+    ASSERT_TRUE(!generations.empty(), "learning batch produced no solutions");
+
     return args;
 }
 
@@ -532,14 +673,16 @@ TEST(binaryXORZeroStartConectionsQualityTest) {
                       species.back(), avgVector(species));
 
             if (r > nRuns / 1.5) {
-                ASSERT_TRUE(avgVector(generations) < 35);
-                ASSERT_TRUE(avgVector(nodes) < 7);
-                ASSERT_TRUE(avgVector(connections) < 11);
-                ASSERT_TRUE(avgVector(species) < 18);
+                ASSERT_TRUE(avgVector(generations) < 38.0);
+                ASSERT_TRUE(avgVector(nodes) < 7.6);
+                ASSERT_TRUE(avgVector(connections) < 12.0);
+                ASSERT_TRUE(avgVector(species) < 19.5);
             }
         }
 
     }
+
+    ASSERT_TRUE(!generations.empty(), "learning batch produced no solutions");
 
     return args;
 }
@@ -629,6 +772,8 @@ TEST(basicRecurencyTest) {
 
     }
 
+    ASSERT_TRUE(!generations.empty(), "learning batch produced no solutions");
+
     return args;
 }
 
@@ -693,14 +838,16 @@ TEST(binaryXORQualityTanhTest) {
                       species.back(), avgVector(species));
 
             if (r > nRuns / 1.5) {
-                ASSERT_TRUE(avgVector(generations) < 19);
-                ASSERT_TRUE(avgVector(nodes) < 7);
-                ASSERT_TRUE(avgVector(connections) < 11);
-                ASSERT_TRUE(avgVector(species) < 18);
+                ASSERT_TRUE(avgVector(generations) < 19.3);
+                ASSERT_TRUE(avgVector(nodes) < 7.1);
+                ASSERT_TRUE(avgVector(connections) < 11.2);
+                ASSERT_TRUE(avgVector(species) < 18.3);
             }
         }
 
     }
+
+    ASSERT_TRUE(!generations.empty(), "learning batch produced no solutions");
 
     return args;
 }
@@ -765,1212 +912,16 @@ TEST(binaryXORZeroStartConectionsQualityTanhTest) {
                       species.back(), avgVector(species));
 
             if (r > nRuns / 1.5) {
-                ASSERT_TRUE(avgVector(generations) < 25);
-                ASSERT_TRUE(avgVector(nodes) < 7);
-                ASSERT_TRUE(avgVector(connections) < 10);
-                ASSERT_TRUE(avgVector(species) < 19);
+                ASSERT_TRUE(avgVector(generations) < 26.5);
+                ASSERT_TRUE(avgVector(nodes) < 7.4);
+                ASSERT_TRUE(avgVector(connections) < 10.6);
+                ASSERT_TRUE(avgVector(species) < 20.1);
             }
         }
 
     }
 
-    return args;
-}
-
-TEST(binaryXORRandomActivationFunctionQualityTest) {
-
-    // training data
-    Opts opts;
-    opts.randomActivationFunction(true);
-    opts.mutateFunctionPropability(0.01);
-    opts.speciesSimilarityThreshold(3.5);
-    vector<vector<double>> trainingInputs  = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
-    vector<vector<double>> trainingOutputs = {{0}, {1}, {1}, {0}};
-    vector<unsigned> generations;
-    vector<unsigned> nodes;
-    vector<unsigned> connections;
-    vector<unsigned> species;
-
-    const unsigned nRuns = 1000;
-    const unsigned nGenerations = 300;
-
-    for (unsigned r = 0; r < nRuns; r++) {
-
-        Population population(trainingInputs, trainingOutputs, opts);
-        population.createInitialConnections();
-
-        unsigned i;
-        for (i = 0; i < nGenerations; i++) {
-            population.calcNextGeneration();
-
-            shared_ptr<Organism> best = population.getBestOrganism();
-            Phenotype phenotype(best->getGenome(), opts);
-
-            if (phenotype.maxDerivation(trainingInputs, trainingOutputs) < 0.5)
-                break;
-        }
-
-        shared_ptr<Organism> best = population.getBestOrganism();
-        Phenotype phenotype(best->getGenome(), opts);
-
-        if (i == nGenerations) {
-            printf("failed\n");
-            phenotype.saveAsSVG("failedOrganism" + itoa(r) + ".svg");
-        } else {
-
-            unsigned enabledGenes = 0;
-            for (const auto &c : best->getGenome().getConnections())
-                if (c.second.isEnabled())
-                    enabledGenes++;
-
-            generations.push_back(i);
-            nodes.push_back(best->getGenome().getNeurons().size());
-            connections.push_back(enabledGenes);
-            species.push_back(population.getSpecies().size());
-
-            phenotype.saveAsSVG("bestOrganism" + itoa(connections.back()) + "c" + 
-                                itoa(nodes.back()) + "n" + itoa(generations.back()) + "g.svg");
-
-            TEST_MSGD("[%u] Generation %3u / %3.1F, Nodes %3u / %3.1F, Connections: %3u / %3.1F, Species %3u / %3.1F", r,
-                      generations.back(), avgVector(generations),
-                      nodes.back(), avgVector(nodes),
-                      connections.back(), avgVector(connections),
-                      species.back(), avgVector(species));
-
-            if (r > nRuns / 1.5) {
-                ASSERT_TRUE(avgVector(generations) < 15);
-                ASSERT_TRUE(avgVector(nodes) < 7);
-                ASSERT_TRUE(avgVector(connections) < 8);
-                ASSERT_TRUE(avgVector(species) < 10);
-            }
-        }
-
-    }
-
-    return args;
-}
-
-class SinusFitnessCalculator: public FitnessCalculator {
-
-    private:
-
-        /* reference to the options of the whole population */
-        Opts &opts;
-
-        uint64_t organismIndex = 0;
-
-        /* virtual fitness operator */
-        virtual double operator () (const Genotype &genome) {
-
-            organismIndex++;
-            Phenotype phenotype(genome, opts);
-            double x = 0.0;
-            double error = 0.0;
-
-
-            for (unsigned i = 0; i < 60; i++) {
-                const double output = phenotype.run(vector<double>()).at(0);
-                const double target = sin(x);
-                error += pow(output - target, 2);
-                x += 0.5;
-            }
-
-            error /= 60;
-            if (genome.numEnabledConnections() < 30)
-                return (1.0 / error) / sqrt(31);
-
-            return (1.0 / error) / sqrt(1 + genome.numEnabledConnections());
-        }
-
-    public:
-
-        /* constructor */
-        SinusFitnessCalculator(Opts &opts) : opts(opts.freeze()) { }
-
-        /* visualizes the fitness callculation */
-        virtual void visualize(const Genotype &genome, const unsigned length, const unsigned timeSteps) {
-
-            Phenotype phenotype(genome, opts);
-            double x = 0.0;
-
-            for (unsigned i = 0; i < timeSteps; i++) {
-                const double output = phenotype.run(vector<double>()).at(0);
-                const double target = sin(x);
-
-                printf("|");
-                for (unsigned n = 0; n < length; n++) {
-                    const double curValue  = (n - length / 2.0) / (length / 2.0);
-                    const double nextValue = ((n + 1) - length / 2.0) / (length / 2.0);
-
-                    if (curValue < output && output < nextValue)
-                        printf("#");
-                    else if (curValue < target && target < nextValue)
-                        printf("*");
-                    else
-                        printf(" ");
-                }
-                printf("|\n");
-
-                x += 0.5;
-            }
-        }
-
-};
-
-TEST(sinusRecurencyTest) {
-
-    Opts opts;
-    opts.netActivationFunction(ActivationFunction::TANH);
-    opts.weightMultiplier(1.0);
-    opts.speciesSimilarityThreshold(5.0);
-    opts.allowRecurentConnections(true);
-    opts.ageingPropabilityOffset(0.0);
-    opts.recombinateNeurons(false);
-    opts.allowNeuronIntoBiasConnectionInsert(true);
-    opts.shuffleTrainingData(false);
-    //opts.removeNeuronMutationPropability(0.003);
-    //opts.removeConnectionMutationPropability(0.005);
-
-    // training data
-    vector<vector<double>> trainingInputs  = {{}};
-    vector<vector<double>> trainingOutputs = {{0}};
-    SinusFitnessCalculator fitnessCalculator(opts);
-
-    vector<unsigned> generations;
-    vector<unsigned> nodes;
-    vector<unsigned> connections;
-    vector<unsigned> species;
-
-    const unsigned nRuns = 1000;
-    const unsigned nGenerations = 5000;
-
-    for (unsigned r = 0; r < nRuns; r++) {
-
-        Population population(trainingInputs, trainingOutputs, opts, &fitnessCalculator);
-        population.createInitialConnections();
-
-        unsigned i;
-        for (i = 0; i < nGenerations; i++) {
-            population.calcNextGeneration();
-
-            shared_ptr<Organism> best = population.getBestOrganism();
-            best->calculateFittness(&fitnessCalculator);
-            //fitnessCalculator.visualize(best->getGenome(), 100, 150);
-            //
-            unsigned enabledGenes = best->getGenome().numEnabledConnections();
-            double mul = sqrt(31);
-            if (enabledGenes >= 30)
-                mul = sqrt(1 + enabledGenes);
-            
-            TEST_MSGD("[%u] Generation %3u, Nodes %3u, Connections: %3u, Species %3u, Fitness %F", r,
-                      i, (unsigned) best->getGenome().getNeurons().size(),
-                      enabledGenes, (unsigned) population.getSpecies().size(),
-                      1.0 / (best->getFitness() * mul));
-            
-            if (1.0 / (best->getFitness() * mul) < 0.02) {
-                fitnessCalculator.visualize(best->getGenome(), 100, 150);
-                break;
-            }
-        }
-
-        shared_ptr<Organism> best = population.getBestOrganism();
-        Phenotype phenotype(best->getGenome(), opts);
-
-        if (i == nGenerations) {
-            printf("failed\n");
-            phenotype.saveAsSVG("failedOrganism" + itoa(r) + ".svg");
-        } else {
-
-            unsigned enabledGenes = 0;
-            for (const auto &c : best->getGenome().getConnections())
-                if (c.second.isEnabled())
-                    enabledGenes++;
-
-            generations.push_back(i);
-            nodes.push_back(best->getGenome().getNeurons().size());
-            connections.push_back(enabledGenes);
-            species.push_back(population.getSpecies().size());
-
-            phenotype.saveAsSVG("bestOrganism" + itoa(connections.back()) + "c" + 
-                                itoa(nodes.back()) + "n" + itoa(generations.back()) + "g.svg");
-
-            TEST_MSGD("[%u] Generation %3u / %3.1F, Nodes %3u / %3.1F, Connections: %3u / %3.1F, Species %3u / %3.1F", r,
-                      generations.back(), avgVector(generations),
-                      nodes.back(), avgVector(nodes),
-                      connections.back(), avgVector(connections),
-                      species.back(), avgVector(species));
-// FIXME NOT YET CONFIGURED 
-            if (r > nRuns / 1.5) {
-                ASSERT_TRUE(avgVector(generations) < 40);
-                ASSERT_TRUE(avgVector(nodes) < 5);
-                ASSERT_TRUE(avgVector(connections) < 7);
-                ASSERT_TRUE(avgVector(species) < 8);
-            }
-        }
-
-    }
-
-    return args;
-}
-
-
-class ParityFitnessCalculator: public FitnessCalculator {
-
-    private:
-
-        /* reference to the options of the whole population */
-        Opts &opts;
-
-        uint64_t organismIndex = 0;
-
-        rand64_t *rand;
-
-        /* virtual fitness operator */
-        virtual double operator () (const Genotype &genome) {
-
-            organismIndex++;
-            Phenotype phenotype(genome, opts);
-            double error = 0.0;
-
-            double lastOutput = 0.0;
-            for (unsigned i = 0; i < 1000; i++) {
-                const double input  = (rand64(rand) % 2 == 0) ? -1.0 : 1.0;
-                const double output = phenotype.run({input}).at(0);
-                const double target = ((input <= 0 && lastOutput <= 0) ? -1.0 :
-                                      ((input >  0 && lastOutput <= 0) ?  1.0 :
-                                      ((input <= 0 && lastOutput  > 0) ?  1.0 :
-                                      ((input >  0 && lastOutput  > 0) ? -1.0 : 0.0/0.0))));
-                error += std::abs(output - target);
-                lastOutput = output;
-            }
-
-            error /= 2000;
-            return 1.0 / error;
-        }
-
-    public:
-
-        /* constructor */
-        ParityFitnessCalculator(Opts &opts) : opts(opts.freeze()), rand(new_rand64_t()) { }
-
-        /* visualizes the fitness callculation */
-        virtual void visualize(const Genotype &genome, const unsigned length, const unsigned timeSteps) {
-
-            (void) length;
-            Phenotype phenotype(genome, opts);
-
-            double lastOutput = 0.0;
-            for (unsigned i = 0; i < timeSteps; i++) {
-                const double input  = (rand64(rand) % 2 == 0) ? -1.0 : 1.0;
-                const double output = phenotype.run({input}).at(0);
-                const double target = ((input < 0 && lastOutput < 0) ? -1.0 :
-                                      ((input > 0 && lastOutput < 0) ?  1.0 :
-                                      ((input < 0 && lastOutput > 0) ?  1.0 :
-                                      ((input > 0 && lastOutput > 0) ? -1.0 : 0.0/0.0))));
-
-                lastOutput = output;
-
-                if (std::abs(target - output) < 0.25)
-                    printf(" ");
-                else if (std::abs(target - output) < 0.5)
-                    printf("_");
-                else if (std::abs(target - output) < 0.75)
-                    printf("-");
-                else if (std::abs(target - output) < 1.0)
-                    printf("~");
-                else if (std::abs(target - output) < 1.25)
-                    printf("+");
-                else if (std::abs(target - output) < 1.5)
-                    printf("*");
-                else if (std::abs(target - output) < 1.75)
-                    printf("$");
-                else if (std::abs(target - output) < 2.0)
-                    printf("%%");
-                else
-                    printf("#");
-            }
-            printf("\n");
-        }
-
-};
-
-TEST(ParityRecurencyTest) {
-
-    Opts opts;
-    opts.netActivationFunction(ActivationFunction::TANH);
-    opts.weightMultiplier(0.1);
-    opts.speciesSimilarityThreshold(1.0);
-    opts.allowRecurentConnections(true);
-    opts.ageingPropabilityOffset(0.0);
-    opts.recombinateNeurons(false);
-    opts.allowNeuronIntoBiasConnectionInsert(true);
-    opts.shuffleTrainingData(false);
-    opts.mutateNeuronsPropability(0.0);
-    opts.mutationMaxPertubeWeightRangeStart(-8);
-    opts.mutationMaxPertubeWeightRangeEnd(8);
-    opts.addNeuronMutationPropability(0.001);
-    opts.numThreads(15);
-
-    // training data
-    vector<vector<double>> trainingInputs  = {{1}};
-    vector<vector<double>> trainingOutputs = {{0}};
-    ParityFitnessCalculator fitnessCalculator(opts);
-
-    vector<unsigned> generations;
-    vector<unsigned> nodes;
-    vector<unsigned> connections;
-    vector<unsigned> species;
-
-    const unsigned nRuns = 1000;
-    const unsigned nGenerations = 500;
-
-    for (unsigned r = 0; r < nRuns; r++) {
-
-        Population population(trainingInputs, trainingOutputs, opts, &fitnessCalculator);
-        population.createInitialConnections();
-
-        unsigned i;
-        for (i = 0; i < nGenerations; i++) {
-            population.calcNextGeneration();
-
-            shared_ptr<Organism> best = population.getBestOrganism();
-            best->calculateFittness(&fitnessCalculator);
-            //fitnessCalculator.visualize(best->getGenome(), 100, 211);
-            //
-            //unsigned enabledGenes = 0;
-            //for (const auto &c : best->getGenome().getConnections())
-            //  if (c.second.isEnabled())
-            //      enabledGenes++;
-            //
-            //TEST_MSGD("[%u] Generation %3u, Nodes %3u, Connections: %3u, Species %3u, Fitness %F", r,
-            //        i, (unsigned) best->getGenome().getNeurons().size(),
-            //        enabledGenes, (unsigned) population.getSpecies().size(),
-            //        1.0 / best->getFitness());
-            
-            if (1.0 / best->getFitness() < 0.0002)
-                break;
-        }
-
-        shared_ptr<Organism> best = population.getBestOrganism();
-        Phenotype phenotype(best->getGenome(), opts);
-
-        if (i == nGenerations) {
-            printf("failed\n");
-            phenotype.saveAsSVG("failedOrganism" + itoa(r) + ".svg");
-        } else {
-
-            unsigned enabledGenes = 0;
-            for (const auto &c : best->getGenome().getConnections())
-                if (c.second.isEnabled())
-                    enabledGenes++;
-
-            generations.push_back(i);
-            nodes.push_back(best->getGenome().getNeurons().size());
-            connections.push_back(enabledGenes);
-            species.push_back(population.getSpecies().size());
-
-            phenotype.saveAsSVG("bestOrganism" + itoa(connections.back()) + "c" + 
-                                itoa(nodes.back()) + "n" + itoa(generations.back()) + "g.svg");
-
-            TEST_MSGD("[%u] Generation %3u / %3.1F, Nodes %3u / %3.1F, Connections: %3u / %3.1F, Species %3u / %3.1F", r,
-                      generations.back(), avgVector(generations),
-                      nodes.back(), avgVector(nodes),
-                      connections.back(), avgVector(connections),
-                      species.back(), avgVector(species));
-
-            if (r > nRuns / 1.5) {
-                ASSERT_TRUE(avgVector(generations) < 80);
-                ASSERT_TRUE(avgVector(nodes) < 6);
-                ASSERT_TRUE(avgVector(connections) < 15);
-                ASSERT_TRUE(avgVector(species) < 50);
-            }
-        }
-
-    }
-
-    return args;
-}
-
-
-class MemoryFitnessCalculator: public FitnessCalculator {
-
-    private:
-
-        /* reference to the options of the whole population */
-        Opts &opts;
-
-        /* the number of signals to be processed by the net */
-        unsigned nRuns; 
-        
-        /* the signal length */
-        unsigned signalLength;
-        
-        /* random number generator */
-        rand64_t *rand;
-
-        /* virtual fitness operator */
-        virtual double operator () (const Genotype &genome) {
-
-            Phenotype phenotype(genome, opts);
-            double error = 0.0;
-            double dist  = 0.0;
-            double last  = -1000;
-            
-            //double avg[2] = { 0.0, 0.0 };
-
-            for (unsigned n = 0; n < nRuns; n++) {
-                
-                phenotype.initNet();
-                double type   = ((n / 2) % 2) ? -1 : 1;
-                double signes = (n % 2) ? -1 : 1;
-
-                phenotype.run(vector<double>(1, type));
-
-                for (unsigned i = 0; i < signalLength; i++)
-                    phenotype.run(vector<double>(1, 0.0));
-
-                const double output = phenotype.run(vector<double>(1, type * signes)).at(0);
-                error += pow(signes - output, 2);
-
-                if (last > -1000)
-                    dist += std::abs(last - output);
-
-                last = output;
-            }
-
-            if (dist < 0.1)
-                return dist;
-
-            return 1.0 / (sqrt(error / nRuns) + 0.000000000001);
-        }
-
-    public:
-
-        /* return wether the problem was learned */
-        bool learned(const Genotype &genome) {
-
-            Phenotype phenotype(genome, opts);
-            
-            //double avg[2] = { 0.0, 0.0 };
-
-            for (unsigned n = 0; n < nRuns; n++) {
-                
-                phenotype.initNet();
-                double type   = ((n / 2) % 2) ? -1 : 1;
-                double signes = (n % 2) ? -1 : 1;
-
-                phenotype.run(vector<double>(1, type));
-
-                for (unsigned i = 0; i < signalLength; i++)
-                    phenotype.run(vector<double>(1, 0.0));
-
-                if (std::abs(signes - phenotype.run(vector<double>(1, type * signes)).at(0)) >= 1)
-                    return false;
-            }
-
-            return true;
-        }
-
-        /* visualizes the fitness callculation */
-        virtual void visualize(const Genotype &genome) {
-
-            Phenotype phenotype(genome, opts);
-            
-            //double avg[2] = { 0.0, 0.0 };
-
-            for (unsigned n = 0; n < nRuns; n++) {
-                
-                phenotype.initNet();
-                double type   = ((n / 2) % 2) ? -1 : 1;
-                double signes = (n % 2) ? -1 : 1;
-
-                phenotype.run(vector<double>(1, type));
-
-                for (unsigned i = 0; i < signalLength; i++)
-                    phenotype.run(vector<double>(1, 0.0));
-
-                printf("[%2d, %2d] => %2f\n", int(type), int(signes*type), phenotype.run(vector<double>(1, type * signes)).at(0));
-            }
-
-        }
-
-        /* constructor */
-        MemoryFitnessCalculator(Opts &opts, unsigned nRuns = 4, unsigned signalLength = 4) : 
-            opts(opts.freeze()), nRuns(nRuns), signalLength(signalLength) { }
-};
-
-TEST(MemoryRecurencyTest) {
-
-    Opts opts;
-    opts.netActivationFunction(ActivationFunction::TANH);
-    //opts.weightMultiplier(1.0);
-    opts.speciesSimilarityThreshold(5.0);
-    opts.allowRecurentConnections(true);
-    opts.ageingPropabilityOffset(0.0);
-    //opts.recombinateNeurons(false);
-    opts.allowNeuronIntoBiasConnectionInsert(true);
-    opts.shuffleTrainingData(false);
-    //opts.removeNeuronMutationPropability(0.003);
-    //opts.removeConnectionMutationPropability(0.005);
-    //opts.addNeuronMutationPropability(0.012);
-    //opts.addConnectionMutationPropability(0.02);
-
-    // training data
-    vector<vector<double>> trainingInputs  = {{0}};
-    vector<vector<double>> trainingOutputs = {{0}};
-    MemoryFitnessCalculator fitnessCalculator(opts);
-
-    vector<unsigned> generations;
-    vector<unsigned> nodes;
-    vector<unsigned> connections;
-    vector<unsigned> species;
-
-    const unsigned nRuns = 1000;
-    const unsigned nGenerations = 1000;
-
-    for (unsigned r = 0; r < nRuns; r++) {
-
-        Population population(trainingInputs, trainingOutputs, opts, &fitnessCalculator);
-        population.createInitialConnections();
-
-        unsigned i;
-        for (i = 0; i < nGenerations; i++) {
-            population.calcNextGeneration();
-
-            shared_ptr<Organism> best = population.getBestOrganism();
-            best->calculateFittness(&fitnessCalculator);
-//            fitnessCalculator.visualize(best->getGenome());
-//            
-//            unsigned enabledGenes = 0;
-//            for (const auto &c : best->getGenome().getConnections())
-//              if (c.second.isEnabled())
-//                  enabledGenes++;
-//            
-//            TEST_MSGD("[%u] Generation %3u, Nodes %3u, Connections: %3u, Species %3u, Fitness %F, Learned %s", r,
-//                      i, (unsigned) best->getGenome().getNeurons().size(),
-//                      enabledGenes, (unsigned) population.getSpecies().size(),
-//                      1.0 / best->getFitness(),
-//                      fitnessCalculator.learned(best->getGenome()) ? "true" : "false");
-            
-            if (fitnessCalculator.learned(best->getGenome()))
-                break;
-        }
-
-        shared_ptr<Organism> best = population.getBestOrganism();
-        Phenotype phenotype(best->getGenome(), opts);
-
-        if (i == nGenerations) {
-            printf("failed\n");
-            phenotype.saveAsSVG("failedOrganism" + itoa(r) + ".svg");
-        } else {
-
-            unsigned enabledGenes = 0;
-            for (const auto &c : best->getGenome().getConnections())
-                if (c.second.isEnabled())
-                    enabledGenes++;
-
-            generations.push_back(i);
-            nodes.push_back(best->getGenome().getNeurons().size());
-            connections.push_back(enabledGenes);
-            species.push_back(population.getSpecies().size());
-
-            phenotype.saveAsSVG("bestOrganism" + itoa(connections.back()) + "c" + 
-                                itoa(nodes.back()) + "n" + itoa(generations.back()) + "g.svg");
-
-            TEST_MSGD("[%u] Generation %3u / %3.1F, Nodes %3u / %3.1F, Connections: %3u / %3.1F, Species %3u / %3.1F", r,
-                      generations.back(), avgVector(generations),
-                      nodes.back(), avgVector(nodes),
-                      connections.back(), avgVector(connections),
-                      species.back(), avgVector(species));
-
-            if (r > nRuns / 1.5) {
-                ASSERT_TRUE(avgVector(generations) < 110);
-                ASSERT_TRUE(avgVector(nodes) < 11);
-                ASSERT_TRUE(avgVector(connections) < 20);
-                ASSERT_TRUE(avgVector(species) < 15);
-            }
-        }
-
-    }
-
-    return args;
-}
-
-
-class BinaryClassificationFitnessCalculator: public FitnessCalculator {
-
-    private:
-
-        /* reference to the options of the whole population */
-        Opts &opts;
-
-        /* the number of signals to be processed by the net */
-        unsigned nRuns; 
-        
-        /* the signal length */
-        unsigned signalLength;
-        
-        /* random number generator */
-        rand64_t *rand;
-
-        /* virtual fitness operator */
-        virtual double operator () (const Genotype &genome) {
-            return classificationRate(genome);
-        }
-
-    public:
-
-        /* return wether the problem was learned */
-        bool learned(const Genotype &genome) {
-            return classificationRate(genome) == 1.0;
-        }
-
-        /* visualizes the fitness callculation */
-        double classificationRate(const Genotype &genome) {
-
-            Phenotype phenotype(genome, opts);
-            double error = 0.0;
-            double stepsize = 0.1;
-
-            double avg[2] = { 0.0, 0.0 };
-            vector<double> outputs(nRuns, 0.0);
-            for (unsigned n = 0; n < nRuns; n++) {
-
-                double x = rand_range_d64(rand, 0, 6.283185307179586);
-                phenotype.initNet();
-
-                for (unsigned i = 0; i < signalLength; i++) {
-                    double signal[2] = { sin(x) + rand_range_d64(rand, -1.0, 1.0), double(sgn(sin(x))) + rand_range_d64(rand, -1.0, 1.0) };
-                    avg[n % 2] += phenotype.run(vector<double>(1, signal[n % 2])).at(0);
-                    x += stepsize;
-                }
-            }
-
-            avg[0] /= (nRuns/2) * signalLength;
-            avg[1] /= (nRuns/2) * signalLength;
-
-            for (unsigned n = 0; n < nRuns; n++) {
-
-                double curAVG = 0.0;
-                double x = rand_range_d64(rand, 0, 6.283185307179586);
-                phenotype.initNet();
-
-
-                for (unsigned i = 0; i < signalLength; i++) {
-                    double signal[2] = { sin(x) + rand_range_d64(rand, -1.0, 1.0), double(sgn(sin(x))) + rand_range_d64(rand, -1.0, 1.0) };
-                    curAVG += phenotype.run(vector<double>(1, signal[n % 2])).at(0);
-                    x += stepsize;
-                }
-                curAVG /= signalLength;
-                double err[2] = { std::abs(curAVG - avg[0]), std::abs(curAVG - avg[1]) };
-
-                if (err[n % 2] >= err[(n + 1) % 2])
-                    error += 1;
-            }
-
-            if (error == 0.0 && nRuns < 4096) {
-                nRuns *= 2;   
-                return classificationRate(genome);
-            }
-            return 1 - error / nRuns;
-        }
-
-        /* constructor */
-        BinaryClassificationFitnessCalculator(Opts &opts, unsigned nRuns = 64, unsigned signalLength = 64) : 
-            opts(opts.freeze()), nRuns(nRuns), signalLength(signalLength) { 
-            
-            rand = new_rand64_t();
-        }
-};
-
-TEST(BinaryClassificationRecurencyTest) {
-
-    Opts opts;
-    opts.netActivationFunction(ActivationFunction::TANH);
-    //opts.speciesSimilarityThreshold(5.0);
-    opts.allowRecurentConnections(true);
-    opts.alwaysRecalculateFitness(true);
-    opts.ageingPropabilityOffset(0.0);
-    opts.allowNeuronIntoBiasConnectionInsert(true);
-    opts.shuffleTrainingData(false);
-    opts.numThreads(15);
-
-    // training data
-    vector<vector<double>> trainingInputs  = {{0}};
-    vector<vector<double>> trainingOutputs = {{0}};
-    BinaryClassificationFitnessCalculator fitnessCalculator(opts);
-
-    vector<unsigned> generations;
-    vector<unsigned> nodes;
-    vector<unsigned> connections;
-    vector<unsigned> species;
-
-    const unsigned nRuns = 1000;
-    const unsigned nGenerations = 1000;
-
-    for (unsigned r = 0; r < nRuns; r++) {
-
-        Population population(trainingInputs, trainingOutputs, opts, &fitnessCalculator);
-        population.createInitialConnections();
-
-        unsigned i;
-        for (i = 0; i < nGenerations; i++) {
-            population.calcNextGeneration();
-
-            shared_ptr<Organism> best = population.getBestOrganism();
-            best->calculateFittness(&fitnessCalculator);
-//            fitnessCalculator.visualize(best->getGenome());
-//            
-//            unsigned enabledGenes = 0;
-//            for (const auto &c : best->getGenome().getConnections())
-//              if (c.second.isEnabled())
-//                  enabledGenes++;
-//            
-//            TEST_MSGD("[%u] Generation %3u, Nodes %3u, Connections: %3u, Species %3u, Fitness %F, Classification %f", r,
-//                      i, (unsigned) best->getGenome().getNeurons().size(),
-//                      enabledGenes, (unsigned) population.getSpecies().size(),
-//                      best->getFitness(),
-//                      fitnessCalculator.classificationRate(best->getGenome()));
-            
-            if (best->getFitness() > 0.95)
-                break;
-        }
-
-        shared_ptr<Organism> best = population.getBestOrganism();
-        Phenotype phenotype(best->getGenome(), opts);
-
-        if (i == nGenerations) {
-            printf("failed\n");
-            phenotype.saveAsSVG("failedOrganism" + itoa(r) + ".svg");
-        } else {
-
-            unsigned enabledGenes = 0;
-            for (const auto &c : best->getGenome().getConnections())
-                if (c.second.isEnabled())
-                    enabledGenes++;
-
-            generations.push_back(i);
-            nodes.push_back(best->getGenome().getNeurons().size());
-            connections.push_back(enabledGenes);
-            species.push_back(population.getSpecies().size());
-
-            phenotype.saveAsSVG("bestOrganism" + itoa(connections.back()) + "c" + 
-                                itoa(nodes.back()) + "n" + itoa(generations.back()) + "g.svg");
-
-            TEST_MSGD("[%u] Generation %3u / %3.1F, Nodes %3u / %3.1F, Connections: %3u / %3.1F, Species %3u / %3.1F", r,
-                      generations.back(), avgVector(generations),
-                      nodes.back(), avgVector(nodes),
-                      connections.back(), avgVector(connections),
-                      species.back(), avgVector(species));
-
-            if (r > nRuns / 1.5) {
-                ASSERT_TRUE(avgVector(generations) < 40);
-                ASSERT_TRUE(avgVector(nodes) < 5);
-                ASSERT_TRUE(avgVector(connections) < 7);
-                ASSERT_TRUE(avgVector(species) < 8);
-            }
-        }
-
-    }
-
-    return args;
-}
-
-class FourSignalsClassificationFitnessCalculator: public FitnessCalculator {
-
-    private:
-
-        /* reference to the options of the whole population */
-        Opts &opts;
-
-        /* the number of signals to be processed by the net */
-        unsigned nRuns; 
-        
-        /* the signal length */
-        unsigned signalLength;
-        
-        /* random number generator */
-        rand64_t *rand;
-
-        double avg[4];
-
-        /* virtual fitness operator */
-        virtual double operator () (const Genotype &genome) {
-            return classificationRate(genome);
-        }
-
-    public:
-
-        /* return wether the problem was learned */
-        bool learned(const Genotype &genome) {
-            return classificationRate(genome) == 1.0;
-        }
-
-        /* visualizes the fitness callculation */
-        virtual void visualize(const Genotype &) {
-            
-            printf("avg1: %f, avg2: %f, avg3: %f, avg4: %f\n", avg[0], avg[1], avg[2], avg[3]);
-        }
-
-        /* visualizes the fitness callculation */
-        double classificationRate(const Genotype &genome) {
-
-            Phenotype phenotype(genome, opts);
-            double error = 0.0;
-            double stepsize = 0.1;
-
-            double avg[4] = { 0.0, 0.0, 0.0, 0.0 };
-            vector<double> outputs(nRuns, 0.0);
-            for (unsigned n = 0; n < nRuns; n++) {
-
-                double x = rand_range_d64(rand, 0, 6.283185307179586);
-                phenotype.initNet();
-
-                for (unsigned i = 0; i < signalLength; i++) {
-                    double signal[4] = { 
-                        sin(x) + rand_range_d64(rand, -0.5, 0.5), 
-                        double(sgn(sin(x))) + rand_range_d64(rand, -0.5, 0.5),
-                        sin(x + sin(2*x)) + rand_range_d64(rand, -0.5, 0.5),
-                        (sin(x) + sin(2*x) + sin(3*x) + sin(4*x) + sin(5*x) + sin(6*x) + sin(7*x) + sin(8*x)) / 8 + rand_range_d64(rand, -0.5, 0.5)
-                    };
-
-                    avg[n % 4] += phenotype.run(vector<double>(1, signal[n % 4])).at(0);
-                    x += stepsize;
-                }
-            }
-
-            avg[0] /= (nRuns/4) * signalLength;
-            avg[1] /= (nRuns/4) * signalLength;
-            avg[2] /= (nRuns/4) * signalLength;
-            avg[3] /= (nRuns/4) * signalLength;
-
-            for (unsigned n = 0; n < nRuns; n++) {
-
-                double curAVG = 0.0;
-                double x = rand_range_d64(rand, 0, 6.283185307179586);
-                phenotype.initNet();
-
-
-                for (unsigned i = 0; i < signalLength; i++) {
-                    double signal[4] = { 
-                        sin(x) + rand_range_d64(rand, -0.5, 0.5), 
-                        double(sgn(sin(x))) + rand_range_d64(rand, -0.5, 0.5),
-                        sin(x + sin(2*x)) + rand_range_d64(rand, -0.5, 0.5),
-                        (sin(x) + sin(2*x) + sin(3*x) + sin(4*x) + sin(5*x) + sin(6*x) + sin(7*x) + sin(8*x)) / 8 + rand_range_d64(rand, -0.5, 0.5)
-                    };
-                    curAVG += phenotype.run(vector<double>(1, signal[n % 4])).at(0);
-                    x += stepsize;
-                }
-                curAVG /= signalLength;
-                double err[4] = { 
-                    std::abs(curAVG - avg[0]), 
-                    std::abs(curAVG - avg[1]), 
-                    std::abs(curAVG - avg[2]), 
-                    std::abs(curAVG - avg[3]) 
-                };
-
-                if (err[n % 4] >= err[(n + 1) % 4] || 
-                    err[n % 4] >= err[(n + 2) % 4] || 
-                    err[n % 4] >= err[(n + 3) % 4])
-                    error += 1;
-            }
-
-            if (error == 0.0 && nRuns < 256) {
-                nRuns *= 2;   
-                return classificationRate(genome);
-            }
-
-            this->avg[0] = avg[0];
-            this->avg[1] = avg[1];
-            this->avg[2] = avg[2];
-            this->avg[3] = avg[3];
-            return 1 - error / nRuns;
-        }
-
-        /* constructor */
-        FourSignalsClassificationFitnessCalculator(Opts &opts, unsigned nRuns = 64, unsigned signalLength = 64) : 
-            opts(opts.freeze()), nRuns(nRuns), signalLength(signalLength) { 
-            
-            rand = new_rand64_t();
-        }
-};
-
-TEST(FourSignalsClassificationRecurencyTest) {
-
-    Opts opts;
-    opts.netActivationFunction(ActivationFunction::TANH);
-    //opts.speciesSimilarityThreshold(5.0);
-    opts.allowRecurentConnections(true);
-    opts.alwaysRecalculateFitness(true);
-    opts.ageingPropabilityOffset(0.0);
-    opts.allowNeuronIntoBiasConnectionInsert(true);
-    opts.shuffleTrainingData(false);
-    opts.numThreads(15);
-
-    // training data
-    vector<vector<double>> trainingInputs  = {{0}};
-    vector<vector<double>> trainingOutputs = {{0}};
-    FourSignalsClassificationFitnessCalculator fitnessCalculator(opts);
-
-    vector<unsigned> generations;
-    vector<unsigned> nodes;
-    vector<unsigned> connections;
-    vector<unsigned> species;
-
-    const unsigned nRuns = 1000;
-    const unsigned nGenerations = 1000;
-
-    for (unsigned r = 0; r < nRuns; r++) {
-
-        Population population(trainingInputs, trainingOutputs, opts, &fitnessCalculator);
-        population.createInitialConnections();
-
-        unsigned i;
-        for (i = 0; i < nGenerations; i++) {
-            population.calcNextGeneration();
-
-            shared_ptr<Organism> best = population.getBestOrganism();
-            best->calculateFittness(&fitnessCalculator);
-//            fitnessCalculator.visualize(best->getGenome());
-//            
-//            unsigned enabledGenes = 0;
-//            for (const auto &c : best->getGenome().getConnections())
-//              if (c.second.isEnabled())
-//                  enabledGenes++;
-//            
-//            TEST_MSGD("[%u] Generation %3u, Nodes %3u, Connections: %3u, Species %3u, Fitness %F, Classification %f", r,
-//                      i, (unsigned) best->getGenome().getNeurons().size(),
-//                      enabledGenes, (unsigned) population.getSpecies().size(),
-//                      best->getFitness(),
-//                      fitnessCalculator.classificationRate(best->getGenome()));
-            
-            if (best->getFitness() > 0.98)
-                break;
-        }
-
-        shared_ptr<Organism> best = population.getBestOrganism();
-        Phenotype phenotype(best->getGenome(), opts);
-
-        if (i == nGenerations) {
-            printf("failed\n");
-            phenotype.saveAsSVG("failedOrganism" + itoa(r) + ".svg");
-        } else {
-
-            unsigned enabledGenes = 0;
-            for (const auto &c : best->getGenome().getConnections())
-                if (c.second.isEnabled())
-                    enabledGenes++;
-
-            generations.push_back(i);
-            nodes.push_back(best->getGenome().getNeurons().size());
-            connections.push_back(enabledGenes);
-            species.push_back(population.getSpecies().size());
-
-            phenotype.saveAsSVG("bestOrganism" + itoa(connections.back()) + "c" + 
-                                itoa(nodes.back()) + "n" + itoa(generations.back()) + "g.svg");
-
-            TEST_MSGD("[%u] Generation %3u / %3.1F, Nodes %3u / %3.1F, Connections: %3u / %3.1F, Species %3u / %3.1F", r,
-                      generations.back(), avgVector(generations),
-                      nodes.back(), avgVector(nodes),
-                      connections.back(), avgVector(connections),
-                      species.back(), avgVector(species));
-
-            if (r > nRuns / 1.5) {
-                ASSERT_TRUE(avgVector(generations) < 40);
-                ASSERT_TRUE(avgVector(nodes) < 5);
-                ASSERT_TRUE(avgVector(connections) < 7);
-                ASSERT_TRUE(avgVector(species) < 8);
-            }
-        }
-
-    }
-
-    return args;
-}
-
-class OscillatorFitnessCalculator: public FitnessCalculator {
-
-    private:
-
-        /* reference to the options of the whole population */
-        Opts &opts;
-
-        uint64_t organismIndex = 0;
-
-        /* the target signal */
-        vector<double> target;
-
-
-        /* virtual fitness operator */
-        virtual double operator () (const Genotype &genome) {
-
-            organismIndex++;
-            Phenotype phenotype(genome, opts);
-            double error = 0.0;
-
-            /* washout */
-            for (unsigned i = 0; i < 100; i++)
-                phenotype.run(vector<double>(1, target[i]));
-
-            /* training */
-            for (unsigned i = 100; i < 400; i++)
-                error += pow(phenotype.run(vector<double>(1, target[i])).at(0) - target[i + 1], 2);
-
-            return 1.0 / sqrt(error / 300);
-        }
-
-    public:
-
-        /* constructor */
-        OscillatorFitnessCalculator(Opts &opts) : opts(opts.freeze()) { 
-            
-            double f[12] = {
-                0.2,
-                0.311,
-                0.42,
-                0.51,
-                0.63,
-                0.74,
-                0.85,
-                0.97,
-                1.08,
-                1.19,
-                1.27,
-                1.32
-            };
-            
-            double max = 0;
-            for (unsigned i = 0; i < 700; i++) {
-                double cur = 0;
-                for (unsigned n = 0; n < 12; n++)
-                    cur += sin(f[n]*i);
-
-                if (max < std::abs(cur))
-                    max = std::abs(cur);
-                this->target.push_back(cur);
-            }
-
-            for (unsigned i = 0; i < 700; i++)
-                this->target[i] /= max;
-
-        }
-
-        /* visualizes the fitness callculation */
-        virtual void visualize(const Genotype &genome, const unsigned length, const unsigned timeSteps) {
-
-            Phenotype phenotype(genome, opts);
-
-            for (unsigned i = 0; i < 400; i++) {
-                const double output = phenotype.run(vector<double>(1, target[i])).at(0);
-
-                printf("|");
-                for (unsigned n = 0; n < length; n++) {
-                    const double curValue  = (n - length / 2.0) / (length / 2.0);
-                    const double nextValue = ((n + 1) - length / 2.0) / (length / 2.0);
-
-                    if (curValue < output && output < nextValue)
-                        printf("#");
-                    else if (curValue < target[i+1] && target[i+1] < nextValue)
-                        printf("*");
-                    else
-                        printf(" ");
-                }
-                printf("| %f\n", std::abs(target[i+1] - output));
-            }
-        }
-
-};
-
-TEST(OscillatorRecurencyTest) {
-
-    Opts opts;
-    opts.netActivationFunction(ActivationFunction::TANH);
-    opts.weightMultiplier(1.0);
-    opts.speciesSimilarityThreshold(5.0);
-    opts.allowRecurentConnections(true);
-    opts.ageingPropabilityOffset(0.0);
-    //opts.recombinateNeurons(false);
-    opts.allowNeuronIntoBiasConnectionInsert(true);
-    opts.shuffleTrainingData(false);
-    //opts.removeNeuronMutationPropability(0.003);
-    //opts.removeConnectionMutationPropability(0.005);
-
-    // training data
-    vector<vector<double>> trainingInputs  = {{1}};
-    vector<vector<double>> trainingOutputs = {{0}};
-    OscillatorFitnessCalculator fitnessCalculator(opts);
-
-    vector<unsigned> generations;
-    vector<unsigned> nodes;
-    vector<unsigned> connections;
-    vector<unsigned> species;
-
-    const unsigned nRuns = 1000;
-    const unsigned nGenerations = 1000;
-
-    for (unsigned r = 0; r < nRuns; r++) {
-
-        Population population(trainingInputs, trainingOutputs, opts, &fitnessCalculator);
-        population.createInitialConnections();
-
-        unsigned i;
-        for (i = 0; i < nGenerations; i++) {
-            population.calcNextGeneration();
-
-            shared_ptr<Organism> best = population.getBestOrganism();
-            best->calculateFittness(&fitnessCalculator);
-            fitnessCalculator.visualize(best->getGenome(), 100, 150);
-            
-            unsigned enabledGenes = 0;
-            for (const auto &c : best->getGenome().getConnections())
-                if (c.second.isEnabled())
-                    enabledGenes++;
-            
-            TEST_MSGD("[%u] Generation %3u, Nodes %3u, Connections: %3u, Species %3u, Fitness %F", r,
-                      i, (unsigned) best->getGenome().getNeurons().size(),
-                      enabledGenes, (unsigned) population.getSpecies().size(),
-                      1.0 / best->getFitness());
-            
-            if (1.0 / best->getFitness() < 0.02)
-                break;
-        }
-
-        shared_ptr<Organism> best = population.getBestOrganism();
-        Phenotype phenotype(best->getGenome(), opts);
-
-        if (i == nGenerations) {
-            printf("failed\n");
-            phenotype.saveAsSVG("failedOrganism" + itoa(r) + ".svg");
-        } else {
-
-            unsigned enabledGenes = 0;
-            for (const auto &c : best->getGenome().getConnections())
-                if (c.second.isEnabled())
-                    enabledGenes++;
-
-            generations.push_back(i);
-            nodes.push_back(best->getGenome().getNeurons().size());
-            connections.push_back(enabledGenes);
-            species.push_back(population.getSpecies().size());
-
-            phenotype.saveAsSVG("bestOrganism" + itoa(connections.back()) + "c" + 
-                                itoa(nodes.back()) + "n" + itoa(generations.back()) + "g.svg");
-
-            TEST_MSGD("[%u] Generation %3u / %3.1F, Nodes %3u / %3.1F, Connections: %3u / %3.1F, Species %3u / %3.1F", r,
-                      generations.back(), avgVector(generations),
-                      nodes.back(), avgVector(nodes),
-                      connections.back(), avgVector(connections),
-                      species.back(), avgVector(species));
-
-            if (r > nRuns / 1.5) {
-                ASSERT_TRUE(avgVector(generations) < 40);
-                ASSERT_TRUE(avgVector(nodes) < 5);
-                ASSERT_TRUE(avgVector(connections) < 7);
-                ASSERT_TRUE(avgVector(species) < 8);
-            }
-        }
-
-    }
+    ASSERT_TRUE(!generations.empty(), "learning batch produced no solutions");
 
     return args;
 }

@@ -35,9 +35,6 @@ namespace NEAT {
                  */
                 double weightedInputs;
                 
-                /* temporary value for periodic signals */
-                double periodicValue;
-
                 /* calculate the output value using a sigmoid activation */
                 void calculateSigmoidOutput() {
                     outputValue = 1.0/(1.0 + exp(-gradient * weightedInputs));
@@ -52,56 +49,6 @@ namespace NEAT {
                 void calculateReLUOutput() {
                     outputValue = gradient * weightedInputs;
                     if (outputValue < 0) outputValue = 0;
-                }
-
-                /* calculate the output value using a sine activation */
-                void calculateSineOutput() {
-                    outputValue = sin(gradient * weightedInputs);
-                }
-
-                /* calculate the output value using a log activation */
-                void calculateLogOutput() {
-                    if (gradient * weightedInputs < 0.36787944117144233)
-                        outputValue = -1;
-                    else 
-                        outputValue = log(gradient * weightedInputs);
-                }
-
-                /* calculate the output value using a sqrt activation */
-                void calculateSqrtOutput() {
-                    if (gradient * weightedInputs < 0)
-                        outputValue = 0;
-                    else 
-                        outputValue = sqrt(gradient * weightedInputs);
-                }
-
-                /* calculate the output value using a abs activation */
-                void calculateAbsOutput() {
-                    outputValue = std::abs(gradient * weightedInputs);
-                }
-
-                /* calculate the output value using a pow 2 activation */
-                void calculatePow2Output() {
-                    outputValue = pow(gradient * weightedInputs, 2);
-                }
-
-                /* calculate the output value using a exp activation */
-                void calculateExpOutput() {
-                    if (gradient * weightedInputs > 0)
-                        outputValue = 1;
-                    else 
-                        outputValue = exp(gradient * weightedInputs);
-                }
-
-                /* calculate the output value using an identity activation */
-                void calculateIdentityOutput() {
-                    outputValue = gradient * weightedInputs;
-                }
-
-                /* calculate the output value using an identity activation */
-                void calculateGaussianOutput() {
-                    outputValue = 1.0 / (gradient * 2.5066282746310002);
-                    outputValue *= exp(pow(weightedInputs, 2) / (-2 * pow(gradient, 2)));
                 }
 
             public:
@@ -127,18 +74,9 @@ namespace NEAT {
                 /* calculates the weighted input sum */
                 void calculateWeightedInputs() {
 
-                    if (function == ActivationFunction::MULT) {
-
-                        weightedInputs = 1.0;
-                        for (unsigned i = 0; i < inputs.size(); i++)
-                            weightedInputs *= weights[i] * inputs[i]->getValue();
-
-                    } else {
-                    
-                        weightedInputs = 0.0;
-                        for (unsigned i = 0; i < inputs.size(); i++)
-                            weightedInputs += weights[i] * inputs[i]->getValue();
-                    }
+                    weightedInputs = 0.0;
+                    for (unsigned i = 0; i < inputs.size(); i++)
+                        weightedInputs += weights[i] * inputs[i]->getValue();
                 }
 
                 /* calculates the output of this */
@@ -150,24 +88,6 @@ namespace NEAT {
                         this->calculateTanhOutput();
                     else if (function == ActivationFunction::RELU)
                         this->calculateReLUOutput();
-                    else if (function == ActivationFunction::SINE)
-                        this->calculateSineOutput();
-                    else if (function == ActivationFunction::LOG)
-                        this->calculateLogOutput();
-                    else if (function == ActivationFunction::SQRT)
-                        this->calculateSqrtOutput();
-                    else if (function == ActivationFunction::ABS)
-                        this->calculateAbsOutput();
-                    else if (function == ActivationFunction::POW)
-                        this->calculatePow2Output();
-                    else if (function == ActivationFunction::EXP)
-                        this->calculateExpOutput();
-                    else if (function == ActivationFunction::ADD)
-                        this->calculateIdentityOutput();
-                    else if (function == ActivationFunction::MULT)
-                        this->calculateIdentityOutput();
-                    else if (function == ActivationFunction::GAUSSIAN)
-                        this->calculateGaussianOutput();
                     else
                         assert(false);
                 }
@@ -183,16 +103,13 @@ namespace NEAT {
                     function(function),
                     gradient(gradient),
                     outputValue(0.0), 
-                    weightedInputs(0.0), 
-                    periodicValue(0.0) { }
+                    weightedInputs(0.0) { }
 
                 /* resets this to zero */
                 void reset() {
                     this->outputValue    = 0.0;
                     this->weightedInputs = 0.0;
                 }
-
-                void setWeightedInputs(double inputs) { weightedInputs = inputs; }
 
         };
 };

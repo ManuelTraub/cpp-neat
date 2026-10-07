@@ -57,12 +57,6 @@ namespace NEAT {
                     GeneHistory &geneHistory
                 );
 
-                /* create a new Organism */
-                Organism(
-                    Opts &opts, 
-                    GeneHistory &geneHistory
-                );
-
                 /* create a new Organism from the given genome */
                 Organism(
                     Genotype &genome,
@@ -87,7 +81,7 @@ namespace NEAT {
                     vector<vector<double>> outputs
                 );
 
-                /* calculates the fitness of this by using single creature simulation */
+                /* calculates the fitness of this using the given callback */
                 void calculateFittness(FitnessCalculator *fitnessCalculator) {
                     if (std::isnan(fitness) || opts.alwaysRecalculateFitness())
                         this->fitness = (*fitnessCalculator)(this->genome);

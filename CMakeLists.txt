@@ -1,9 +1,12 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.16)
+
+project(NEAT LANGUAGES CXX)
+
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-PROJECT(NEAT)
+set(NEAT_TEST_SEED "20261007" CACHE STRING "Process-wide RNG seed for CTest")
 
-add_definitions(-D__DEBUG__)
 add_subdirectory("./src")
 
 enable_testing()

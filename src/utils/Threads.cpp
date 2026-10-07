@@ -1,9 +1,6 @@
 #include "Threads.h"
 using namespace NEAT;
 
-#include <algorithm>
-#include <memory.h>
-
 #ifdef _WIN32
 #include <process.h>
 #endif
@@ -43,26 +40,6 @@ void Thread::join() {
 #endif
 }
 
-uint64_t Thread::id() {
-#ifdef _WIN32
-    return (uint64_t) GetCurrentThreadId();
-#else
-    pthread_t ptid = pthread_self();
-    uint64_t threadId = 0;
-    memcpy(&threadId, &ptid, std::min(sizeof(threadId), sizeof(ptid)));
-    return threadId;
-#endif
-}
-
-/* handles execution to an other thread */
-void Thread::yield() {
-#ifdef _WIN32
-    SwitchToThread();
-#else
-    pthread_yield();
-#endif
-}
-
 /* create a new Mutex */
 Mutex::Mutex() {
 #ifndef _WIN32
@@ -83,15 +60,6 @@ void Mutex::lock() {
     while (mutex.test_and_set());
 #else
     pthread_mutex_lock(&mutex);
-#endif
-}
-
-/* try locking the mutex */
-bool Mutex::trylock() {
-#ifdef _WIN32
-    return mutex.test_and_set();
-#else
-    return pthread_mutex_trylock(&mutex);
 #endif
 }
 

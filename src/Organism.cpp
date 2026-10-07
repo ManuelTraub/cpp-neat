@@ -25,17 +25,6 @@ Organism::Organism(
     fitness(std::nan("Organism")), 
     alive(true) { }
 
-/* create a new Organism */
-Organism::Organism(
-    Opts &opts, 
-    GeneHistory &geneHistory
-) :
-    opts(opts.freeze()),
-    geneHistory(geneHistory),
-    genome(opts, geneHistory), 
-    fitness(std::nan("Organism")), 
-    alive(true) { }
-
 /* create a new Organism from the given genome */
 Organism::Organism(
    Genotype &genome,
@@ -102,11 +91,6 @@ void Organism::mutate() {
 
     this->fitness = std::nan("Organism");
 
-    if (rand_range_d64(rand, 0, 1) < opts.addStructureMutationPropability()) 
-        for(unsigned i = 0; i < 30; i++) 
-            if (this->genome.mutateInsertStructure()) 
-                return;
-
     if (rand_range_d64(rand, 0, 1) < opts.addNeuronMutationPropability()) 
         for(unsigned i = 0; i < 30; i++) 
             if (this->genome.mutateInsertNeuron()) 
@@ -117,32 +101,11 @@ void Organism::mutate() {
             if (this->genome.mutateInsertConnection())
                 return;
 
-    if (rand_range_d64(rand, 0, 1) < opts.removeStructureMutationPropability()) 
-        for(unsigned i = 0; i < 30; i++) 
-            if (this->genome.mutateDeleteStructure()) 
-                return;
-
-    if (rand_range_d64(rand, 0, 1) < opts.removeNeuronMutationPropability()) 
-        for(unsigned i = 0; i < 30; i++) 
-            if (this->genome.mutateDeleteNeuron()) 
-                return;
-    
-    if (rand_range_d64(rand, 0, 1) < opts.removeConnectionMutationPropability()) 
-        for(unsigned i = 0; i < 100; i++) 
-            if (this->genome.mutateDeleteConnection())
-                return;
-    
     if (rand_range_d64(rand, 0, 1) < opts.mutateWeightsPropability())
         this->genome.mutateConnections();
 
     if (rand_range_d64(rand, 0, 1) < opts.mutateNeuronsPropability())
         this->genome.mutateNeurons();
-
-    if (rand_range_d64(rand, 0, 1) < opts.mutateStructureTypePropability())
-        this->genome.mutateStructureType();
-
-    if (rand_range_d64(rand, 0, 1) < opts.mutateStructureSizePropability())
-        this->genome.mutateStructureSize();
 }
 
 namespace NEAT {
