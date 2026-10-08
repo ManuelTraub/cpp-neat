@@ -474,7 +474,6 @@ unsigned Genotype::numEnabledConnections() const {
     return enabledConnections;
 }
 
-#ifdef __DEBUG__ 
 NeuronGene &Genotype::addNeuron(const ConnectionGene &gene) {
 
     const NeuronGene neuron = geneHistory.insertNeuron(gene);
@@ -499,4 +498,3 @@ ConnectionGene &Genotype::addConnection(const NeuronGene &gene1, const NeuronGen
 
     return connections.at(connection.getID());
 }
-#endif

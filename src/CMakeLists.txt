@@ -15,7 +15,6 @@ add_library(neat STATIC
 )
 
 target_include_directories(neat PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_compile_definitions(neat PUBLIC __DEBUG__)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(neat PRIVATE -Wall -Wextra)

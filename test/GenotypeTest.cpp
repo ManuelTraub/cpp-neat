@@ -1,6 +1,7 @@
 #include "../src/utils/utils.h"
 #include "../src/Genotype.h"
 #include "../src/Opts.h"
+#include "TestAccess.h"
 
 #include <vector>
 
@@ -68,8 +69,8 @@ TEST(basicTest) {
     ASSERT_EQUAL(inputs2.size(), 3, "more than 3 inputs");
     ASSERT_EQUAL(outputs2.size(), 2, "more than 2 outputs");
 
-    genotype1.addConnection(inputs1[0], outputs1[0]);
-    genotype2.addConnection(inputs2[0], outputs2[0]);
+    TestAccess::addConnection(genotype1, inputs1[0], outputs1[0]);
+    TestAccess::addConnection(genotype2, inputs2[0], outputs2[0]);
 
     unordered_map<uint64_t, ConnectionGene> connections1 = genotype1.getConnections();
     unordered_map<uint64_t, ConnectionGene> connections2 = genotype2.getConnections();
@@ -84,8 +85,8 @@ TEST(basicTest) {
                  connections2.begin()->second.getID());
     
 
-    genotype3.addConnection(inputs1[0], outputs1[1]);
-    genotype4.addConnection(inputs2[1], outputs2[0]);
+    TestAccess::addConnection(genotype3, inputs1[0], outputs1[1]);
+    TestAccess::addConnection(genotype4, inputs2[1], outputs2[0]);
 
     connections1 = genotype3.getConnections();
     connections2 = genotype4.getConnections();
@@ -126,8 +127,8 @@ TEST(basic2DTest) {
     ASSERT_EQUAL(inputs.size(), 2, "more than 2 inputs");
     ASSERT_EQUAL(outputs.size(), 2, "more than 2 outputs");
 
-    genotype1.addConnection(inputs[0], outputs[1]);
-    genotype2.addConnection(inputs[1], outputs[0]);
+    TestAccess::addConnection(genotype1, inputs[0], outputs[1]);
+    TestAccess::addConnection(genotype2, inputs[1], outputs[0]);
 
     unordered_map<uint64_t, ConnectionGene> connections1 = genotype1.getConnections();
     unordered_map<uint64_t, ConnectionGene> connections2 = genotype2.getConnections();
@@ -142,8 +143,8 @@ TEST(basic2DTest) {
                 connections2.begin()->second.getID());
     
 
-    genotype1.addNeuron(connections1.begin()->second);
-    genotype2.addNeuron(connections2.begin()->second);
+    TestAccess::addNeuron(genotype1, connections1.begin()->second);
+    TestAccess::addNeuron(genotype2, connections2.begin()->second);
 
     unordered_map<uint64_t, NeuronGene> neurons1 = genotype1.getNeurons();
     unordered_map<uint64_t, NeuronGene> neurons2 = genotype2.getNeurons();
@@ -193,10 +194,10 @@ TEST(basicInLayerTestTest) {
     ASSERT_EQUAL(inputs.size(), 2, "more than 2 inputs");
     ASSERT_EQUAL(outputs.size(), 2, "more than 2 outputs");
 
-    genotype1.addConnection(inputs[0], outputs[1]);
-    genotype1.addConnection(inputs[1], outputs[0]);
-    genotype2.addConnection(inputs[0], outputs[1]);
-    genotype2.addConnection(inputs[1], outputs[0]);
+    TestAccess::addConnection(genotype1, inputs[0], outputs[1]);
+    TestAccess::addConnection(genotype1, inputs[1], outputs[0]);
+    TestAccess::addConnection(genotype2, inputs[0], outputs[1]);
+    TestAccess::addConnection(genotype2, inputs[1], outputs[0]);
 
     unordered_map<uint64_t, ConnectionGene> connections1 = genotype1.getConnections();
     unordered_map<uint64_t, ConnectionGene> connections2 = genotype2.getConnections();
@@ -204,10 +205,10 @@ TEST(basicInLayerTestTest) {
     ASSERT_EQUAL(connections1.size(), 2, "more than one connection");
     ASSERT_EQUAL(connections2.size(), 2, "more than one connection");
 
-    genotype1.addNeuron(connections1.begin()->second);
-    genotype1.addNeuron((++connections1.begin())->second);
-    genotype2.addNeuron(connections2.begin()->second);
-    genotype2.addNeuron((++connections2.begin())->second);
+    TestAccess::addNeuron(genotype1, connections1.begin()->second);
+    TestAccess::addNeuron(genotype1, (++connections1.begin())->second);
+    TestAccess::addNeuron(genotype2, connections2.begin()->second);
+    TestAccess::addNeuron(genotype2, (++connections2.begin())->second);
 
     unordered_map<uint64_t, NeuronGene> neurons1 = genotype1.getNeurons();
     unordered_map<uint64_t, NeuronGene> neurons2 = genotype2.getNeurons();
@@ -238,13 +239,13 @@ TEST(basicInLayerTestTest) {
     ASSERT_EQUAL(hidden1[0].getID(), hidden2[0].getID(), "ids sould be equal");
     ASSERT_EQUAL(hidden1[1].getID(), hidden2[1].getID(), "ids sould be equal");
 
-    ConnectionGene connection1 = genotype1.addConnection(hidden1[0], hidden1[1]);
-    ConnectionGene connection2 = genotype2.addConnection(hidden2[0], hidden2[1]);
+    ConnectionGene connection1 = TestAccess::addConnection(genotype1, hidden1[0], hidden1[1]);
+    ConnectionGene connection2 = TestAccess::addConnection(genotype2, hidden2[0], hidden2[1]);
 
     ASSERT_EQUAL(connection1.getID(), connection2.getID(), "conections hsould be equal");
 
-    genotype1.addNeuron(connection1);
-    genotype2.addNeuron(connection2);
+    TestAccess::addNeuron(genotype1, connection1);
+    TestAccess::addNeuron(genotype2, connection2);
 
     neurons1 = genotype1.getNeurons();
     neurons2 = genotype2.getNeurons();
@@ -386,8 +387,8 @@ TEST_N(advancedMutationTest, 100) {
     }
 
     /* add a new neuron */
-    genotype1.addNeuron(vConnections[randIndex]);
-    genotype2.addNeuron(vConnections[randIndex]);
+    TestAccess::addNeuron(genotype1, vConnections[randIndex]);
+    TestAccess::addNeuron(genotype2, vConnections[randIndex]);
 
     /* recalculate the number of possible connections: 
      * 1 recurent connection
@@ -474,22 +475,22 @@ TEST_N(basicSimilarityTest, 100) {
     ASSERT_EQUAL(genotype1.similarity(genotype2), 0, "genotyps should be equal");
     ASSERT_EQUAL(genotype2.similarity(genotype1), 0, "genotyps should be equal");
 
-    genotype1.addConnection(inputs1[0], outputs1[1]);
+    TestAccess::addConnection(genotype1, inputs1[0], outputs1[1]);
 
     ASSERT_EQUAL(genotype1.similarity(genotype2), 1.0);
     ASSERT_EQUAL(genotype2.similarity(genotype1), 1.0);
 
-    genotype2.addConnection(inputs2[1], outputs2[0]);
+    TestAccess::addConnection(genotype2, inputs2[1], outputs2[0]);
 
     ASSERT_EQUAL(genotype1.similarity(genotype2), 2.0);
     ASSERT_EQUAL(genotype2.similarity(genotype1), 2.0);
 
-    genotype1.addConnection(inputs2[1], outputs2[0]);
+    TestAccess::addConnection(genotype1, inputs2[1], outputs2[0]);
 
     ASSERT_EQUAL(genotype1.similarity(genotype2), 1.0);
     ASSERT_EQUAL(genotype2.similarity(genotype1), 1.0);
 
-    ConnectionGene &connection = genotype2.addConnection(inputs1[0], outputs1[1]);
+    ConnectionGene &connection = TestAccess::addConnection(genotype2, inputs1[0], outputs1[1]);
 
     ASSERT_EQUAL(genotype1.similarity(genotype2), 0, "genotyps should be equal");
     ASSERT_EQUAL(genotype2.similarity(genotype1), 0, "genotyps should be equal");
@@ -543,10 +544,10 @@ TEST(basicRecombinationTest) {
     ASSERT_EQUAL(inputs2.size(), 3, "more than 3 inputs");
     ASSERT_EQUAL(outputs2.size(), 2, "more than 2 outputs");
 
-    ConnectionGene gene1 = genotype1.addConnection(inputs1[0], outputs1[1]);
-    ConnectionGene gene2 = genotype1.addConnection(inputs2[1], outputs2[0]);
-    ConnectionGene gene3 = genotype2.addConnection(inputs2[1], outputs2[0]);
-    NeuronGene     gene4 = genotype2.addNeuron(gene3);
+    ConnectionGene gene1 = TestAccess::addConnection(genotype1, inputs1[0], outputs1[1]);
+    ConnectionGene gene2 = TestAccess::addConnection(genotype1, inputs2[1], outputs2[0]);
+    ConnectionGene gene3 = TestAccess::addConnection(genotype2, inputs2[1], outputs2[0]);
+    NeuronGene     gene4 = TestAccess::addNeuron(genotype2, gene3);
 
     Genotype child1 = Genotype(genotype1, genotype2, opts, geneHistory);
     Genotype child2 = Genotype(genotype2, genotype1, opts, geneHistory);
@@ -605,10 +606,10 @@ TEST(basicAgeingTest) {
     ASSERT_EQUAL(genotype1.genomeAge(), 0);
     ASSERT_EQUAL(genotype2.genomeAge(), 0);
 
-    GenerationCounter::inc();
-    genotype1.addConnection(inputs1[0], outputs1[0]);
-    GenerationCounter::inc();
-    genotype2.addConnection(inputs2[0], outputs2[0]);
+    TestAccess::advanceGeneration();
+    TestAccess::addConnection(genotype1, inputs1[0], outputs1[0]);
+    TestAccess::advanceGeneration();
+    TestAccess::addConnection(genotype2, inputs2[0], outputs2[0]);
 
     unordered_map<uint64_t, ConnectionGene> connections1 = genotype1.getConnections();
     unordered_map<uint64_t, ConnectionGene> connections2 = genotype2.getConnections();
@@ -625,8 +626,8 @@ TEST(basicAgeingTest) {
     ASSERT_EQUAL(genotype1.genomeAge(), 1);
     ASSERT_EQUAL(genotype2.genomeAge(), 1);
     
-    GenerationCounter::inc();
-    genotype2.addConnection(inputs2[1], outputs2[0]);
+    TestAccess::advanceGeneration();
+    TestAccess::addConnection(genotype2, inputs2[1], outputs2[0]);
     ASSERT_EQUAL(genotype1.genomeAge(), 2);
     ASSERT_EQUAL(genotype2.genomeAge(), 0);
 
@@ -737,8 +738,8 @@ TEST_N(advancedSimilarityTest2, 100) {
     }
 
     /* add a new neuron */
-    genotype1.addNeuron(vConnections[randIndex]);
-    genotype2.addNeuron(vConnections[randIndex]);
+    TestAccess::addNeuron(genotype1, vConnections[randIndex]);
+    TestAccess::addNeuron(genotype2, vConnections[randIndex]);
 
     /* recalculate the number of possible connections: 
      * 1 recurent connection

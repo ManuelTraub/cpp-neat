@@ -1,6 +1,7 @@
 #include "../src/utils/utils.h"
 #include "../src/Organism.h"
 #include "../src/Opts.h"
+#include "TestAccess.h"
 
 #include <vector>
 #include <memory>
@@ -39,7 +40,7 @@ TEST(basicSortingTest) {
 
     for (unsigned i = 0; i < 1000; i++) {
         organisms.push_back(make_shared<Organism>(0, 0, opts, geneHistory));
-        organisms.back()->setFitness(rand_range_d64(args, 0, 100));
+        TestAccess::setFitness(*organisms.back(), rand_range_d64(args, 0, 100));
     }
 
     std::sort(organisms.begin(), organisms.end(), orderOrganisms);

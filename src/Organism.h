@@ -27,6 +27,8 @@ namespace NEAT {
 
         class Organism {
 
+            friend struct TestAccess;
+
             private:
 
                 /* reference to the options of the whole population */
@@ -46,6 +48,8 @@ namespace NEAT {
 
                 /* indicates that this Organism is alive */
                 bool alive;
+
+                void setFitness(double fitness) { this->fitness = fitness; }
 
             public:
 
@@ -117,10 +121,6 @@ namespace NEAT {
                 void createInitialConnections(bool connectBias = true) {
                     this->genome.createInitialConnections(connectBias);
                 }
-
-#ifdef __DEBUG__
-                void setFitness(double fitness) { this->fitness = fitness; }
-#endif
 
         };
 

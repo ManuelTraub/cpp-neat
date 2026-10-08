@@ -44,6 +44,8 @@ namespace NEAT {
 
             private:
 
+                friend struct TestAccess;
+
                 /* the Options of this */
                 Opts &opts;
 
@@ -68,10 +70,6 @@ namespace NEAT {
 
                 /* the SpeciesInspectors of this */
                 vector<SpeciesInspector *> speciesInspectors;
-
-#ifdef __DEBUG__
-            public:
-#endif
 
                 /* sorts the Organisms and species as removing the deaths 
                  * returns the organisms left for reproduction 
@@ -125,9 +123,6 @@ namespace NEAT {
                     this->speciesInspectors.push_back(inspector);
                 }
 
-#ifdef __DEBUG__
-                vector<shared_ptr<Species>> &getSpecies() { return this->species; }
-#endif 
         };
 }
 

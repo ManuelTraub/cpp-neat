@@ -1,6 +1,7 @@
 #include "../src/utils/utils.h"
 #include "../src/Species.h"
 #include "../src/Opts.h"
+#include "TestAccess.h"
 
 #include <vector>
 #include <memory>
@@ -47,7 +48,7 @@ TEST(survivalBoundaryTest) {
 
             for (unsigned i = 0; i < sizes[n]; i++) {
                 organisms.push_back(make_shared<Organism>(1, 1, opts, geneHistory));
-                organisms.back()->setFitness(sizes[n] - i);
+                NEAT::TestAccess::setFitness(*organisms.back(), sizes[n] - i);
                 species.add(organisms.back());
             }
             species.update();

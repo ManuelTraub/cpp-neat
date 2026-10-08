@@ -14,6 +14,7 @@ namespace NEAT {
         class GenerationCounter {
 
             friend class Population;
+            friend struct TestAccess;
 
             private:
 
@@ -32,16 +33,13 @@ namespace NEAT {
                 /* the number of current generation */
                 uint64_t generation;
 
+                /* increases the generation counter */
+                static void inc();
+
             public:
 
                 /* get the number of the current generation */
                 static uint64_t get();
-
-#ifdef __DEBUG__
-                
-                /* increases the generation counter */
-                static void inc();
-#endif
 
         };
 }

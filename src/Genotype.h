@@ -17,6 +17,8 @@ namespace NEAT {
 
         
         class Genotype {
+
+            friend struct TestAccess;
             
             private:
 
@@ -43,6 +45,9 @@ namespace NEAT {
 
                 /* recombinate averaging the weights of similar genes */
                 void recombinateAverage(const Genotype &fitter, const Genotype &other);
+
+                NeuronGene &addNeuron(const ConnectionGene &gene);
+                ConnectionGene &addConnection(const NeuronGene &gene1, const NeuronGene &gene2);
 
             public:
 
@@ -100,10 +105,6 @@ namespace NEAT {
                 /* number of enabled connection genes */
                 unsigned numEnabledConnections() const;
 
-#ifdef __DEBUG__ 
-                NeuronGene &addNeuron(const ConnectionGene &gene);
-                ConnectionGene &addConnection(const NeuronGene &gene1, const NeuronGene &gene2);
-#endif
         };
 }
 

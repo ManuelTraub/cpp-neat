@@ -42,10 +42,6 @@ namespace NEAT {
                 /* the generation of the last fittnes improvment of this */
                 uint64_t lastImproveGeneration;
 
-#ifdef __DEBUG__
-            public:
-#endif
-
                 /* creates a new offspring from the Organism with the given index */
                 shared_ptr<Organism> createOffspring(unsigned index);
 
@@ -119,10 +115,6 @@ namespace NEAT {
 
                 /* returns the best original fittness of this */
                 double getBestFitness() const { return bestFitness; }
-
-#ifdef __DEBUG__ 
-                void setAverageFitness(double fitness) { averageFitness = fitness; }
-#endif
 
         };
 

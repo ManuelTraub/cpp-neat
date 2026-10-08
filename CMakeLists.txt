@@ -9,5 +9,7 @@ set(NEAT_TEST_SEED "20261007" CACHE STRING "Process-wide RNG seed for CTest")
 
 add_subdirectory("./src")
 
-enable_testing()
-add_subdirectory("./test")
+include(CTest)
+if(BUILD_TESTING)
+    add_subdirectory("./test")
+endif()

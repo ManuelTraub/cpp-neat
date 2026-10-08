@@ -10,10 +10,7 @@ uint64_t GenerationCounter::get() {
     return onlyInstance.generation;
 }
 
-#ifdef __DEBUG__
-            
 /* increases the generation counter */
 void GenerationCounter::inc() {
     onlyInstance.generation++;
 }
-#endif

@@ -54,7 +54,7 @@ Phenotype::Phenotype(const Genotype &genome, Opts &opts) :
         else
             this->neuronLayers[layer].push_back(newNeuron);
 
-#ifdef __DEBUG__
+#ifndef NDEBUG
         const NeuronGene &neuron = e.second;
 
         if (layer == 0 && 
@@ -77,7 +77,7 @@ Phenotype::Phenotype(const Genotype &genome, Opts &opts) :
             assertf(false, "invalid neuron in hidden layer %u: type(%u) id(%lu)\n", layer,
                     (unsigned) neuron.getType(), neuron.getID());
         }
-#endif /* __DEBUG__ */
+#endif /* NDEBUG */
     }
 
     /* set the bias to 1 */

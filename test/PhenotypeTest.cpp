@@ -1,5 +1,6 @@
 #include "../src/utils/utils.h"
 #include "../src/Phenotype.h"
+#include "TestAccess.h"
 
 #include <vector>
 #include <type_traits>
@@ -42,24 +43,24 @@ TEST_N(asymmetricMappingSaveLoadCrossoverTest, 100) {
     const NeuronGene output1 = geneHistory.insertNeuron(NeuronType::OUTPUT, 1);
     const NeuronGene bias = geneHistory.insertNeuron(NeuronType::BIAS, 0);
 
-    ConnectionGene &direct0 = genotype.addConnection(input0, output0);
-    ConnectionGene &direct1 = genotype.addConnection(input1, output1);
+    ConnectionGene &direct0 = TestAccess::addConnection(genotype, input0, output0);
+    ConnectionGene &direct1 = TestAccess::addConnection(genotype, input1, output1);
     direct0.setWeight(0.0);
     direct1.setWeight(0.0);
 
-    NeuronGene &hidden0 = genotype.addNeuron(direct0);
-    NeuronGene &hidden1 = genotype.addNeuron(direct1);
+    NeuronGene &hidden0 = TestAccess::addNeuron(genotype, direct0);
+    NeuronGene &hidden1 = TestAccess::addNeuron(genotype, direct1);
     hidden0.setGradient(1.0);
     hidden1.setGradient(2.0);
 
-    genotype.addConnection(input0, hidden0).setWeight(2.0);
-    genotype.addConnection(input1, hidden1).setWeight(3.0);
-    genotype.addConnection(hidden0, output0).setWeight(1.0);
-    genotype.addConnection(hidden1, output0).setWeight(2.0);
-    genotype.addConnection(hidden0, output1).setWeight(4.0);
-    genotype.addConnection(hidden1, output1).setWeight(5.0);
-    genotype.addConnection(bias, output0).setWeight(0.5);
-    genotype.addConnection(bias, output1).setWeight(1.5);
+    TestAccess::addConnection(genotype, input0, hidden0).setWeight(2.0);
+    TestAccess::addConnection(genotype, input1, hidden1).setWeight(3.0);
+    TestAccess::addConnection(genotype, hidden0, output0).setWeight(1.0);
+    TestAccess::addConnection(genotype, hidden1, output0).setWeight(2.0);
+    TestAccess::addConnection(genotype, hidden0, output1).setWeight(4.0);
+    TestAccess::addConnection(genotype, hidden1, output1).setWeight(5.0);
+    TestAccess::addConnection(genotype, bias, output0).setWeight(0.5);
+    TestAccess::addConnection(genotype, bias, output1).setWeight(1.5);
 
     Phenotype original(genotype, opts);
     const vector<double> beforeSaving = original.run({0.25, 0.75});
@@ -116,8 +117,8 @@ TEST(initNetZeroCyclesPreservesBiasTest) {
 
         const NeuronGene output = geneHistory.insertNeuron(NeuronType::OUTPUT, 0);
         const NeuronGene bias = geneHistory.insertNeuron(NeuronType::BIAS, 0);
-        genotype.addConnection(bias, output).setWeight(0.75);
-        genotype.addConnection(output, output).setWeight(0.25);
+        TestAccess::addConnection(genotype, bias, output).setWeight(0.75);
+        TestAccess::addConnection(genotype, output, output).setWeight(0.25);
 
         Phenotype phenotype(genotype, opts);
         const vector<double> inputs(numInputs, 0.5);
@@ -150,8 +151,8 @@ TEST(initNetDefaultCyclesWarmupTest) {
     const NeuronGene output = geneHistory.insertNeuron(NeuronType::OUTPUT, 0);
     const NeuronGene bias = geneHistory.insertNeuron(NeuronType::BIAS, 0);
     /* each pass adds one to the recurrent output */
-    genotype.addConnection(bias, output).setWeight(1.0 / output.getGradient());
-    genotype.addConnection(output, output).setWeight(1.0 / output.getGradient());
+    TestAccess::addConnection(genotype, bias, output).setWeight(1.0 / output.getGradient());
+    TestAccess::addConnection(genotype, output, output).setWeight(1.0 / output.getGradient());
 
     Phenotype phenotype(genotype, opts);
     phenotype.run({});
@@ -243,9 +244,9 @@ TEST(basicBinaryANDTest) {
     ASSERT_EQUAL(inputs.size(), 2, "there should be 2 inputs");
     ASSERT_EQUAL(outputs.size(), 1, "there should be 1 output");
 
-    ConnectionGene &inCon1  = genotype.addConnection(inputs[0], outputs[0]);
-    ConnectionGene &inCon2  = genotype.addConnection(inputs[1], outputs[0]);
-    ConnectionGene &biasCon = genotype.addConnection(*bias, outputs[0]);
+    ConnectionGene &inCon1  = TestAccess::addConnection(genotype, inputs[0], outputs[0]);
+    ConnectionGene &inCon2  = TestAccess::addConnection(genotype, inputs[1], outputs[0]);
+    ConnectionGene &biasCon = TestAccess::addConnection(genotype, *bias, outputs[0]);
 
     inCon1.setWeight(0.5);
     inCon2.setWeight(0.5);
@@ -287,9 +288,9 @@ TEST_N(advancedBinaryANDTest, 1000) {
     ASSERT_EQUAL(inputs.size(), 2, "there should be 2 inputs");
     ASSERT_EQUAL(outputs.size(), 1, "there should be 1 output");
 
-    ConnectionGene &inCon1  = genotype.addConnection(inputs[0], outputs[0]);
-    ConnectionGene &inCon2  = genotype.addConnection(inputs[1], outputs[0]);
-    ConnectionGene &biasCon = genotype.addConnection(*bias, outputs[0]);
+    ConnectionGene &inCon1  = TestAccess::addConnection(genotype, inputs[0], outputs[0]);
+    ConnectionGene &inCon2  = TestAccess::addConnection(genotype, inputs[1], outputs[0]);
+    ConnectionGene &biasCon = TestAccess::addConnection(genotype, *bias, outputs[0]);
 
     double weight1 = inCon1.getWeight(), 
            weight2 = inCon2.getWeight(), 

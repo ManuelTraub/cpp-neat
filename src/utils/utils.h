@@ -71,7 +71,7 @@ string get_arg(int argc,
                                 get_arg2(__VA_ARGS__),    \
                                 get_arg1(__VA_ARGS__))
 
-#ifdef __DEBUG__
+#ifndef NDEBUG
 #include <assert.h>
 #include <stdio.h>
 #define assertf(ex,fmt,...) do {    \
@@ -82,7 +82,7 @@ string get_arg(int argc,
 } while (0)
 #else
 #define assertf(...)
-#endif /* __DEBUG__ */
+#endif /* NDEBUG */
 
 /* returns the absolute difference between the two numbers 
  * (circumevents integer overflows) 
