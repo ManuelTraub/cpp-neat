@@ -123,6 +123,14 @@ NEAT_SEED=42 ./my_app
 comes from the current time. Repeatability applies to serial runs of the same
 executable; parallel callback scheduling may vary.
 
+## Project history
+
+This repository was extracted from a larger project. Its history was filtered
+to retain the C++ NEAT library, tests, build files, and supporting dependencies,
+including their earlier locations. Original authorship and commit messages
+are preserved, so some older entries refer to virtual creature simulations
+and other experiments.
+
 ## License
 
 Project code is licensed under the [MIT License](LICENSE).
